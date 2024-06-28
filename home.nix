@@ -87,7 +87,10 @@
   #
   home.sessionVariables = {
     EDITOR = "nvim";
+    VISUAL = "nvim";
   };
+
+  xsession.enable = true;
 
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;

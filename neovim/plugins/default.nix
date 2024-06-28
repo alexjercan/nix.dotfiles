@@ -8,6 +8,7 @@
     ./trouble.nix
     ./undotree.nix
     ./lsp.nix
+    ./macros.nix
   ];
 
   programs.nixvim = {
