@@ -27,6 +27,12 @@
         action = '':Git push -u origin '';
         options = {desc = "Git Push Tracking";};
       }
+      {
+        mode = "n";
+        key = "<leader>gp";
+        action = ''<cmd>Git push<CR>'';
+        options = {desc = "Git Push";};
+      }
     ];
   };
 }

@@ -85,6 +85,5 @@
   imports = [
     ./neovim
     ./tmux
-    # ./i3
   ];
 }
