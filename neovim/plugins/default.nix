@@ -11,7 +11,7 @@
   ];
 
   programs.nixvim = {
-    extraPlugins = [ pkgs.vimPlugins.gruber-darker-nvim ];
+    extraPlugins = [pkgs.vimPlugins.gruber-darker-nvim];
     colorscheme = "gruber-darker";
 
     plugins.surround.enable = true;

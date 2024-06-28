@@ -1,7 +1,4 @@
-{
-  pkgs,
-  ...
-}: {
+{pkgs, ...}: {
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
   home.username = "alex";
@@ -22,7 +19,25 @@
     # # Adds the 'hello' command to your environment. It prints a friendly
     # # "Hello, world!" when run.
     hello
+
+    dunst
+    fd
+    firefox
+    fzf
+    iosevka
+    kdePackages.kdenlive
+    kitty
+    mpv
     neofetch
+    nerdfonts
+    networkmanagerapplet
+    nitrogen
+    obs-studio
+    pcmanfm
+    pwvucontrol
+    ripgrep
+    scrot
+    tmux
 
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
@@ -37,6 +52,8 @@
     #   echo "Hello, ${config.home.username}!"
     # '')
   ];
+
+  fonts.fontconfig.enable = true;
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.
@@ -70,7 +87,7 @@
   #  /etc/profiles/per-user/alex/etc/profile.d/hm-session-vars.sh
   #
   home.sessionVariables = {
-    # EDITOR = "emacs";
+    EDITOR = "nvim";
   };
 
   # Let Home Manager install and manage itself.
@@ -85,5 +102,6 @@
   imports = [
     ./neovim
     ./tmux
+    ./rofi
   ];
 }
