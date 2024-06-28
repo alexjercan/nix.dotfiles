@@ -37,6 +37,8 @@
     pwvucontrol
     ripgrep
     scrot
+    i3status-rust
+    i3lock
 
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the

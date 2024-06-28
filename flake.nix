@@ -28,6 +28,12 @@
       };
     };
   in {
+    nixosConfigurations.main = nixpkgs.lib.nixosSystem {
+      modules = [
+        ./configuration.nix
+      ];
+    };
+
     homeConfigurations.alex = home-manager.lib.homeManagerConfiguration {
       inherit pkgs;
       extraSpecialArgs.nixvim = nixvim;

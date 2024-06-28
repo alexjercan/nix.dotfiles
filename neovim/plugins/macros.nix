@@ -15,7 +15,7 @@ in {
     ];
 
     extraConfigLua = ''
-        require("macros").setup();
+      require("macros").setup();
     '';
 
     keymaps = [
