@@ -20,10 +20,13 @@
     # # "Hello, world!" when run.
     hello
 
+    dconf
     dunst
     fd
     firefox
     fzf
+    i3lock
+    i3status-rust
     iosevka
     kdePackages.kdenlive
     kitty
@@ -37,8 +40,7 @@
     pwvucontrol
     ripgrep
     scrot
-    i3status-rust
-    i3lock
+    lxappearance
 
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
@@ -101,6 +103,31 @@
     enable = true;
     userName = "Alex Jercan";
     userEmail = "jercan_alex27@yahoo.com";
+  };
+
+  gtk = {
+    enable = true;
+    iconTheme = {
+      name = "Tela circle dark";
+      package = pkgs.tela-circle-icon-theme;
+    };
+
+    theme = {
+      name = "Graphite-Dark";
+      package = pkgs.graphite-gtk-theme;
+    };
+
+    gtk3.extraConfig = {
+      Settings = ''
+        gtk-application-prefer-dark-theme=1
+      '';
+    };
+
+    gtk4.extraConfig = {
+      Settings = ''
+        gtk-application-prefer-dark-theme=1
+      '';
+    };
   };
 
   imports = [

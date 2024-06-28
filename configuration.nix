@@ -84,11 +84,7 @@
   services.xserver.enable = true;
   services.xserver.videoDrivers = ["nvidia"];
   services.xserver.desktopManager.xterm.enable = false;
-  services.xserver.windowManager.i3 = {
-    enable = true;
-    extraPackages = with pkgs; [
-    ];
-  };
+  services.xserver.windowManager.i3.enable = true;
 
   services.xserver.xkb = {
     layout = "us";
@@ -122,18 +118,11 @@
     isNormalUser = true;
     description = "alex";
     extraGroups = ["networkmanager" "wheel"];
-    packages = with pkgs; [
-      #  thunderbird
-    ];
     shell = pkgs.fish;
   };
 
   programs.fish.enable = true;
   programs.nix-ld.enable = true;
-  programs.nix-ld.libraries = with pkgs; [
-    # Add any missing dynamic libraries for unpackaged
-    # programs here, NOT in environment.systemPackages
-  ];
   programs.steam = {
     enable = true;
     remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
