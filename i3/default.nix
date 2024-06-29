@@ -15,6 +15,15 @@ in {
       };
       modifier = "Mod4";
       terminal = "kitty";
+      defaultWorkspace = "workspace number 1";
+      window = {
+        titlebar = false;
+        border = 0;
+      };
+      floating = {
+        titlebar = false;
+        border = 0;
+      };
 
       startup = [
         {command = "nm-applet";}
@@ -32,7 +41,8 @@ in {
             names = ["Iosevka"];
             size = 10.0;
           };
-          trayOutput = "primary";
+          trayOutput = "DP-4";
+          trayPadding = 2;
         }
       ];
 
@@ -80,6 +90,7 @@ in {
         "${cfg.config.modifier}+Shift+7" = "move container to workspace number 7";
         "${cfg.config.modifier}+Shift+8" = "move container to workspace number 8";
         "${cfg.config.modifier}+Shift+9" = "move container to workspace number 9";
+        "${cfg.config.modifier}+Shift+0" = "move container to workspace number 0";
 
         "${cfg.config.modifier}+Shift+w" = "reload";
         "${cfg.config.modifier}+Shift+p" = "restart";
