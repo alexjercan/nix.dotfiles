@@ -117,7 +117,7 @@
   users.users.alex = {
     isNormalUser = true;
     description = "alex";
-    extraGroups = ["networkmanager" "wheel"];
+    extraGroups = ["networkmanager" "libvirtd" "wheel"];
     shell = pkgs.fish;
   };
 
@@ -128,6 +128,22 @@
     remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
     dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
     localNetworkGameTransfers.openFirewall = true; # Open ports in the firewall for Steam Local Network Game Transfers
+  };
+
+  virtualisation.libvirtd = {
+    enable = true;
+  qemu = {
+    package = pkgs.qemu_kvm;
+    runAsRoot = true;
+    swtpm.enable = true;
+    ovmf = {
+      enable = true;
+      packages = [(pkgs.OVMF.override {
+        secureBoot = true;
+        tpmSupport = true;
+      }).fd];
+    };
+  };
   };
 
   # Allow unfree packages
