@@ -36,6 +36,7 @@
     nerdfonts
     networkmanagerapplet
     nitrogen
+    libnotify
     obs-studio
     pcmanfm
     pw-volume
@@ -137,5 +138,6 @@
     ./rofi
     ./kitty
     ./i3
+    ./dunst
   ];
 }
