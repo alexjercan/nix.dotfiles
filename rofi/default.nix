@@ -26,31 +26,31 @@
       */
 
       "*" = {
-        bad0 = mkLiteral "#181818";
-        bad1 = mkLiteral "#D7B650";
-        bad2 = mkLiteral "#496519";
-        bad3 = mkLiteral "#BCBF30";
+        color0 = mkLiteral "#181818";
+        color1 = mkLiteral "#F43841";
+        color2 = mkLiteral "#73D936";
+        color3 = mkLiteral "#FFDD33";
 
-        bad4 = mkLiteral "#FFD700";
-        bad5 = mkLiteral "#348B4A";
-        bad6 = mkLiteral "#678C61";
+        color4 = mkLiteral "#96A6C8";
+        color5 = mkLiteral "#9E95C7";
+        color6 = mkLiteral "#95A99F";
 
-        bad7 = mkLiteral "#6D683C";
-        bad8 = mkLiteral "#404040";
-        bad9 = mkLiteral "#816C00";
-        bad10 = mkLiteral "#305636";
-        bad11 = mkLiteral "#FFD770";
+        color7 = mkLiteral "#E4E4E4";
+        color8 = mkLiteral "#52494E";
+        color9 = mkLiteral "#FF4F58";
+        color10 = mkLiteral "#73D936";
+        color11 = mkLiteral "#FFDD33";
 
-        bad12 = mkLiteral "#4692EA";
-        bad13 = mkLiteral "#644A7F";
-        bad14 = mkLiteral "#81AD8E";
-        bad15 = mkLiteral "#CEB874";
+        color12 = mkLiteral "#52494E";
+        color13 = mkLiteral "#9E95C7";
+        color14 = mkLiteral "#95A99F";
+        color15 = mkLiteral "#F5F5F5";
 
-        cursor = mkLiteral "#404040";
-        background = mkLiteral "#161616";
-        foreground = mkLiteral "#F1EFF0";
-        bg-selected = mkLiteral "#292929";
-        fg-selected = mkLiteral "#404040";
+        cursor = mkLiteral "#FFDD33";
+        background = mkLiteral "#181818";
+        foreground = mkLiteral "#E4E4E4";
+        bg-selected = mkLiteral "#FFFFFF";
+        fg-selected = mkLiteral "#52494E";
 
         text-color = mkLiteral "@foreground";
         background-color = mkLiteral "@background";
@@ -89,7 +89,7 @@
       };
 
       "#prompt" = {
-        text-color = mkLiteral "@bad4";
+        text-color = mkLiteral "@color4";
       };
 
       "#listview" = {
@@ -105,14 +105,14 @@
         spacing = mkLiteral "8px";
       };
       "#element.selected" = {
-        background-color = mkLiteral "@bad4";
+        background-color = mkLiteral "@color4";
       };
 
       "#element-text" = {
         background-color = mkLiteral "transparent";
       };
       "#element-text.selected" = {
-        text-color = mkLiteral "@bad0";
+        text-color = mkLiteral "@color0";
       };
 
       "#element-icon" = {

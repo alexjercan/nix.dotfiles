@@ -11,27 +11,27 @@
       background_opacity = "1.0";
       allow_remote_control = true;
 
-      background = "#161616";
-      foreground = "#F1EFF0";
-      cursor = "#AAAAAA";
-      selection_background = "#292929";
+      background = "#181818";
+      foreground = "#E4E4E4";
+      cursor = "#FFDD33";
+      selection_background = "#FFFFFF";
       color0 = "#181818";
-      color8 = "#404040";
-      color1 = "#D7B650";
-      color9 = "#816C00";
-      color2 = "#496519";
-      color10 = "#305636";
-      color3 = "#BCBF30";
-      color11 = "#FFD770";
-      color4 = "#FFD700";
-      color12 = "#4692EA";
-      color5 = "#348B4A";
-      color13 = "#644A7F";
-      color6 = "#678C61";
-      color14 = "#81AD8E";
-      color7 = "#6D683C";
-      color15 = "#CEB874";
-      selection_foreground = "#404040";
+      color8 = "#52494E";
+      color1 = "#F43841";
+      color9 = "#FF4F58";
+      color2 = "#73D936";
+      color10 = "#73D936";
+      color3 = "#FFDD33";
+      color11 = "#FFDD33";
+      color4 = "#96A6C8";
+      color12 = "#52494E";
+      color5 = "#9E95C7";
+      color13 = "#9E95C7";
+      color6 = "#95A99F";
+      color14 = "#95A99F";
+      color7 = "#E4E4E4";
+      color15 = "#F5F5F5";
+      selection_foreground = "#52494E";
     };
 
     keybindings = {
