@@ -30,6 +30,7 @@
     iosevka
     kdePackages.kdenlive
     kitty
+    lxappearance
     mpv
     neofetch
     nerdfonts
@@ -37,10 +38,10 @@
     nitrogen
     obs-studio
     pcmanfm
+    pw-volume
     pwvucontrol
     ripgrep
     scrot
-    lxappearance
 
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
@@ -135,5 +136,6 @@
     ./tmux
     ./rofi
     ./kitty
+    ./i3
   ];
 }
