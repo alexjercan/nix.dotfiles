@@ -134,5 +134,6 @@
     ./neovim
     ./tmux
     ./rofi
+    ./kitty
   ];
 }
