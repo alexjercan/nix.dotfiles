@@ -4,7 +4,7 @@
 
 #### My Developer Config using NixOS
 
-![desktop](./.resources/desktop.png)
+![desktop](./resources/desktop.png)
 
 </div>
 
