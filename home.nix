@@ -20,33 +20,36 @@
     # # "Hello, world!" when run.
     hello
 
+    audacity
     dconf
+    discord
     dunst
     fd
+    feh
+    ffmpeg
     firefox
     fzf
+    gimp
     i3lock
     i3status-rust
     iosevka
     kdePackages.kdenlive
     kitty
+    libnotify
     lxappearance
     mpv
     neofetch
     nerdfonts
     networkmanagerapplet
     nitrogen
-    libnotify
     obs-studio
     pcmanfm
     pw-volume
     pwvucontrol
     ripgrep
     scrot
-
-    audacity
-    ffmpeg
     virt-manager
+    xclip
 
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
