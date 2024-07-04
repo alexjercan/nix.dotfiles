@@ -35,7 +35,8 @@
     };
 
     keybindings = {
-      "ctrl+f" = "launch --type=overlay-main sesh";
+      "ctrl+f" = "launch --type=overlay-main tmux neww sesh";
+      "ctrl+shift+f" = "launch --type=overlay-main bash -c 'read -p \"Enter the name of the new project: \" -r input; echo -n \"$input\" | xargs tmux neww sesh --create'";
     };
 
     font = {
