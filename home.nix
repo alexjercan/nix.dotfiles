@@ -36,6 +36,7 @@
     kdePackages.kdenlive
     kitty
     libnotify
+    libreoffice-qt
     lxappearance
     mpv
     neofetch

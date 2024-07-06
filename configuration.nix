@@ -160,6 +160,7 @@
     alejandra
     gcc
     git
+    gnumake
     htop
     nvtopPackages.nvidia
     python3
