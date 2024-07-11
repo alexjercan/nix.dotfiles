@@ -96,8 +96,8 @@ in {
         "${cfg.config.modifier}+Shift+p" = "restart";
         "${cfg.config.modifier}+Shift+Escape" = "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'";
 
-        "${cfg.config.modifier}+Shift+s" = "exec --no-startup-id scrot -s";
-        "${cfg.config.modifier}+s" = "exec --no-startup-id scrot";
+        "${cfg.config.modifier}+Shift+s" = "exec --no-startup-id scrot -s ~/Pictures/Screenshots/%Y%m%d_%H%M%S.png";
+        "${cfg.config.modifier}+s" = "exec --no-startup-id scrot ~/Pictures/Screenshots/%Y%m%d_%H%M%S.png";
 
         "${cfg.config.modifier}+b" = "exec firefox";
         "${cfg.config.modifier}+e" = "exec pcmanfm";
