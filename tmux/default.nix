@@ -49,6 +49,8 @@
 
       set-option -g detach-on-destroy off
       set-option -g status-left-length "80"
+
+      set -g status-right "#{prefix_highlight}#[fg=cyan,bg=black,nobold,noitalics,nounderscore]#[fg=black,bg=cyan,bold] #H "
     '';
   };
 }

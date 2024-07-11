@@ -164,21 +164,21 @@ in {
           }
           {
             block = "sound";
-            format = " $icon $output_name {$volume.eng(w:2) |}";
+            format = " $icon {$volume.eng(w:2) |}";
             click = [
               {
                 button = "left";
                 cmd = "pwvucontrol";
               }
             ];
-            mappings = {
-              "alsa_output.pci-0000_00_1f.3.analog-stereo" = "";
-            };
           }
           {
-            block = "time";
+            block = "custom";
             interval = 5;
-            format = " $timestamp.datetime(f:'%a %d/%m %R') ";
+            cycle = [
+              " date +'%a %d/%m %H:%M:%S' "
+              " date +'%a %d/%m' "
+            ];
           }
         ];
       };
