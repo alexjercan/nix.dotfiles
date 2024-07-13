@@ -167,6 +167,7 @@
     unzip
     vim
     wget
+    lsof
     zip
   ];
 

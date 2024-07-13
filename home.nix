@@ -33,22 +33,27 @@
     i3lock
     i3status-rust
     iosevka
+    jdk
     kdePackages.kdenlive
     kitty
     libnotify
     libreoffice-qt
     lxappearance
     mpv
+    mupdf
     neofetch
     nerdfonts
     networkmanagerapplet
     nitrogen
     obs-studio
+    openvpn
     pcmanfm
+    poetry
     pw-volume
     pwvucontrol
     ripgrep
     scrot
+    valgrind
     virt-manager
     xclip
 
