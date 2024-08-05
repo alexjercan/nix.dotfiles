@@ -47,6 +47,7 @@
     nitrogen
     obs-studio
     openvpn
+    openvpn
     pcmanfm
     poetry
     pw-volume
