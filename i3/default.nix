@@ -176,8 +176,8 @@ in {
             block = "custom";
             interval = 5;
             cycle = [
-              " date +'%a %d/%m %H:%M:%S' "
               " date +'%a %d/%m' "
+              " date +'%a %d/%m %H:%M:%S' "
             ];
           }
         ];
