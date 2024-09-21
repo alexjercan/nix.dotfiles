@@ -11,6 +11,12 @@
       url = "github:nix-community/nixvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    dzgui-nix = {
+      # url of this repository, may change in the future
+      url = "github:lelgenio/dzgui-nix";
+      # save storage by not having duplicates of packages
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -18,7 +24,7 @@
     home-manager,
     nixvim,
     ...
-  }: let
+  } @ inputs: let
     system = "x86_64-linux";
     pkgs = import nixpkgs {
       inherit system;
@@ -31,6 +37,8 @@
     nixosConfigurations.main = nixpkgs.lib.nixosSystem {
       modules = [
         ./configuration.nix
+        inputs.dzgui-nix.nixosModules.default
+        {programs.dzgui.enable = true;}
       ];
     };
 

@@ -22,6 +22,26 @@
         "type": "github"
       }
     },
+    "dzgui-nix": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1720203493,
+        "narHash": "sha256-0DxMoLiBrHXWGljhT8cf8u3dy0D+C6gWR8PEOJ93IQ0=",
+        "owner": "lelgenio",
+        "repo": "dzgui-nix",
+        "rev": "eca167dfeb156f1d03eb44f63f92ece0b29872ef",
+        "type": "github"
+      },
+      "original": {
+        "owner": "lelgenio",
+        "repo": "dzgui-nix",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "locked": {
         "lastModified": 1696426674,
@@ -247,6 +267,7 @@
     },
     "root": {
       "inputs": {
+        "dzgui-nix": "dzgui-nix",
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs",
         "nixvim": "nixvim"

@@ -43,6 +43,7 @@
     mupdf
     neofetch
     nerdfonts
+    networkmanager-openvpn
     networkmanagerapplet
     nitrogen
     obs-studio
@@ -52,11 +53,14 @@
     poetry
     pw-volume
     pwvucontrol
+    rar
     ripgrep
     scrot
     valgrind
     virt-manager
+    wesnoth
     xclip
+    zlib
 
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
