@@ -30,6 +30,11 @@
         clangd.enable = true;
         nixd.enable = true;
         pylsp.enable = true;
+        rust-analyzer = {
+            installRustc = true;
+            installCargo = true;
+            enable = true;
+        };
       };
     };
 

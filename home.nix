@@ -21,6 +21,7 @@
     hello
 
     audacity
+    blender
     dconf
     discord
     dunst
@@ -47,7 +48,7 @@
     networkmanagerapplet
     nitrogen
     obs-studio
-    openvpn
+    openssl
     openvpn
     pcmanfm
     poetry
