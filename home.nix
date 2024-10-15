@@ -22,6 +22,7 @@
 
     audacity
     blender
+    btop
     dconf
     discord
     dunst
@@ -35,6 +36,7 @@
     i3status-rust
     iosevka
     jdk
+    jq
     kdePackages.kdenlive
     kitty
     libnotify

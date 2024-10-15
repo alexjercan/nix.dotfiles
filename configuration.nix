@@ -117,7 +117,7 @@
   users.users.alex = {
     isNormalUser = true;
     description = "alex";
-    extraGroups = ["networkmanager" "libvirtd" "wheel"];
+    extraGroups = ["networkmanager" "libvirtd" "wheel" "docker"];
     shell = pkgs.fish;
   };
 
@@ -158,6 +158,7 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     alejandra
+    file
     gcc
     git
     gnumake
@@ -178,6 +179,8 @@
   #   enable = true;
   #   enableSSHSupport = true;
   # };
+
+  virtualisation.docker.enable = true;
 
   programs.vim.defaultEditor = true;
 

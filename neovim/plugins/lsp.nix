@@ -35,6 +35,7 @@
             installCargo = false;
             enable = true;
         };
+        gopls.enable = true;
       };
     };
 
