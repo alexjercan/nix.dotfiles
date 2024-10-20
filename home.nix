@@ -23,9 +23,11 @@
     audacity
     blender
     btop
+    clang
     dconf
     discord
     dunst
+    fasm
     fd
     feh
     ffmpeg
