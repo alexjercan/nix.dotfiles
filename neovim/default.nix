@@ -4,6 +4,7 @@
     ./remap.nix
     ./set.nix
     ./autocmd.nix
+    ./extra
     ./plugins
   ];
 
