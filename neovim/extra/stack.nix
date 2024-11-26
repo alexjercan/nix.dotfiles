@@ -1,7 +1,7 @@
 {...}: {
   programs.nixvim = {
     filetype.extension = {
-      sl = "stack";
+      stack = "stack";
     };
     extraFiles = {
       "after/syntax/stack.vim" = ''
