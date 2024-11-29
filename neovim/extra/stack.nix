@@ -13,7 +13,7 @@
 
         syn keyword     Statement       data nextgroup=DataType skipwhite
         syn keyword     Statement       const func in end match
-        syn keyword     Conditional     if else fi
+        syn keyword     Conditional     if else fi while loop pool
         syn keyword     Boolean         true false
 
         syn match       Include "@import"
