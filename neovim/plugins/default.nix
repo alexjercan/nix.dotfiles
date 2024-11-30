@@ -9,6 +9,7 @@
     ./undotree.nix
     ./lsp.nix
     ./macros.nix
+    ./copilot.nix
   ];
 
   programs.nixvim = {
