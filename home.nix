@@ -20,6 +20,7 @@
     # # "Hello, world!" when run.
     hello
 
+
     audacity
     blender
     btop
@@ -46,6 +47,7 @@
     neofetch
     networkmanager-openvpn
     networkmanagerapplet
+    nitrogen
     obs-studio
     openssl
     openvpn
@@ -58,8 +60,6 @@
     virt-manager
     wesnoth
     xclip
-
-    nerd-fonts.sauce-code-pro
 
     # # You can also create simple shell scripts directly inside your
     # # configuration. For example, this adds a command 'my-hello' to your
