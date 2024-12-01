@@ -5,8 +5,7 @@
     };
 
     globals = {
-        copilot_enabled = false;
+      copilot_enabled = false;
     };
   };
 }
-

@@ -4,7 +4,7 @@
       stack = "stack";
     };
     extraFiles = {
-      "after/syntax/stack.vim" = ''
+      "after/syntax/stack.vim".text = ''
         if version < 600
           syntax clear
         elseif exists("b:current_syntax")

@@ -166,11 +166,9 @@
     htop
     nvtopPackages.nvidia
     python3
-    unzip
     vim
     wget
     lsof
-    zip
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -183,7 +181,10 @@
 
   virtualisation.docker.enable = true;
 
-  programs.vim.defaultEditor = true;
+  programs.vim = {
+    enable = true;
+    defaultEditor = true;
+  };
 
   # List services that you want to enable:
 

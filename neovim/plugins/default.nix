@@ -16,6 +16,7 @@
     extraPlugins = [pkgs.vimPlugins.gruber-darker-nvim];
     colorscheme = "gruber-darker";
 
-    plugins.surround.enable = true;
+    plugins.web-devicons.enable = true;
+    plugins.vim-surround.enable = true;
   };
 }

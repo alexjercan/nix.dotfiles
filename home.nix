@@ -23,11 +23,9 @@
     audacity
     blender
     btop
-    clang
     dconf
     discord
     dunst
-    fasm
     fd
     feh
     ffmpeg
@@ -37,7 +35,6 @@
     i3lock
     i3status-rust
     iosevka
-    jdk
     jq
     kdePackages.kdenlive
     kitty
@@ -47,10 +44,8 @@
     mpv
     mupdf
     neofetch
-    nerdfonts
     networkmanager-openvpn
     networkmanagerapplet
-    nitrogen
     obs-studio
     openssl
     openvpn
@@ -58,22 +53,13 @@
     poetry
     pw-volume
     pwvucontrol
-    rar
     ripgrep
     scrot
-    valgrind
     virt-manager
     wesnoth
     xclip
-    zlib
 
-    gdb
-
-    # # It is sometimes useful to fine-tune packages, for example, by applying
-    # # overrides. You can do that directly here, just don't forget the
-    # # parentheses. Maybe you want to install Nerd Fonts with a limited number of
-    # # fonts?
-    # (pkgs.nerdfonts.override { fonts = [ "FantasqueSansMono" ]; })
+    nerd-fonts.sauce-code-pro
 
     # # You can also create simple shell scripts directly inside your
     # # configuration. For example, this adds a command 'my-hello' to your

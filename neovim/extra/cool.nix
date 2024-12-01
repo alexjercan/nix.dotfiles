@@ -4,7 +4,7 @@
       cl = "cool";
     };
     extraFiles = {
-      "after/syntax/cool.vim" = ''
+      "after/syntax/cool.vim".text = ''
         if version < 600
           syntax clear
         elseif exists("b:current_syntax")
