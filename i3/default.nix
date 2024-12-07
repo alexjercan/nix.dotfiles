@@ -141,7 +141,7 @@ in {
     bars = {
       top = {
         theme = "gruvbox-dark";
-        icons = "material-nf";
+        icons = "none";
         blocks = [
           {
             block = "cpu";

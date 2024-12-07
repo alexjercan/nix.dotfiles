@@ -36,6 +36,13 @@
           enable = true;
         };
         gopls.enable = true;
+        hls = {
+            installGhc = false;
+            enable = true;
+        };
+        eslint.enable = true;
+        html.enable = true;
+        ts_ls.enable = true;
       };
     };
 
