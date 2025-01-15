@@ -20,10 +20,10 @@
     # # "Hello, world!" when run.
     hello
 
-
     audacity
     blender
     btop
+    chromium
     dconf
     discord
     dunst
@@ -53,13 +53,17 @@
     openvpn
     pcmanfm
     poetry
+    prismlauncher
     pw-volume
     pwvucontrol
+    rar
     ripgrep
     scrot
+    unzip
     virt-manager
     wesnoth
     xclip
+    zip
 
     # # You can also create simple shell scripts directly inside your
     # # configuration. For example, this adds a command 'my-hello' to your
