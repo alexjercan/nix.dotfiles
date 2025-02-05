@@ -96,7 +96,7 @@
   services.printing.enable = true;
 
   # Enable sound with pipewire.
-  hardware.pulseaudio.enable = false;
+  services.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -196,9 +196,12 @@
   # services.openssh.enable = true;
 
   # Open ports in the firewall.
-  networking.firewall.allowedTCPPorts = [ 5000 ];
+  networking.firewall.allowedTCPPorts = [5000];
   networking.firewall.allowedUDPPortRanges = [
-    { from = 5000; to = 5005; }
+    {
+      from = 5000;
+      to = 5005;
+    }
   ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;

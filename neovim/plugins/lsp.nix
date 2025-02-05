@@ -37,8 +37,8 @@
         };
         gopls.enable = true;
         hls = {
-            installGhc = false;
-            enable = true;
+          installGhc = false;
+          enable = true;
         };
         eslint.enable = true;
         html.enable = true;

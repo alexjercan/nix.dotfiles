@@ -1,5 +1,4 @@
-{ pkgs, ...}:
-let
+{pkgs, ...}: let
   # Example of building your own grammar
   treesitter-c3-grammar = pkgs.tree-sitter.buildGrammar {
     language = "c3";
@@ -15,33 +14,34 @@ in {
   programs.nixvim = {
     plugins.treesitter = {
       enable = true;
-      grammarPackages = pkgs.vimPlugins.nvim-treesitter.passthru.allGrammars ++ [
-        treesitter-c3-grammar
-      ];
+      grammarPackages =
+        pkgs.vimPlugins.nvim-treesitter.passthru.allGrammars
+        ++ [
+          treesitter-c3-grammar
+        ];
 
       settings = {
         highlight.enable = true;
       };
     };
 
-    extraConfigLua =
-      ''
-        do
-          local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
-          -- change the following as needed
-          parser_config.c3 = {
-            install_info = {
-              url = "${treesitter-c3-grammar}", -- local path or git repo
-              files = {"src/parser.c", "src/scanner.c"}, -- note that some parsers also require src/scanner.c or src/scanner.cc
-              -- optional entries:
-              branch = "main", -- default branch in case of git repo if different from master
-              -- generate_requires_npm = false, -- if stand-alone parser without npm dependencies
-              -- requires_generate_from_grammar = false, -- if folder contains pre-generated src/parser.c
-            },
-            filetype = "c3", -- if filetype does not match the parser name
-          }
-        end
-      '';
+    extraConfigLua = ''
+      do
+        local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
+        -- change the following as needed
+        parser_config.c3 = {
+          install_info = {
+            url = "${treesitter-c3-grammar}", -- local path or git repo
+            files = {"src/parser.c", "src/scanner.c"}, -- note that some parsers also require src/scanner.c or src/scanner.cc
+            -- optional entries:
+            branch = "main", -- default branch in case of git repo if different from master
+            -- generate_requires_npm = false, -- if stand-alone parser without npm dependencies
+            -- requires_generate_from_grammar = false, -- if folder contains pre-generated src/parser.c
+          },
+          filetype = "c3", -- if filetype does not match the parser name
+        }
+      end
+    '';
 
     extraPlugins = [
       treesitter-c3-grammar
