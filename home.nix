@@ -128,10 +128,10 @@
 
   gtk = {
     enable = true;
-    iconTheme = {
-      name = "Tela circle dark";
-      package = pkgs.tela-circle-icon-theme;
-    };
+    # iconTheme = {
+    #   name = "Tela circle dark";
+    #   package = pkgs.tela-circle-icon-theme;
+    # };
 
     theme = {
       name = "Graphite-Dark";

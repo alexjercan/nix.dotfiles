@@ -81,10 +81,10 @@
       };
     };
 
-    iconTheme = {
-      package = pkgs.tela-circle-icon-theme;
-      name = "Tela circle dark";
-      size = "64x64";
-    };
+    # iconTheme = {
+    #   package = pkgs.tela-circle-icon-theme;
+    #   name = "Tela circle dark";
+    #   size = "64x64";
+    # };
   };
 }
