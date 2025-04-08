@@ -154,5 +154,6 @@
     ./kitty
     ./i3
     ./dunst
+    ./scripts
   ];
 }

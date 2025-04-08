@@ -169,6 +169,7 @@
     vim
     wget
     lsof
+    pv
   ];
 
   fonts.packages = with pkgs; [
