@@ -10,6 +10,7 @@
         ''
           set +o errexit
           set +o pipefail
+          set +o nounset
 
           usage() {
               echo "Usage: tmux-sessionizer [--help | -h] [--open | -o <directory>] [directory...]"
