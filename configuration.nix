@@ -170,6 +170,8 @@
     wget
     lsof
     pv
+    man-pages
+    man-pages-posix
   ];
 
   fonts.packages = with pkgs; [
