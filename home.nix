@@ -1,4 +1,4 @@
-{pkgs, ...}: {
+{pkgs, dzgui, ...}: {
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
   home.username = "alex";
@@ -64,6 +64,10 @@
     wesnoth
     xclip
     zip
+    dust
+    dua
+
+    dzgui.packages.x86_64-linux.default
 
     # # You can also create simple shell scripts directly inside your
     # # configuration. For example, this adds a command 'my-hello' to your

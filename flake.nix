@@ -13,6 +13,10 @@
       url = "github:nix-community/nixvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    dzgui-nix = {
+        url = "github:lelgenio/dzgui-nix";
+        inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -39,6 +43,7 @@
     homeConfigurations.alex = home-manager.lib.homeManagerConfiguration {
       inherit pkgs;
       extraSpecialArgs.nixvim = nixvim;
+      extraSpecialArgs.dzgui = inputs.dzgui-nix;
 
       modules = [
         ./home.nix
