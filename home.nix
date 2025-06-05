@@ -67,6 +67,7 @@
     dust
     dua
 
+    brave
     dzgui.packages.x86_64-linux.default
 
     # # You can also create simple shell scripts directly inside your
