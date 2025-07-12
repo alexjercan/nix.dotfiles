@@ -30,15 +30,15 @@
         clangd.enable = true;
         nixd.enable = true;
         pylsp = {
-            settings = {
-                configurationSources = "pycodestyle";
-                plugins = {
-                    pycodestyle.enabled = true;
-                    pylsp_mypy.enabled = true;
-                    ruff.enabled = true;
-                };
+          settings = {
+            configurationSources = "pycodestyle";
+            plugins = {
+              pycodestyle.enabled = true;
+              pylsp_mypy.enabled = true;
+              ruff.enabled = true;
             };
-            enable = true;
+          };
+          enable = true;
         };
         rust_analyzer = {
           installRustc = false;

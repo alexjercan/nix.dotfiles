@@ -14,8 +14,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     dzgui-nix = {
-        url = "github:lelgenio/dzgui-nix";
-        inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:lelgenio/dzgui-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 

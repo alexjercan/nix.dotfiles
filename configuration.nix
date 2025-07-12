@@ -59,6 +59,9 @@
     package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 
+  # NVIDIA container runtime
+  hardware.nvidia-container-toolkit.enable = true;
+
   # Set your time zone.
   time.timeZone = "Europe/Bucharest";
 
@@ -118,7 +121,7 @@
   users.users.alex = {
     isNormalUser = true;
     description = "alex";
-    extraGroups = ["networkmanager" "libvirtd" "wheel" "docker"];
+    extraGroups = ["networkmanager" "libvirtd" "wheel" "docker" "sambashare"];
     shell = pkgs.fish;
   };
 
@@ -208,6 +211,36 @@
   ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
+
+  services.samba = {
+    enable = true;
+    openFirewall = true;
+    settings = {
+      global = {
+        "workgroup" = "WORKGROUP";
+        "server string" = "smbnix";
+        "netbios name" = "smbnix";
+        "security" = "user";
+        "hosts allow" = "192.168.0. 127.0.0.1 localhost";
+        "hosts deny" = "0.0.0.0/0";
+        "guest account" = "nobody";
+        "map to guest" = "bad user";
+      };
+      "public" = {
+        "path" = "/home/alex/Shared/public";
+        "browseable" = "yes";
+        "read only" = "no";
+        "guest ok" = "yes";
+        "create mask" = "0644";
+        "directory mask" = "0755";
+        "force user" = "alex";
+
+        "fruit:aapl" = "yes";
+        "fruit:time machine" = "yes";
+        "vfs objects" = "catia fruit streams_xattr";
+      };
+    };
+  };
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
