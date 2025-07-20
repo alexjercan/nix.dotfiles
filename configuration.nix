@@ -242,6 +242,43 @@
     };
   };
 
+  services.ollama = {
+    enable = true;
+    acceleration = "cuda";
+  };
+
+  services.pgadmin = {
+    enable = true;
+    initialEmail = "email@email.com";
+    initialPasswordFile = pkgs.writeText "pgadmin-password.txt" "scufris";
+    port = 5050;
+  };
+
+  services.postgresql = {
+    enable = true;
+    ensureDatabases = [ "scufris" ];
+    settings.port = 5432;
+    authentication = pkgs.lib.mkOverride 10 ''
+      #type database DBuser origin-address auth-method
+      local all      all     trust
+      # ... other auth rules ...
+
+      # ipv4
+      host  all      all     127.0.0.1/32   trust
+      # ipv6
+      host  all      all     ::1/128        trust
+    '';
+    # initialScript = pkgs.writeText "init.sql" ''
+    #   CREATE ROLE scufris WITH LOGIN PASSWORD 'scufris' CREATEDB;
+    #   CREATE DATBASE scufris;
+    #   GRANT ALL PRIVILEGES ON DATABASE scufris TO scufris;
+    #   \c scufris;
+    #   GRANT ALL ON SCHEMA public TO scufris;
+    # '';
+    extensions = with pkgs.postgresql.pkgs; [ pgvector ];
+    package = pkgs.postgresql;
+  };
+
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
   # on your system were taken. It‘s perfectly fine and recommended to leave
