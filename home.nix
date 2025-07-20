@@ -131,6 +131,10 @@
     userEmail = "jercan_alex27@yahoo.com";
   };
 
+  services.scufris = {
+      enable = true;
+  };
+
   gtk = {
     enable = true;
     # iconTheme = {

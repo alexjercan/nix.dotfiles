@@ -249,8 +249,8 @@
 
   services.pgadmin = {
     enable = true;
-    initialEmail = "email@email.com";
-    initialPasswordFile = pkgs.writeText "pgadmin-password.txt" "scufris";
+    initialEmail = "jercan_alex27@yahoo.com";
+    initialPasswordFile = pkgs.writeText "pgadmin-password.txt" "password"; # Yeah, I don't care hack me
     port = 5050;
   };
 

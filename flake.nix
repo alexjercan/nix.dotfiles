@@ -17,12 +17,17 @@
       url = "github:lelgenio/dzgui-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    scufris = {
+      url = "github:alexjercan/scufris";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
     nixpkgs,
     home-manager,
     nixvim,
+    scufris,
     ...
   } @ inputs: let
     system = "x86_64-linux";
@@ -43,10 +48,12 @@
     homeConfigurations.alex = home-manager.lib.homeManagerConfiguration {
       inherit pkgs;
       extraSpecialArgs.nixvim = nixvim;
+      extraSpecialArgs.scufris = scufris;
       extraSpecialArgs.dzgui = inputs.dzgui-nix;
 
       modules = [
         ./home.nix
+        scufris.homeManagerModules.${system}.default
       ];
     };
   };
