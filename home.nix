@@ -132,7 +132,7 @@
   };
 
   services.scufris = {
-      enable = true;
+      enable = false;
   };
 
   gtk = {
