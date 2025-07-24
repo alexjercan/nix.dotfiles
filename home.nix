@@ -26,11 +26,15 @@
 
     audacity
     blender
+    brave
     btop
     chromium
     dconf
     discord
+    dua
     dunst
+    dust
+    dzgui.packages.x86_64-linux.default
     fd
     feh
     ffmpeg
@@ -68,11 +72,6 @@
     wesnoth
     xclip
     zip
-    dust
-    dua
-
-    brave
-    dzgui.packages.x86_64-linux.default
 
     # # You can also create simple shell scripts directly inside your
     # # configuration. For example, this adds a command 'my-hello' to your
@@ -129,6 +128,13 @@
     enable = true;
     userName = "Alex Jercan";
     userEmail = "jercan_alex27@yahoo.com";
+  };
+
+  programs.newsboat = {
+      enable = true;
+      urls = [
+        { url = "https://xkcd.com/rss.xml"; }
+      ];
   };
 
   services.scufris = {
