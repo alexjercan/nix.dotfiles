@@ -203,12 +203,7 @@
 
   # Open ports in the firewall.
   networking.firewall.allowedTCPPorts = [5000];
-  networking.firewall.allowedUDPPortRanges = [
-    {
-      from = 5000;
-      to = 5005;
-    }
-  ];
+  # networking.firewall.allowedUDPPortRanges = [];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
 

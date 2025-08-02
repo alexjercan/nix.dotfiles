@@ -74,7 +74,19 @@ with lib; {
                 # ```
                 YESTERDAY=$(date -d "yesterday" "$DATE_FORMAT")
                 YESTERDAY_FILE="$DAILY_PATH/$YESTERDAY.md"
-                grep -Pzo "Tomorrow\n(-.*\n)+" "$YESTERDAY_FILE" | tr '\0' '\n' | sed 's/Tomorrow/Today/' >> "$1"
+                TARGET_FILE="$1"
+
+                if [[ ! -f "$YESTERDAY_FILE" ]]; then
+                  echo "Warning: $YESTERDAY_FILE not found" >&2
+                  exit 1
+                fi
+
+                grep -Pzo "Tomorrow\n(- .*\n)+" "$YESTERDAY_FILE" | \
+                  tr '\0' '\n' | \
+                  sed -E '
+                    1s/^Tomorrow/Today/;
+                    s/^- (.*)/- [ ] \1/
+                  ' >> "$TARGET_FILE"
             }
 
             edit() {
