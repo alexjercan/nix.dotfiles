@@ -29,6 +29,7 @@
     brave
     btop
     chromium
+    cmake
     dconf
     discord
     dua
@@ -131,15 +132,15 @@
   };
 
   programs.newsboat = {
-      enable = true;
-      urls = [
-        { url = "https://xkcd.com/rss.xml"; }
-        { url = "https://alexjercan.github.io/rss.xml"; }
-      ];
+    enable = true;
+    urls = [
+      {url = "https://xkcd.com/rss.xml";}
+      {url = "https://alexjercan.github.io/rss.xml";}
+    ];
   };
 
   services.scufris = {
-      enable = false;
+    enable = false;
   };
 
   gtk = {

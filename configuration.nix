@@ -121,7 +121,7 @@
   users.users.alex = {
     isNormalUser = true;
     description = "alex";
-    extraGroups = ["networkmanager" "libvirtd" "wheel" "docker" "sambashare"];
+    extraGroups = ["networkmanager" "libvirtd" "wheel" "docker" "sambashare" "dialout"];
     shell = pkgs.fish;
   };
 
@@ -175,6 +175,7 @@
     pv
     man-pages
     man-pages-posix
+    socat
   ];
 
   fonts.packages = with pkgs; [
@@ -202,7 +203,8 @@
   # services.openssh.enable = true;
 
   # Open ports in the firewall.
-  networking.firewall.allowedTCPPorts = [5000];
+  networking.firewall.allowedUDPPorts = [4445 25565];
+  networking.firewall.allowedTCPPorts = [5000 25565];
   # networking.firewall.allowedUDPPortRanges = [];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
@@ -251,7 +253,7 @@
 
   services.postgresql = {
     enable = true;
-    ensureDatabases = [ "scufris" ];
+    ensureDatabases = ["scufris"];
     settings.port = 5432;
     authentication = pkgs.lib.mkOverride 10 ''
       #type database DBuser origin-address auth-method
@@ -270,9 +272,12 @@
     #   \c scufris;
     #   GRANT ALL ON SCHEMA public TO scufris;
     # '';
-    extensions = with pkgs.postgresql.pkgs; [ pgvector ];
+    extensions = with pkgs.postgresql.pkgs; [pgvector];
     package = pkgs.postgresql;
   };
+
+  services.logmein-hamachi.enable = true;
+  documentation.man.generateCaches = false;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
