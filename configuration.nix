@@ -85,7 +85,10 @@
   };
 
   # Enable the X11 windowing system.
-  services.xserver.enable = true;
+  services.xserver = {
+    enable = true;
+    xkb.options = "caps:none";
+  };
   services.xserver.videoDrivers = ["nvidia"];
   services.xserver.desktopManager.xterm.enable = false;
   services.xserver.windowManager.i3.enable = true;
