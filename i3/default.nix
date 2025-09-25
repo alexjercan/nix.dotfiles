@@ -30,7 +30,7 @@ in {
         {command = "dunst";}
         {command = "nitrogen --restore";}
         {command = "xset s off -dpms";}
-        {command = "xrandr --output DP-4 --mode 1920x1080 --rate 165";} # NOTE: This one should work for my monitor
+        {command = "xrandr --output DP-4 --mode 1920x1080 --rate 165";}
       ];
 
       bars = [
