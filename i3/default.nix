@@ -30,6 +30,7 @@ in {
         {command = "dunst";}
         {command = "nitrogen --restore";}
         {command = "xset s off -dpms";}
+        {command = "xrandr --output DP-4 --mode 1920x1080 --rate 165";} # NOTE: This one should work for my monitor
       ];
 
       bars = [
@@ -176,8 +177,8 @@ in {
             block = "custom";
             interval = 5;
             cycle = [
-              " date +'%a %d/%m' "
               " date +'%a %d/%m %H:%M:%S' "
+              " date +'%a %d/%m' "
             ];
           }
         ];
