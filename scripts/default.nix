@@ -2,6 +2,7 @@
   imports = [
     ./today.nix
     ./daily.nix
+    ./weight.nix
   ];
 
   today = {
@@ -10,6 +11,11 @@
   };
 
   daily = {
+    enable = true;
+    rootPath = "~/personal/the-den/";
+  };
+
+  weight = {
     enable = true;
     rootPath = "~/personal/the-den/";
   };
