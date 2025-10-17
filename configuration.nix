@@ -178,7 +178,6 @@
     pv
     man-pages
     man-pages-posix
-    socat
   ];
 
   fonts.packages = with pkgs; [
@@ -206,8 +205,8 @@
   # services.openssh.enable = true;
 
   # Open ports in the firewall.
-  networking.firewall.allowedUDPPorts = [4445 25565];
-  networking.firewall.allowedTCPPorts = [5000 25565];
+  # networking.firewall.allowedUDPPorts = [4445 25565];
+  # networking.firewall.allowedTCPPorts = [5000 25565];
   # networking.firewall.allowedUDPPortRanges = [];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
@@ -245,38 +244,6 @@
   services.ollama = {
     enable = true;
     acceleration = "cuda";
-  };
-
-  services.pgadmin = {
-    enable = true;
-    initialEmail = "jercan_alex27@yahoo.com";
-    initialPasswordFile = pkgs.writeText "pgadmin-password.txt" "password"; # Yeah, I don't care hack me
-    port = 5050;
-  };
-
-  services.postgresql = {
-    enable = true;
-    ensureDatabases = ["scufris"];
-    settings.port = 5432;
-    authentication = pkgs.lib.mkOverride 10 ''
-      #type database DBuser origin-address auth-method
-      local all      all     trust
-      # ... other auth rules ...
-
-      # ipv4
-      host  all      all     127.0.0.1/32   trust
-      # ipv6
-      host  all      all     ::1/128        trust
-    '';
-    # initialScript = pkgs.writeText "init.sql" ''
-    #   CREATE ROLE scufris WITH LOGIN PASSWORD 'scufris' CREATEDB;
-    #   CREATE DATBASE scufris;
-    #   GRANT ALL PRIVILEGES ON DATABASE scufris TO scufris;
-    #   \c scufris;
-    #   GRANT ALL ON SCHEMA public TO scufris;
-    # '';
-    extensions = with pkgs.postgresql.pkgs; [pgvector];
-    package = pkgs.postgresql;
   };
 
   services.logmein-hamachi.enable = true;
