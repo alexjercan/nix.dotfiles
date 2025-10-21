@@ -44,6 +44,7 @@
     gimp
     i3lock
     i3status-rust
+    inkscape
     iosevka
     jq
     kdePackages.kdenlive
@@ -137,10 +138,6 @@
       {url = "https://xkcd.com/rss.xml";}
       {url = "https://alexjercan.github.io/rss.xml";}
     ];
-  };
-
-  services.scufris = {
-    enable = false;
   };
 
   gtk = {
