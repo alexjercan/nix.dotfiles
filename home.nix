@@ -128,8 +128,8 @@
 
   programs.git = {
     enable = true;
-    userName = "Alex Jercan";
-    userEmail = "jercan_alex27@yahoo.com";
+    settings.user.name = "Alex Jercan";
+    settings.user.email = "jercan_alex27@yahoo.com";
   };
 
   programs.newsboat = {

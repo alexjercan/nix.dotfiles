@@ -1,6 +1,6 @@
 {nixvim, ...}: {
   imports = [
-    nixvim.homeManagerModules.nixvim
+    nixvim.homeModules.nixvim
     ./remap.nix
     ./set.nix
     ./autocmd.nix
