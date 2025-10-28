@@ -19,5 +19,6 @@
     plugins.web-devicons.enable = true;
     plugins.vim-surround.enable = true;
     plugins.colorizer.enable = true;
+    plugins.cloak.enable = true;
   };
 }
