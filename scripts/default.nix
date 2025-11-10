@@ -1,22 +1,30 @@
-{...}: {
+{...}: let
+  rootPath = "~/personal/the-den";
+in {
   imports = [
     ./today.nix
     ./daily.nix
     ./weight.nix
+    ./note.nix
   ];
 
   today = {
     enable = true;
-    rootPath = "~/personal/the-den/";
+    inherit rootPath;
   };
 
   daily = {
     enable = true;
-    rootPath = "~/personal/the-den/";
+    inherit rootPath;
   };
 
   weight = {
     enable = true;
-    rootPath = "~/personal/the-den/";
+    inherit rootPath;
+  };
+
+  note = {
+    enable = true;
+    inherit rootPath;
   };
 }
