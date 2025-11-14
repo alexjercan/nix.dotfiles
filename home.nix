@@ -25,6 +25,7 @@
     hello
 
     audacity
+    bat
     blender
     brave
     btop

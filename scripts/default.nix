@@ -4,8 +4,6 @@ in {
   imports = [
     ./today.nix
     ./daily.nix
-    ./weight.nix
-    ./note.nix
   ];
 
   today = {
@@ -14,16 +12,6 @@ in {
   };
 
   daily = {
-    enable = true;
-    inherit rootPath;
-  };
-
-  weight = {
-    enable = true;
-    inherit rootPath;
-  };
-
-  note = {
     enable = true;
     inherit rootPath;
   };

@@ -9,7 +9,7 @@ with lib; {
     enable = mkOption {
       type = types.bool;
       default = false;
-      description = "Enable my `today` Bash script.";
+      description = "Enable my `daily` Bash script.";
     };
 
     rootPath = mkOption {
@@ -35,15 +35,22 @@ with lib; {
 
             THE_DEN_PATH=${config.daily.rootPath}
             DEFAULT_OFFSET=0
+            NOTE_MODE=0
+            NOTE_TAG=""
+            IDEA_MODE=0
+            WEIGHT_MODE=0
 
             usage() {
                 echo "Usage: $0 [DEN-PATH] [OPTIONS]"
                 echo "Show the daily statistics for the journal."
                 echo
-                echo "  -n, --offset    The number of days to offset from today."
-                echo "  -h, --help      Display this help and exit."
+                echo "  -n, --note <TAG>  Show notes with the specified tag (note :: <TAG>)."
+                echo "  -i, --idea        Show ideas from the journal (idea :: stuff here)."
+                echo "  -w, --weight      Show weight for the journal."
+                echo "  -N, --offset <N>  The number of days to offset from today."
+                echo "  -h, --help        Display this help and exit."
                 echo
-                echo " DEN-PATH        The path to the den directory."
+                echo " DEN-PATH           The path to the den directory."
                 echo
                 echo "If DEN-PATH is not provided, the default path will be used."
                 echo "The default path is: $THE_DEN_PATH"
@@ -53,8 +60,29 @@ with lib; {
             # Parse options
             while [[ $# -gt 0 ]]; do
                 case "$1" in
-                    -n|--offset)
+                    -n|--note)
                         shift
+                        if [[ -z "$1" || "$1" == -* ]]; then
+                            echo "Error: --note requires a tag argument."
+                            usage
+                            exit 1
+                        fi
+                        NOTE_MODE=1
+                        NOTE_TAG="$1"
+                        ;;
+                    -i|--idea)
+                        IDEA_MODE=1
+                        ;;
+                    -w|--weight)
+                        WEIGHT_MODE=1
+                        ;;
+                    -N|--offset)
+                        shift
+                        if [[ -z "$1" || "$1" == -* ]]; then
+                            echo "Error: --offset requires a numeric argument."
+                            usage
+                            exit 1
+                        fi
                         OFFSET="$1"
                         ;;
                     -h|--help)
@@ -77,13 +105,81 @@ with lib; {
                 OFFSET=$DEFAULT_OFFSET
             fi
 
-            DATE=$(date -d "-$OFFSET days" +%Y-%m-%d-%A)
-            FILE="$DEN_PATH/Daily/$DATE.md"
+            run_note() {
+                find "$DEN_PATH/Daily" -type f -name '*.md' | sort | while read -r file; do
+                    awk -v tag="$NOTE_TAG" -v file="$file" '
+                        $0 ~ "note :: " tag {
+                            print "" file ":" NR ""
+                            while (getline nextline) {
+                                if (nextline ~ /^[[:space:]]*$/) continue
+                                    print nextline
+                                        break
+                            }
+                            while (getline nextline) {
+                                if (nextline ~ /^$/) break
+                                print nextline
+                            }
+                            print ""
+                        }
+                    ' "$file"
+                done
+            }
 
-            if [[ ! -f "$FILE" ]]; then
-                echo "No daily journal entry found for $DATE."
-                exit 1
-            fi
+            run_idea() {
+                rg -n '^idea :: ' --color=never "$DEN_PATH/Daily" | fzf | awk -F: '{ system("nvim +"$2" "$1) }'
+            }
+
+            run_weight() {
+                echo "date,weight" > /tmp/weight_data.csv
+                last=0
+                find "$DEN_PATH/Daily" -type f -name "*.md" | sort | while read -r file; do
+                    filename=$(basename "$file")
+                    date_part=$(echo "$filename" | grep -oE '^[0-9]{4}-[0-9]{2}-[0-9]{2}')
+
+                    weight=$(grep -Po 'weight :: \K[0-9]+\.?[0-9]*(?= Kg)' "$file" || true)
+
+                    if [[ -z "$weight" ]]; then
+                      weight=$last
+                    fi
+                    last=$weight
+
+                    echo "$date_part,$weight"
+                done >> /tmp/weight_data.csv
+
+                echo "CSV written to /tmp/weight_data.csv"
+                echo "Generating plot..."
+
+                # https://gnuplot.sourceforge.net/demo/running_avg.html
+                ${pkgs.gnuplot}/bin/gnuplot -e "
+                  set datafile separator ',';
+                  set terminal pngcairo size 1000,600 enhanced font 'Source Code Pro,12';
+                  set output '/tmp/weight_plot.png';
+                  set title 'Weight Over Time';
+                  set xlabel 'Date';
+                  set xdata time;
+                  set timefmt '%Y-%m-%d';
+                  set format x '%Y-%m-%d';
+                  set xtics rotate by -45;
+                  set ylabel 'Weight (Kg)';
+                  set grid ytics xtics;
+                  set key top left;
+
+                  back1 = back2 = back3 = back4 = back5 = 0;
+                  count = 0;
+
+                  shift5(x) = (back5 = back4, back4 = back3, back3 = back2, back2 = back1, back1 = x, count = count + 1);
+                  avg5(x) = (shift5(x), (count < 5) ? NaN : (back1 + back2 + back3 + back4 + back5) / 5);
+
+                  set style line 1 lw 1.5 lc rgb 'green';
+                  set style line 2 lw 2   lc rgb 'orange';
+
+                  plot '/tmp/weight_data.csv' using 1:2 title 'Weight' with lines ls 1, \
+                       '/tmp/weight_data.csv' using 1:(avg5(\$2)) title '5-day rolling avg' with lines ls 2
+                "
+
+                echo "Plot saved to /tmp/weight_plot.png"
+                echo "feh /tmp/weight_plot.png"
+            }
 
             # Get title (first line)
             title() {
@@ -130,22 +226,42 @@ with lib; {
               }'
             }
 
-            # Main output
+            run_daily() {
+                title
+                echo
+                echo "### 🌱 Habits"
+                echo
+                habits
+                echo
+                echo "### 🍽️Macros"
+                echo
+                macros
+                echo
+                echo "### 🏋️ Weight"
+                echo
+                weight
+                echo
+            }
+
+            # Main function
             {
-              title
-              echo
-              echo "### 🌱 Habits"
-              echo
-              habits
-              echo
-              echo "### 🍽️Macros"
-              echo
-              macros
-              echo
-              echo "### 🏋️ Weight"
-              echo
-              weight
-              echo
+                if [[ $NOTE_MODE -eq 1 ]]; then
+                    run_note
+                elif [[ $IDEA_MODE -eq 1 ]]; then
+                    run_idea
+                elif [[ $WEIGHT_MODE -eq 1 ]]; then
+                    run_weight
+                else
+                    DATE=$(date -d "-$OFFSET days" +%Y-%m-%d-%A)
+                    FILE="$DEN_PATH/Daily/$DATE.md"
+
+                    if [[ ! -f "$FILE" ]]; then
+                        echo "No daily journal entry found for $DATE."
+                        exit 1
+                    fi
+
+                    run_daily
+                fi
             }
           '';
       })
