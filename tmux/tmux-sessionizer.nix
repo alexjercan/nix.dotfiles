@@ -41,7 +41,7 @@
           selected=
 
           if [[ $# -eq 0 ]]; then
-              selected=$(find ~/personal ~/work ~/third-party -mindepth 1 -maxdepth 1 -type d | fzf)
+              selected=$(find ~/personal ~/personal/_tests ~/work ~/third-party -mindepth 1 -maxdepth 1 -type d | fzf)
           elif [[ $# -eq 2 && $1 == "--open" || $1 == "-o" ]]; then
               selected=$2
           elif [[ $# -eq 2 && $1 == "--create" || $1 == "-c" ]]; then
