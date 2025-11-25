@@ -98,6 +98,8 @@
     variant = "";
   };
 
+  programs.hyprland.enable = true; # enable Hyprland
+
   # Enable CUPS to print documents.
   services.printing.enable = true;
 
@@ -160,14 +162,15 @@
     git
     gnumake
     htop
+    kitty
+    lsof
+    man-pages
+    man-pages-posix
     nvtopPackages.nvidia
+    pv
     python3
     vim
     wget
-    lsof
-    pv
-    man-pages
-    man-pages-posix
   ];
 
   fonts.packages = with pkgs; [
