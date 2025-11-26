@@ -177,8 +177,8 @@
     };
 
     font = {
-        name = "Iosevka Bold";
-        size = 11;
+      name = "Iosevka Bold";
+      size = 11;
     };
   };
 
