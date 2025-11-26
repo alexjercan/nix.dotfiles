@@ -80,10 +80,6 @@
     LC_TIME = "en_US.UTF-8";
   };
 
-  # services.displayManager = {
-  #   defaultSession = "none+i3";
-  # };
-
   services.greetd = {
     enable = true;
 
