@@ -64,6 +64,11 @@
     settings = {
       "$mod" = "SUPER";
 
+      env = [
+        "XCURSOR_THEME,Adwaita"
+        "XCURSOR_SIZE,24"
+      ];
+
       general = {
         gaps_in = 4;
         gaps_out = 4;

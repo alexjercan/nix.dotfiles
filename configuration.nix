@@ -89,9 +89,10 @@
 
     settings = {
       default_session = {
-        command = "${pkgs.greetd.tuigreet}/bin/tuigreet \
-          --time --time-format '%I:%M %p | %a • %h | %F' \
-          --cmd 'uwsm start hyprland'";
+        command = "${pkgs.tuigreet}/bin/tuigreet \
+          --time --time-format '%I:%M %p | %F' \
+          --cmd 'uwsm start hyprland' \
+          --remember";
         user = "greeter";
       };
     };
