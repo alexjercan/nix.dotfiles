@@ -20,10 +20,11 @@
 @define-color selection_background  #252525;
 @define-color selection_foreground  #7c7c7c;
 
+
 * {
     border: none;
     border-radius: 0;
-    font-family: Cartograph CF Nerd Font, Iosevka Term;
+    font-family: Iosevka Term;
     font-weight: bold;
     font-size: 14px;
     min-height: 0;
@@ -87,6 +88,46 @@ tooltip {
     padding: 3px 10px;
     margin: 3px 10px 3px 0px;
     border-radius: 10px;
+}
+
+#cpu {
+    background: @background;
+    color: @foreground;
+    padding: 3px 10px;
+    margin: 3px 0px 3px 0px;
+    border-radius: 10px 0px 0px 10px;
+}
+
+#memory {
+    background: @background;
+    color: @foreground;
+    padding: 3px 10px;
+    margin: 3px 0px 3px 0px;
+    border-radius: 0px;
+}
+
+#disk {
+    background: @background;
+    color: @cursor;
+    padding: 3px 10px;
+    margin: 3px 0px 3px 0px;
+    border-radius: 0px;
+}
+
+#network {
+    background: @background;
+    color: @foreground;
+    padding: 3px 10px;
+    margin: 3px 0px 3px 0px;
+    border-radius: 0px;
+}
+
+#pulseaudio {
+    background: @background;
+    color: @foreground;
+    padding: 3px 10px;
+    margin: 3px 10px 3px 0px;
+    border-radius: 0px 10px 10px 0px;
 }
 
 #tray {

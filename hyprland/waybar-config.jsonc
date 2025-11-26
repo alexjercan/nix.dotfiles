@@ -1,10 +1,7 @@
 {
+    "name": "Waybar",
     "layer": "top",
     "position": "top",
-    "mod": "dock",
-    "exclusive": true,
-    "passthrough": false,
-    "gtk-layer-shell": true,
     "height": 0,
     "margin-left": 4,
     "margin-right": 4,
@@ -37,11 +34,9 @@
         "max-length": 35
     },
     "clock": {
-        "format": "{:%I:%M %p %Ez | %a • %h | %F}",
+        "format": "{:%I:%M %p | %F}",
         "format-alt": "{:%I:%M %p}",
         "tooltip-format": "<tt><small>{calendar}</small></tt>",
-        // "locale": "en_US.UTF-8",
-        // "timezones": [ "Europe/Kyiv", "America/New_York" ],
         "actions": {
             "on-click-right": "mode",
         },
@@ -91,30 +86,30 @@
         "format-alt": "{ifname}",
         "max-length": 50
     },
-    "pulseaudio": {
-        "format": "{icon} {volume}%",
-        "format-muted": "\uf026 Muted",
-        "on-click": "pavucontrol",
-        "on-click-right": "swayosd-client --output-volume mute-toggle",
-        "on-scroll-up": "swayosd-client --output-volume 5",
-        "on-scroll-down": "swayosd-client --output-volume -5",
-        "scroll-step": 5,
-        "format-icons": {
-            "headphone": "\uf025",
-            "hands-free": "\uf025",
-            "headset": "\uf025",
-            "phone": "\uf095",
-            "portable": "\uf095",
-            "car": "\uf1b9",
-            "default": [
-                "\uf026",
-                "\uf027",
-                "\uf028"
-            ]
-        },
-        "tooltip": true,
-        "tooltip-format": "{icon} at {volume}%"
+"pulseaudio": {
+    "format": "{icon} {volume}%",
+    "format-muted": "\uf026 Muted",
+    "on-click": "pwvucontrol",
+    "on-click-right": "wpctl set-mute @DEFAULT_SINK@ toggle",
+    "on-scroll-up": "wpctl set-volume @DEFAULT_SINK@ 5%+",
+    "on-scroll-down": "wpctl set-volume @DEFAULT_SINK@ 5%-",
+    "scroll-step": 5,
+    "format-icons": {
+        "headphone": "\uf025",
+        "hands-free": "\uf025",
+        "headset": "\uf025",
+        "phone": "\uf095",
+        "portable": "\uf095",
+        "car": "\uf1b9",
+        "default": [
+            "\uf026",
+            "\uf027",
+            "\uf028"
+        ]
     },
+    "tooltip": true,
+    "tooltip-format": "{icon} at {volume}%"
+},
     "tray": {
         "icon-size": 13,
         "spacing": 10

@@ -1,13 +1,14 @@
 {pkgs, ...}: {
   home.packages = with pkgs; [
-    pyprland
-    hyprpicker
     hyprcursor
-    hyprlock
     hypridle
+    hyprlock
     hyprpaper
-    hyprsunset
+    hyprpicker
     hyprpolkitagent
+    hyprsunset
+    pyprland
+    wl-clipboard
     wlogout
   ];
 
@@ -57,11 +58,6 @@
     # style = ./wlogout-style.css;
   };
 
-  home.file.".local/share/wlogout-icons" = {
-    source = ./wlogout-icons;
-    recursive = true;
-  };
-
   wayland.windowManager.hyprland = {
     enable = true;
 
@@ -69,9 +65,10 @@
       "$mod" = "SUPER";
 
       general = {
-        gaps_in = 2;
-        gaps_out = 2;
-        border_size = 0;
+        gaps_in = 5;
+        gaps_out = 10;
+        border_size = 2;
+        "col.active_border" = "rgb(e3e3e3)";
         no_border_on_floating = true;
       };
 
@@ -117,6 +114,14 @@
         ];
       };
 
+      exec-once = [
+        "hyprpaper &"
+        "waybar &"
+        "nm-applet"
+        "wl-paste --type text --watch cliphist store"
+        "wl-paste --type image --watch cliphist store"
+      ];
+
       bindm = [
         "$mod, mouse:272, movewindow"
         "$mod, mouse:273, resizewindow"
@@ -140,7 +145,6 @@
           "$mod SHIFT, K, movewindow, u"
           "$mod SHIFT, J, movewindow, d"
 
-          "$mod, B, exec, firefox"
           "$mod, Space, togglefloating, "
           "$mod, S, togglesplit, "
 
@@ -151,8 +155,9 @@
           "$mod, Escape, exec, hyprlock"
           "$mod SHIFT, Escape, exit"
           "CTRL ALT, Delete, exec, wlogout --protocol layer-shell -b 5 -T 400 -B 400"
-          "$mod SHIFT, W, exec, killall -SIGUSR2 waybar"
-          "$mod, W, exec, killall -SIGUSR1 waybar"
+
+          "$mod SHIFT, W, exec, bash -c \"kill -SIGUSR2 $(pidof waybar)\""
+          "$mod,       W, exec, bash -c \"kill -SIGUSR1 $(pidof waybar)\""
         ]
         ++ (
           # workspaces
@@ -174,6 +179,17 @@
     enable = true;
   };
 
+  home.file.".local/share/wlogout-icons" = {
+    source = ./wlogout-icons;
+    recursive = true;
+  };
+
+  home.file.".local/share/wallpapers" = {
+    source = ./wallpapers;
+    recursive = true;
+  };
+
   xdg.configFile."waybar/config.jsonc".source = ./waybar-config.jsonc;
   xdg.configFile."waybar/style.css".source = ./waybar-style.css;
+  xdg.configFile."hypr/hyprpaper.conf".source = ./hyprpaper.conf;
 }
