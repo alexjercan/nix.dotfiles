@@ -80,8 +80,28 @@
     LC_TIME = "en_US.UTF-8";
   };
 
-  services.displayManager = {
-    defaultSession = "none+i3";
+  # services.displayManager = {
+  #   defaultSession = "none+i3";
+  # };
+
+  services.greetd = {
+    enable = true;
+
+    settings = {
+      default_session = {
+        command = "${pkgs.greetd.tuigreet}/bin/tuigreet \
+          --time --time-format '%I:%M %p | %a • %h | %F' \
+          --cmd 'uwsm start hyprland'";
+        user = "greeter";
+      };
+    };
+  };
+
+  users.users.greeter = {
+    isNormalUser = false;
+    description = "greetd greeter user";
+    extraGroups = ["video" "audio"];
+    linger = true;
   };
 
   # Enable the X11 windowing system.
@@ -99,6 +119,11 @@
   };
 
   programs.hyprland.enable = true; # enable Hyprland
+  programs.hyprland.withUWSM = true;
+
+  # Optional, hint Electron apps to use Wayland:
+  environment.sessionVariables.NIXOS_OZONE_WL = "1";
+  environment.sessionVariables.WLR_NO_HARDWARE_CURSORS = "1";
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
@@ -162,13 +187,14 @@
     git
     gnumake
     htop
-    kitty
+    kitty # required for the default Hyprland config
     lsof
     man-pages
     man-pages-posix
     nvtopPackages.nvidia
     pv
     python3
+    tuigreet
     vim
     wget
   ];
@@ -244,7 +270,7 @@
 
   # Storage optimization
   nix.optimise.automatic = true;
-  nix.optimise.dates = [ "03:45" ];
+  nix.optimise.dates = ["03:45"];
   nix.gc = {
     automatic = true;
     dates = "weekly";

@@ -174,6 +174,7 @@
     ./rofi
     ./kitty
     ./i3
+    ./hyprland
     ./dunst
     ./scripts
   ];

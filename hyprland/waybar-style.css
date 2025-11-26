@@ -1,0 +1,98 @@
+@define-color color0                #252525;
+@define-color color1                #ce5252;
+@define-color color2                #8c9440;
+@define-color color3                #f0c674;
+@define-color color4                #5f819d;
+@define-color color5                #e3e3e3;
+@define-color color6                #8e8e8e;
+@define-color color7                #f7f7f7;
+@define-color color8                #7c7c7c;
+@define-color color9                #ce5252;
+@define-color color10               #8c9440;
+@define-color color11               #f0c674;
+@define-color color12               #5f819d;
+@define-color color13               #e3e3e3;
+@define-color color14               #8e8e8e;
+@define-color color15               #f7f7f7;
+@define-color cursor                #b9b9b9;
+@define-color background            #101010;
+@define-color foreground            #f7f7f7;
+@define-color selection_background  #252525;
+@define-color selection_foreground  #7c7c7c;
+
+* {
+    border: none;
+    border-radius: 0;
+    font-family: Cartograph CF Nerd Font, Iosevka Term;
+    font-weight: bold;
+    font-size: 14px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: rgba(0, 0, 0, 0);
+    color: @foreground;
+}
+
+tooltip {
+    background: @background;
+    border-radius: 10px;
+    border-width: 2px;
+    border-style: solid;
+    border-color: @background;
+}
+
+#workspaces {
+    background: @background;
+    color: @foreground;
+    padding: 3px 10px;
+    margin: 3px 10px 3px 0px;
+    border-radius: 10px;
+}
+
+#workspaces > * {
+    margin: 0px 5px;
+}
+
+#workspaces button {
+    color: @foreground;
+    background: @background;
+    border-radius: 10px;
+}
+
+#workspaces button.active {
+    background: @color0;
+}
+
+#workspaces button.urgent {
+    color: @color1;
+}
+
+#workspaces button:hover {
+    background: @color6;
+    border-radius: 10px;
+}
+
+#window {
+    background: @background;
+    color: @foreground;
+    padding: 3px 10px;
+    margin: 3px 10px 3px 0px;
+    border-radius: 10px;
+}
+
+#clock {
+    background: @background;
+    color: @foreground;
+    padding: 3px 10px;
+    margin: 3px 10px 3px 0px;
+    border-radius: 10px;
+}
+
+#tray {
+    background: @background;
+    color: @foreground;
+    padding: 3px 10px;
+    margin: 3px 0px 3px 0px;
+    border-radius: 10px;
+}
