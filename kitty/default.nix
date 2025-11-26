@@ -10,6 +10,7 @@
       hide_window_decorations = true;
       background_opacity = "1.0";
       allow_remote_control = true;
+      window_padding_width = 4;
 
       background = "#181818";
       foreground = "#E4E4E4";
