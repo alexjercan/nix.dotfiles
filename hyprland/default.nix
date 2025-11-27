@@ -64,6 +64,10 @@
     settings = {
       "$mod" = "SUPER";
 
+      monitor = "DP-3, 1920x1080@165.00Hz, 0x0, 1";
+
+      input = { kb_options = "ctrl:nocaps"; };
+
       env = [
         "XCURSOR_THEME,Adwaita"
         "XCURSOR_SIZE,24"
