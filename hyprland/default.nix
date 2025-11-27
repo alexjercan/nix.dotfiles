@@ -150,6 +150,7 @@
           "$mod SHIFT, K, movewindow, u"
           "$mod SHIFT, J, movewindow, d"
 
+          "$mod, F, fullscreen, "
           "$mod, Space, togglefloating, "
           "$mod, S, togglesplit, "
 
