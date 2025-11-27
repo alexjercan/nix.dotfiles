@@ -34,8 +34,8 @@
         "max-length": 35
     },
     "clock": {
-        "format": "{:%I:%M %p | %F}",
-        "format-alt": "{:%I:%M %p}",
+        "format": "{:%b %d %Y - %H:%M}",
+        "format-alt": "{:%d - %H:%M}",
         "tooltip-format": "<tt><small>{calendar}</small></tt>",
         "actions": {
             "on-click-right": "mode",
