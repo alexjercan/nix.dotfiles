@@ -4,8 +4,8 @@
     src = pkgs.fetchFromGitHub {
       owner = "alexjercan";
       repo = "macros.nvim";
-      rev = "078b8dc2c67cc4bbd7f77113cdb2fbfb939e652f";
-      hash = "sha256-DrPCgsTzQNOx/UxexsmLaM2hTzlopu6qBbERVrzUx9I=";
+      rev = "ba49f9aed179aa2619ddc0021f0c190b94fe212f";
+      hash = "sha256-M+2v5migHdxspnus/t5933avJ634bXffJIYNLXebZzs=";
     };
   };
 in {
@@ -34,7 +34,16 @@ in {
         action = ''<cmd>MacrosInsert<CR>'';
         options = {
           silent = true;
-          desc = "Macros";
+          desc = "Macros Insert";
+        };
+      }
+      {
+        mode = "n";
+        key = "<leader>mq";
+        action = ''<cmd>MacrosQuery<CR>'';
+        options = {
+          silent = true;
+          desc = "Macros Query";
         };
       }
     ];
