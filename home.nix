@@ -31,6 +31,7 @@
     btop
     chromium
     cmake
+    davinci-resolve
     dconf
     discord
     dua
@@ -43,6 +44,7 @@
     firefox
     fzf
     gimp
+    graphviz
     i3lock
     i3status-rust
     inkscape
@@ -60,6 +62,7 @@
     networkmanagerapplet
     nitrogen
     obs-studio
+    opencode
     openssl
     openvpn
     pcmanfm
@@ -75,8 +78,6 @@
     wesnoth
     xclip
     zip
-    davinci-resolve
-    graphviz
 
     # # You can also create simple shell scripts directly inside your
     # # configuration. For example, this adds a command 'my-hello' to your

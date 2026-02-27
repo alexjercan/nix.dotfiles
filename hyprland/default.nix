@@ -1,5 +1,6 @@
 {pkgs, ...}: {
   home.packages = with pkgs; [
+    hyprshot
     hyprcursor
     hypridle
     hyprlock
@@ -66,7 +67,7 @@
 
       monitor = "DP-3, 1920x1080@165.00Hz, 0x0, 1";
 
-      input = { kb_options = "ctrl:nocaps"; };
+      # input = { kb_options = "ctrl:nocaps"; };
 
       env = [
         "XCURSOR_THEME,Adwaita"
@@ -136,6 +137,10 @@
         "$mod, mouse:273, resizewindow"
       ];
 
+      bindn = [
+          "CAPS, less, pass, ^discord$"
+      ];
+
       bind =
         [
           "$mod, RETURN, exec, kitty"
@@ -168,6 +173,12 @@
 
           "$mod SHIFT, W, exec, bash -c \"kill -SIGUSR2 $(pidof waybar)\""
           "$mod,       W, exec, bash -c \"kill -SIGUSR1 $(pidof waybar)\""
+
+          "$mod, S, exec, hyprshot -m window --output-folder ~/Pictures/Screenshots"
+          ", PRINT, exec, hyprshot -m output --output-folder ~/Pictures/Screenshots"
+          "$mod SHIFT, S, exec, hyprshot -m region --output-folder ~/Pictures/Screenshots"
+
+          ",Caps_Lock,pass,class:^(discord)$"
         ]
         ++ (
           builtins.concatLists (builtins.genList (

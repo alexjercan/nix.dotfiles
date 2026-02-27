@@ -20,5 +20,6 @@
     plugins.vim-surround.enable = true;
     plugins.colorizer.enable = true;
     plugins.cloak.enable = true;
+    plugins.zen-mode.enable = true;
   };
 }
