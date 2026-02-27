@@ -138,7 +138,7 @@
       ];
 
       bindn = [
-          "CAPS, less, pass, ^discord$"
+        "CAPS, less, pass, ^discord$"
       ];
 
       bind =
