@@ -259,7 +259,6 @@
 
   services.ollama = {
     enable = true;
-    acceleration = "cuda";
   };
 
   services.logmein-hamachi.enable = true;

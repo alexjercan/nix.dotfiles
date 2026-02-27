@@ -27,7 +27,7 @@ in {
 
     extraConfigLua = ''
       do
-        local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
+        local parser_config = require("nvim-treesitter.parsers")
         -- change the following as needed
         parser_config.c3 = {
           install_info = {
