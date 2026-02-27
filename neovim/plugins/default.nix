@@ -10,6 +10,7 @@
     ./lsp.nix
     ./macros.nix
     ./copilot.nix
+    ./_99.nix
   ];
 
   programs.nixvim = {
