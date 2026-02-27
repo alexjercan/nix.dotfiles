@@ -79,7 +79,7 @@
         gaps_out = 4;
         border_size = 2;
         "col.active_border" = "rgb(e3e3e3)";
-        no_border_on_floating = true;
+        # no_border_on_floating = true;
       };
 
       misc = {
