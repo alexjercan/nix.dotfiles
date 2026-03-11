@@ -1,6 +1,5 @@
 {
   pkgs,
-  dzgui,
   ...
 }: {
   # Home Manager needs a bit of information about you and the paths it should
@@ -37,7 +36,6 @@
     dua
     dunst
     dust
-    dzgui.packages.x86_64-linux.default
     fd
     feh
     ffmpeg

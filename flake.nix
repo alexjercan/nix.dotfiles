@@ -13,9 +13,9 @@
       url = "github:nix-community/nixvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    dzgui-nix = {
-      url = "github:lelgenio/dzgui-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
+    nix-index-database = {
+        url = "github:nix-community/nix-index-database";
+        inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
@@ -23,8 +23,9 @@
     nixpkgs,
     home-manager,
     nixvim,
+    nix-index-database,
     ...
-  } @ inputs: let
+  }: let
     system = "x86_64-linux";
     pkgs = import nixpkgs {
       inherit system;
@@ -43,10 +44,10 @@
     homeConfigurations.alex = home-manager.lib.homeManagerConfiguration {
       inherit pkgs;
       extraSpecialArgs.nixvim = nixvim;
-      extraSpecialArgs.dzgui = inputs.dzgui-nix;
 
       modules = [
         ./home.nix
+        nix-index-database.homeModules.default
       ];
     };
   };

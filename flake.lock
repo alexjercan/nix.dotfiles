@@ -1,25 +1,5 @@
 {
   "nodes": {
-    "dzgui-nix": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1764972059,
-        "narHash": "sha256-MLdmXiPhouR4nSxIZwNEHWGYT2rR9UquaYGbZPEBgRk=",
-        "owner": "lelgenio",
-        "repo": "dzgui-nix",
-        "rev": "14bd77c58f4cc4864513f9d887ad387337c9411f",
-        "type": "github"
-      },
-      "original": {
-        "owner": "lelgenio",
-        "repo": "dzgui-nix",
-        "type": "github"
-      }
-    },
     "flake-parts": {
       "inputs": {
         "nixpkgs-lib": [
@@ -58,6 +38,26 @@
       "original": {
         "owner": "nix-community",
         "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "nix-index-database": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1772945408,
+        "narHash": "sha256-PMt48sEQ8cgCeljQ9I/32uoBq/8t8y+7W/nAZhf72TQ=",
+        "owner": "nix-community",
+        "repo": "nix-index-database",
+        "rev": "1c1d8ea87b047788fd7567adf531418c5da321ec",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "nix-index-database",
         "type": "github"
       }
     },
@@ -101,8 +101,8 @@
     },
     "root": {
       "inputs": {
-        "dzgui-nix": "dzgui-nix",
         "home-manager": "home-manager",
+        "nix-index-database": "nix-index-database",
         "nixpkgs": "nixpkgs",
         "nixvim": "nixvim"
       }
