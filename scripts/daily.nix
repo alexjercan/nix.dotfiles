@@ -199,8 +199,11 @@ with lib; {
             }
 
             today_tasks() {
-                # TODO: this is pretty brittle, we should have a better way to identify the section
-                awk "/^Today/ {flag=1; next} /^$/ {flag=0} flag" "$FILE"
+                awk '
+                  /^Today$/ { flag=1; next }
+                  flag && /^- \[[ x]\] / { print; next }
+                  flag { flag=0 }
+                ' "$FILE"
             }
 
             # Get macros
