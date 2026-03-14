@@ -198,6 +198,11 @@ with lib; {
               awk "/### 🌱 Habits/ {flag=1; next} /###/ {flag=0} flag" "$FILE" | tail -n +2 | head -n -1
             }
 
+            today_tasks() {
+                # TODO: this is pretty brittle, we should have a better way to identify the section
+                awk "/^Today/ {flag=1; next} /^$/ {flag=0} flag" "$FILE"
+            }
+
             # Get macros
             macros() {
               awk "/### 🍽️ Macros/ {flag=1; next} /###/ {flag=0} flag" "$FILE" | tail -n +2 | head -n -1 > /tmp/macros.csv
@@ -232,6 +237,10 @@ with lib; {
                 echo "### 🌱 Habits"
                 echo
                 habits
+                echo
+                echo "### 📝 Today's Tasks"
+                echo
+                today_tasks
                 echo
                 echo "### 🍽️Macros"
                 echo
