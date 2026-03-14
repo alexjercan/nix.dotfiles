@@ -130,6 +130,7 @@
 
   programs.git = {
     enable = true;
+    lfs.enable = true;
     settings.user.name = "Alex Jercan";
     settings.user.email = "jercan_alex27@yahoo.com";
   };
