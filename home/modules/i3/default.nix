@@ -28,7 +28,7 @@ in {
       startup = [
         {command = "nm-applet";}
         {command = "dunst";}
-        {command = "nitrogen --restore";}
+        {command = "feh --bg-scale ${pkgs.nixos-artwork.wallpapers.simple-dark-gray}/share/backgrounds/nixos/nix-wallpaper-simple-dark-gray.png";}
         {command = "xset s off -dpms";}
         {command = "xrandr --output DP-4 --mode 1920x1080 --rate 165";}
       ];
@@ -95,7 +95,7 @@ in {
 
         "${cfg.config.modifier}+Shift+w" = "reload";
         "${cfg.config.modifier}+Shift+p" = "restart";
-        "${cfg.config.modifier}+Shift+Escape" = "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'";
+        "${cfg.config.modifier}+Shift+Escape" = "exec ${pkgs.i3}/bin/i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'";
 
         "${cfg.config.modifier}+Shift+s" = "exec --no-startup-id scrot -s ~/Pictures/Screenshots/%Y%m%d_%H%M%S.png";
         "${cfg.config.modifier}+s" = "exec --no-startup-id scrot ~/Pictures/Screenshots/%Y%m%d_%H%M%S.png";

@@ -87,12 +87,17 @@
       default_session = {
         command = "${pkgs.tuigreet}/bin/tuigreet \
           --time --time-format '%I:%M %p | %F' \
-          --cmd 'uwsm start hyprland' \
           --remember";
         user = "greeter";
       };
     };
   };
+
+  # Create wrapper scripts for sessions
+  environment.etc."greetd/environments".text = ''
+    uwsm start hyprland
+    startx
+  '';
 
   users.users.greeter = {
     isNormalUser = false;
@@ -105,10 +110,25 @@
   services.xserver = {
     enable = true;
     xkb.options = "caps:none";
+    displayManager.sessionCommands = ''
+      # This will be executed when starting X sessions
+    '';
   };
   services.xserver.videoDrivers = ["nvidia"];
   services.xserver.desktopManager.xterm.enable = false;
   services.xserver.windowManager.i3.enable = true;
+
+  # Create default xinitrc for users
+  environment.etc."X11/xinit/xinitrc".text = ''
+    #!/bin/sh
+    # Default xinitrc for NixOS
+    if [ -f "$HOME/.xinitrc" ]; then
+      . "$HOME/.xinitrc"
+    else
+      # Start i3 by default
+      exec ${pkgs.i3}/bin/i3
+    fi
+  '';
 
   services.xserver.xkb = {
     layout = "us";
@@ -148,7 +168,7 @@
   users.users.alex = {
     isNormalUser = true;
     description = "alex";
-    extraGroups = ["networkmanager" "libvirtd" "wheel" "docker" "sambashare" "dialout"];
+    extraGroups = ["networkmanager" "libvirtd" "wheel" "docker" "sambashare" "dialout" "video" "audio"];
     shell = pkgs.fish;
   };
 
@@ -194,6 +214,7 @@
     tuigreet
     vim
     wget
+    xinit
   ];
 
   fonts.packages = with pkgs; [
@@ -214,6 +235,9 @@
     enable = true;
     defaultEditor = true;
   };
+
+  # Allow users to start X without being root
+  services.xserver.displayManager.startx.enable = true;
 
   # List services that you want to enable:
 
