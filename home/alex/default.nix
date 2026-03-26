@@ -38,6 +38,7 @@ in {
     dua
     dunst
     dust
+    fastfetch
     fd
     feh
     ffmpeg
@@ -57,7 +58,6 @@ in {
     lxappearance
     mpv
     mupdf
-    fastfetch
     networkmanager-openvpn
     networkmanagerapplet
     nitrogen
