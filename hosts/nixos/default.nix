@@ -262,7 +262,7 @@
   };
 
   services.logmein-hamachi.enable = true;
-  documentation.man.generateCaches = false;
+  documentation.man.cache.enable = false;
 
   # Storage optimization
   nix.optimise.automatic = true;

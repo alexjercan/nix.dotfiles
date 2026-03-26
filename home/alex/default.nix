@@ -1,11 +1,13 @@
-{
-  pkgs,
-  ...
-}: {
+{pkgs, ...}: let
+  modulesPath = ../modules;
+in {
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
   home.username = "alex";
   home.homeDirectory = "/home/alex";
+
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
 
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
@@ -55,7 +57,7 @@
     lxappearance
     mpv
     mupdf
-    neofetch
+    fastfetch
     networkmanager-openvpn
     networkmanagerapplet
     nitrogen
@@ -131,6 +133,7 @@
   programs.git = {
     enable = true;
     lfs.enable = true;
+    signing.format = null;
     settings.user.name = "Alex Jercan";
     settings.user.email = "jercan_alex27@yahoo.com";
   };
@@ -176,6 +179,8 @@
       '';
     };
 
+    gtk4.theme = null;
+
     font = {
       name = "Iosevka Bold";
       size = 11;
@@ -183,13 +188,13 @@
   };
 
   imports = [
-    ./neovim
-    ./tmux
-    ./rofi
-    ./kitty
-    ./i3
-    ./hyprland
-    ./dunst
-    ./scripts
+    "${modulesPath}/neovim"
+    "${modulesPath}/tmux"
+    "${modulesPath}/rofi"
+    "${modulesPath}/kitty"
+    "${modulesPath}/i3"
+    "${modulesPath}/hyprland"
+    "${modulesPath}/dunst"
+    "${modulesPath}/scripts"
   ];
 }
