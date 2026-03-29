@@ -12,7 +12,10 @@ in {
     map (userName: {
       name = userName;
       value = inputs.home-manager.lib.homeManagerConfiguration {
-        pkgs = inputs.nixpkgs.legacyPackages.x86_64-linux;
+        pkgs = import inputs.nixpkgs {
+          system = "x86_64-linux";
+          overlays = [inputs.tatr.overlays.default];
+        };
 
         extraSpecialArgs = {
           inherit inputs;

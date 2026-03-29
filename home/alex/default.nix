@@ -73,6 +73,7 @@ in {
     rar
     ripgrep
     scrot
+    tatr
     unzip
     virt-manager
     wesnoth
