@@ -82,12 +82,14 @@
 
   services.greetd = {
     enable = true;
+    useTextGreeter = true;
 
     settings = {
       default_session = {
         command = "${pkgs.tuigreet}/bin/tuigreet \
           --time --time-format '%I:%M %p | %F' \
-          --remember";
+          --remember \
+          --remember-session";
         user = "greeter";
       };
     };
@@ -95,8 +97,8 @@
 
   # Create wrapper scripts for sessions
   environment.etc."greetd/environments".text = ''
-    uwsm start hyprland
     startx
+    uwsm start hyprland
   '';
 
   users.users.greeter = {

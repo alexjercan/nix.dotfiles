@@ -103,6 +103,15 @@ in {
     #   org.gradle.console=verbose
     #   org.gradle.daemon.idletimeout=3600000
     # '';
+
+    ".xinitrc" = {
+      text = ''
+        #!/bin/sh
+        # Start i3 window manager
+        exec ${pkgs.i3}/bin/i3
+      '';
+      executable = true;
+    };
   };
 
   # Home Manager can also manage your environment variables through
