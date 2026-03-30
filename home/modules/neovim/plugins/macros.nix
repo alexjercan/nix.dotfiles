@@ -4,8 +4,8 @@
     src = pkgs.fetchFromGitHub {
       owner = "alexjercan";
       repo = "macros.nvim";
-      rev = "ba49f9aed179aa2619ddc0021f0c190b94fe212f";
-      hash = "sha256-M+2v5migHdxspnus/t5933avJ634bXffJIYNLXebZzs=";
+      rev = "ce85e483ac6eaa8e19a9717a09523a4f3fe7ebf4";
+      hash = "sha256-+R9FA/kDFIuynbcSLn76AyXQQLrDU65JwFhWvsIFAqM=";
     };
   };
 in {
@@ -40,10 +40,19 @@ in {
       {
         mode = "n";
         key = "<leader>mq";
-        action = ''<cmd>MacrosQuery<CR>'';
+        action = ''<cmd>MacrosQuery2<CR>'';
         options = {
           silent = true;
           desc = "Macros Query";
+        };
+      }
+      {
+        mode = "n";
+        key = "<leader>mt";
+        action = ''<cmd>MacrosTelescope<CR>'';
+        options = {
+          silent = true;
+          desc = "Macros Query Telescope";
         };
       }
     ];
