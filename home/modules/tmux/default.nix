@@ -22,6 +22,7 @@
     extraConfig = ''
       set -ga terminal-overrides ",screen-256color*:Tc"
       set-option -g default-terminal "screen-256color"
+      set -g allow-passthrough on
 
       # Start windows and panes at 1, not 0
       set -g base-index 1

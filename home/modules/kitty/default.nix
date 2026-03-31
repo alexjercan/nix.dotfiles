@@ -1,4 +1,10 @@
-{pkgs, ...}: {
+{pkgs, ...}: let
+  editor-handler = pkgs.writeShellScriptBin "kitty-editor-handler" ''
+    # Strip editor:// protocol from URL
+    file_path="''${1#editor://}"
+    exec kitty nvim "$file_path"
+  '';
+in {
   programs.kitty = {
     enable = true;
 
@@ -40,10 +46,27 @@
       "ctrl+shift+f" = "launch --type=overlay-main bash -c 'read -p \"Enter the name of the new project: \" -r input; echo -n \"$input\" | xargs tmux neww sesh --create'";
     };
 
+    extraConfig = ''
+      # Protocol handler for editor:// URLs
+      protocol_handler editor launch --type=overlay nvim {path}
+    '';
+
     font = {
       package = pkgs.iosevka;
       name = "Iosevka";
       size = 14;
     };
+  };
+
+  # Register kitty as the handler for editor:// URLs
+  xdg.desktopEntries.kitty-editor = {
+    name = "Kitty Editor";
+    exec = "${editor-handler}/bin/kitty-editor-handler %u";
+    mimeType = ["x-scheme-handler/editor"];
+    noDisplay = true;
+  };
+
+  xdg.mimeApps.defaultApplications = {
+    "x-scheme-handler/editor" = "kitty-editor.desktop";
   };
 }
