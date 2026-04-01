@@ -11,6 +11,7 @@
     ./macros.nix
     ./copilot.nix
     ./_99.nix
+    ./tatr.nix
   ];
 
   programs.nixvim = {
