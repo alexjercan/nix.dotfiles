@@ -56,6 +56,7 @@ in {
     libnotify
     libreoffice-qt
     lxappearance
+    macros
     mpv
     mupdf
     networkmanager-openvpn

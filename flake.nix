@@ -27,6 +27,10 @@
       url = "github:alexjercan/tatr";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    macros-nvim = {
+        url = "github:alexjercan/macros.nvim";
+        inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs:

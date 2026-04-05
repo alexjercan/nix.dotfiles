@@ -4,8 +4,8 @@
     src = pkgs.fetchFromGitHub {
       owner = "alexjercan";
       repo = "macros.nvim";
-      rev = "ce85e483ac6eaa8e19a9717a09523a4f3fe7ebf4";
-      hash = "sha256-+R9FA/kDFIuynbcSLn76AyXQQLrDU65JwFhWvsIFAqM=";
+      rev = "8bca1c13ea298994bc46d263c6144ad9f82a2fe5";
+      hash = "sha256-rfSDd4xBbljnSP8/YXlF/ZNdSjk1YeDU+SmMrx1asas=";
     };
   };
 in {
