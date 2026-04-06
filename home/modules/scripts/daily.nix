@@ -223,6 +223,7 @@ with lib; {
 
               tail -n +2 /tmp/macros.csv | awk -F, -v p="$protein_col" -v c="$carbs_col" -v f="$fat_col" '
               {
+                if (index($0, ",") == 0) next;
                 protein += $p;
                 carbs += $c;
                 fat += $f;
