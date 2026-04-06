@@ -28,8 +28,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     macros-nvim = {
-        url = "github:alexjercan/macros.nvim";
-        inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:alexjercan/macros.nvim";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
