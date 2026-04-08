@@ -37,20 +37,21 @@ with lib; {
             DEFAULT_OFFSET=0
             NOTE_MODE=0
             NOTE_TAG=""
-            IDEA_MODE=0
             WEIGHT_MODE=0
+            MACROS_ENTRY_MODE=0
+            MACROS_ENTRY_TEXT=""
 
             usage() {
                 echo "Usage: $0 [DEN-PATH] [OPTIONS]"
                 echo "Show the daily statistics for the journal."
                 echo
-                echo "  -n, --note <TAG>  Show notes with the specified tag (note :: <TAG>)."
-                echo "  -i, --idea        Show ideas from the journal (idea :: stuff here)."
-                echo "  -w, --weight      Show weight for the journal."
-                echo "  -N, --offset <N>  The number of days to offset from today."
-                echo "  -h, --help        Display this help and exit."
+                echo "  -n, --note <TAG>      Show notes with the specified tag (note :: <TAG>)."
+                echo "  -w, --weight          Show weight for the journal."
+                echo "  -m, --macros-entry    Add text entry to the Macros section."
+                echo "  -N, --offset <N>      The number of days to offset from today."
+                echo "  -h, --help            Display this help and exit."
                 echo
-                echo " DEN-PATH           The path to the den directory."
+                echo " DEN-PATH               The path to the den directory."
                 echo
                 echo "If DEN-PATH is not provided, the default path will be used."
                 echo "The default path is: $THE_DEN_PATH"
@@ -70,11 +71,18 @@ with lib; {
                         NOTE_MODE=1
                         NOTE_TAG="$1"
                         ;;
-                    -i|--idea)
-                        IDEA_MODE=1
-                        ;;
                     -w|--weight)
                         WEIGHT_MODE=1
+                        ;;
+                    -m|--macros-entry)
+                        shift
+                        if [[ -z "$1" ]]; then
+                            echo "Error: --macros-entry requires a text argument."
+                            usage
+                            exit 1
+                        fi
+                        MACROS_ENTRY_MODE=1
+                        MACROS_ENTRY_TEXT="$1"
                         ;;
                     -N|--offset)
                         shift
@@ -123,10 +131,6 @@ with lib; {
                         }
                     ' "$file"
                 done
-            }
-
-            run_idea() {
-                rg -n '^idea :: ' --color=never "$DEN_PATH/Daily" | fzf | awk -F: '{ system("nvim +"$2" "$1) }'
             }
 
             run_weight() {
@@ -179,6 +183,63 @@ with lib; {
 
                 echo "Plot saved to /tmp/weight_plot.png"
                 echo "feh /tmp/weight_plot.png"
+            }
+
+            add_macros_entry() {
+                # Add an entry to the Macros section
+                # $1: The file to modify
+                # $2: The text to add
+                local file="$1"
+                local text="$2"
+                
+                # Use awk to find the Macros section and append the text
+                awk -v text="$text" '
+                    BEGIN { in_macros = 0; blank_count = 0; }
+                    
+                    # Detect the start of the Macros section
+                    /^### 🍽️ Macros/ {
+                        in_macros = 1;
+                        print;
+                        next;
+                    }
+                    
+                    # When in macros section
+                    in_macros {
+                        # If we hit another header, insert text before the buffered blank lines
+                        if (/^###/) {
+                            print text;
+                            for (i = 0; i < blank_count; i++) print "";
+                            in_macros = 0;
+                            print;
+                            next;
+                        }
+                        # If blank line, increment counter
+                        if (/^$/) {
+                            blank_count++;
+                            next;
+                        }
+                        # Non-blank line: print any buffered blank lines, then this line
+                        if (blank_count > 0) {
+                            for (i = 0; i < blank_count; i++) print "";
+                            blank_count = 0;
+                        }
+                        print;
+                        next;
+                    }
+                    
+                    # Print all other lines
+                    { print; }
+                    
+                    # If we reached EOF while still in Macros section, append text
+                    END {
+                        if (in_macros) {
+                            print text;
+                            for (i = 0; i < blank_count; i++) print "";
+                        }
+                    }
+                ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+                
+                echo "Added entry to Macros section in $file"
             }
 
             # Get title (first line)
@@ -260,10 +321,18 @@ with lib; {
             {
                 if [[ $NOTE_MODE -eq 1 ]]; then
                     run_note
-                elif [[ $IDEA_MODE -eq 1 ]]; then
-                    run_idea
                 elif [[ $WEIGHT_MODE -eq 1 ]]; then
                     run_weight
+                elif [[ $MACROS_ENTRY_MODE -eq 1 ]]; then
+                    DATE=$(date -d "-$OFFSET days" +%Y-%m-%d-%A)
+                    FILE="$DEN_PATH/Daily/$DATE.md"
+
+                    if [[ ! -f "$FILE" ]]; then
+                        echo "No daily journal entry found for $DATE."
+                        exit 1
+                    fi
+
+                    add_macros_entry "$FILE" "$MACROS_ENTRY_TEXT"
                 else
                     DATE=$(date -d "-$OFFSET days" +%Y-%m-%d-%A)
                     FILE="$DEN_PATH/Daily/$DATE.md"
