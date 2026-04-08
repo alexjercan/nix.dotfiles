@@ -40,6 +40,8 @@ with lib; {
             WEIGHT_MODE=0
             MACROS_ENTRY_MODE=0
             MACROS_ENTRY_TEXT=""
+            NOTES_ENTRY_MODE=0
+            NOTES_ENTRY_TEXT=""
 
             usage() {
                 echo "Usage: $0 [DEN-PATH] [OPTIONS]"
@@ -48,6 +50,7 @@ with lib; {
                 echo "  -n, --note <TAG>      Show notes with the specified tag (note :: <TAG>)."
                 echo "  -w, --weight          Show weight for the journal."
                 echo "  -m, --macros-entry    Add text entry to the Macros section."
+                echo "  --notes-entry <TEXT>  Add text entry to the Notes section."
                 echo "  -N, --offset <N>      The number of days to offset from today."
                 echo "  -h, --help            Display this help and exit."
                 echo
@@ -83,6 +86,16 @@ with lib; {
                         fi
                         MACROS_ENTRY_MODE=1
                         MACROS_ENTRY_TEXT="$1"
+                        ;;
+                    --notes-entry)
+                        shift
+                        if [[ -z "$1" ]]; then
+                            echo "Error: --notes-entry requires a text argument."
+                            usage
+                            exit 1
+                        fi
+                        NOTES_ENTRY_MODE=1
+                        NOTES_ENTRY_TEXT="$1"
                         ;;
                     -N|--offset)
                         shift
@@ -191,18 +204,18 @@ with lib; {
                 # $2: The text to add
                 local file="$1"
                 local text="$2"
-                
+
                 # Use awk to find the Macros section and append the text
                 awk -v text="$text" '
                     BEGIN { in_macros = 0; blank_count = 0; }
-                    
+
                     # Detect the start of the Macros section
                     /^### 🍽️ Macros/ {
                         in_macros = 1;
                         print;
                         next;
                     }
-                    
+
                     # When in macros section
                     in_macros {
                         # If we hit another header, insert text before the buffered blank lines
@@ -226,10 +239,10 @@ with lib; {
                         print;
                         next;
                     }
-                    
+
                     # Print all other lines
                     { print; }
-                    
+
                     # If we reached EOF while still in Macros section, append text
                     END {
                         if (in_macros) {
@@ -238,8 +251,67 @@ with lib; {
                         }
                     }
                 ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
-                
+
                 echo "Added entry to Macros section in $file"
+            }
+
+            add_notes_entry() {
+                # Add an entry to the Notes section
+                # $1: The file to modify
+                # $2: The text to add
+                local file="$1"
+                local text="$2"
+
+                # Use awk to find the Notes section and append the text with an extra newline before it
+                awk -v text="$text" '
+                    BEGIN { in_notes = 0; blank_count = 0; }
+
+                    # Detect the start of the Notes section
+                    /^### 📝 Notes/ {
+                        in_notes = 1;
+                        print;
+                        next;
+                    }
+
+                    # When in notes section
+                    in_notes {
+                        # If we hit another header, insert blank line + text before the buffered blank lines
+                        if (/^###/) {
+                            print "";
+                            print text;
+                            for (i = 0; i < blank_count; i++) print "";
+                            in_notes = 0;
+                            print;
+                            next;
+                        }
+                        # If blank line, increment counter
+                        if (/^$/) {
+                            blank_count++;
+                            next;
+                        }
+                        # Non-blank line: print any buffered blank lines, then this line
+                        if (blank_count > 0) {
+                            for (i = 0; i < blank_count; i++) print "";
+                            blank_count = 0;
+                        }
+                        print;
+                        next;
+                    }
+
+                    # Print all other lines
+                    { print; }
+
+                    # If we reached EOF while still in Notes section, append blank line + text
+                    END {
+                        if (in_notes) {
+                            print "";
+                            print text;
+                            for (i = 0; i < blank_count; i++) print "";
+                        }
+                    }
+                ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+
+                echo "Added entry to Notes section in $file"
             }
 
             # Get title (first line)
@@ -333,6 +405,16 @@ with lib; {
                     fi
 
                     add_macros_entry "$FILE" "$MACROS_ENTRY_TEXT"
+                elif [[ $NOTES_ENTRY_MODE -eq 1 ]]; then
+                    DATE=$(date -d "-$OFFSET days" +%Y-%m-%d-%A)
+                    FILE="$DEN_PATH/Daily/$DATE.md"
+
+                    if [[ ! -f "$FILE" ]]; then
+                        echo "No daily journal entry found for $DATE."
+                        exit 1
+                    fi
+
+                    add_notes_entry "$FILE" "$NOTES_ENTRY_TEXT"
                 else
                     DATE=$(date -d "-$OFFSET days" +%Y-%m-%d-%A)
                     FILE="$DEN_PATH/Daily/$DATE.md"
