@@ -284,6 +284,7 @@
   };
 
   services.ollama = {
+    package = pkgs.ollama-cuda;
     enable = true;
   };
 
