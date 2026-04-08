@@ -48,6 +48,7 @@ with lib; {
                 echo "Open the daily journal entry for today."
                 echo
                 echo "  -t, --template  Use a template for the journal entry."
+                echo "  -c, --create    Create the journal entry without opening the editor."
                 echo "  -h, --help      Display this help and exit."
                 echo
                 echo " DEN-PATH        The path to the den directory."
@@ -107,11 +108,15 @@ with lib; {
             }
 
             # Parse options
+            CREATE_ONLY=false
             while [[ $# -gt 0 ]]; do
                 case "$1" in
                     -t|--template)
                         shift
                         TEMPLATE="$1"
+                        ;;
+                    -c|--create)
+                        CREATE_ONLY=true
                         ;;
                     -h|--help)
                         usage
@@ -152,7 +157,10 @@ with lib; {
                 create "$FILE"
             fi
 
-            edit "$FILE"
+            # Only open the editor if --create flag is not set
+            if [[ "$CREATE_ONLY" == false ]]; then
+                edit "$FILE"
+            fi
           '';
       })
     ];
