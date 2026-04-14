@@ -773,45 +773,62 @@ with lib; {
             }
 
             add_weight_entry() {
-                # Add or update weight entry in the Weight section
+                # Add or update weight entry in the Notes section
                 # $1: The file to modify
                 # $2: The weight value (e.g., "75" or "75Kg" or "75 Kg")
                 local file="$1"
                 local weight_value="$2"
 
-                # Normalize the weight value - extract just the number and ensure "Kg" unit
-                # Remove any existing "Kg" or "kg" and whitespace, then add " Kg"
+                # Normalize the weight value - ensure it has decimal point and "Kg" unit
+                # Remove any existing "Kg" or "kg" and whitespace
                 weight_value=$(echo "$weight_value" | sed -E 's/[[:space:]]*(Kg|kg|KG)//g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+                
+                # Add .0 if no decimal point exists
+                if ! echo "$weight_value" | grep -q '\.'; then
+                    weight_value="''${weight_value}.0"
+                fi
+                
                 local weight_line="weight :: $weight_value Kg"
 
-                # Use awk to find the Weight section and add/update the weight entry
+                # Use awk to find the Notes section and add/update the weight entry
                 awk -v weight="$weight_line" '
-                    BEGIN { in_weight = 0; has_weight = 0; blank_count = 0; }
+                    BEGIN { in_notes = 0; has_weight = 0; blank_count = 0; prev_was_blank = 0; }
 
-                    # Detect the start of the Weight section
-                    /^### 🏋️ Weight/ {
-                        in_weight = 1;
+                    # Detect the start of the Notes section
+                    /^### 📝 Notes/ {
+                        in_notes = 1;
                         print;
                         next;
                     }
 
-                    # When in weight section
-                    in_weight {
-                        # If we find an existing weight entry, replace it
+                    # When in notes section
+                    in_notes {
+                        # If we find an existing weight entry, update it and preserve blank before
                         if (/^weight :: /) {
+                            # Ensure there is a blank line before weight
+                            if (!prev_was_blank && blank_count == 0) {
+                                print "";
+                            }
+                            # Print any buffered blank lines (should be just one)
+                            for (i = 0; i < blank_count; i++) print "";
+                            blank_count = 0;
                             print weight;
                             has_weight = 1;
+                            prev_was_blank = 0;
                             next;
                         }
-                        # If we hit another header and havent added weight yet
+                        # If we hit another header
                         if (/^###/) {
+                            # Add weight if not found yet
                             if (!has_weight) {
-                                print "";
+                                # Ensure blank line before weight
+                                if (blank_count == 0) {
+                                    print "";
+                                }
                                 print weight;
                             }
                             for (i = 0; i < blank_count; i++) print "";
-                            in_weight = 0;
-                            blank_count = 0;
+                            in_notes = 0;
                             print;
                             next;
                         }
@@ -820,10 +837,13 @@ with lib; {
                             blank_count++;
                             next;
                         }
-                        # Non-blank line: print buffered blanks, then this line
+                        # Non-blank line
                         if (blank_count > 0) {
                             for (i = 0; i < blank_count; i++) print "";
+                            prev_was_blank = 1;
                             blank_count = 0;
+                        } else {
+                            prev_was_blank = 0;
                         }
                         print;
                         next;
@@ -832,10 +852,13 @@ with lib; {
                     # Print all other lines
                     { print; }
 
-                    # If we reached EOF while still in Weight section
+                    # If we reached EOF while still in Notes section
                     END {
-                        if (in_weight && !has_weight) {
-                            print "";
+                        if (in_notes && !has_weight) {
+                            # Ensure blank line before weight
+                            if (blank_count == 0) {
+                                print "";
+                            }
                             print weight;
                             for (i = 0; i < blank_count; i++) print "";
                         }
