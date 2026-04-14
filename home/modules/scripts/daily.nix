@@ -47,14 +47,14 @@ with lib; {
                 echo "Usage: $0 [DEN-PATH] [OPTIONS]"
                 echo "Show the daily statistics for the journal."
                 echo
-                echo "  -n, --note <TAG>      Show notes with the specified tag (note :: <TAG>)."
-                echo "  -w, --weight          Show weight for the journal."
-                echo "  -m, --macros-entry    Add text entry to the Macros section."
-                echo "  --notes-entry <TEXT>  Add text entry to the Notes section."
-                echo "  -N, --offset <N>      The number of days to offset from today."
-                echo "  -h, --help            Display this help and exit."
+                echo "  -n, --note <TAG>          Show notes with the specified tag (note :: <TAG>)."
+                echo "  -w, --weight              Show weight for the journal."
+                echo "  -m, --macros-entry <TEXT> Add text entry to the Macros section."
+                echo "  -e, --notes-entry <TEXT>  Add text entry to the Notes section."
+                echo "  -N, --offset <N>          The number of days to offset from today."
+                echo "  -h, --help                Display this help and exit."
                 echo
-                echo " DEN-PATH               The path to the den directory."
+                echo " DEN-PATH                   The path to the den directory."
                 echo
                 echo "If DEN-PATH is not provided, the default path will be used."
                 echo "The default path is: $THE_DEN_PATH"
@@ -87,7 +87,7 @@ with lib; {
                         MACROS_ENTRY_MODE=1
                         MACROS_ENTRY_TEXT="$1"
                         ;;
-                    --notes-entry)
+                    -e|--notes-entry)
                         shift
                         if [[ -z "$1" ]]; then
                             echo "Error: --notes-entry requires a text argument."
