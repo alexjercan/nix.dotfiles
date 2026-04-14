@@ -48,25 +48,34 @@ with lib; {
             TASK_ENTRY_TEXT=""
             TASK_TOMORROW_ENTRY_MODE=0
             TASK_TOMORROW_ENTRY_TEXT=""
+            TASK_REMOVE_MODE=0
+            TASK_REMOVE_INDEX=""
+            TASK_TOMORROW_REMOVE_MODE=0
+            TASK_TOMORROW_REMOVE_INDEX=""
             TOGGLE_TASK_MODE=0
             TOGGLE_TASK_INDEX=""
+            WEIGHT_ENTRY_MODE=0
+            WEIGHT_ENTRY_VALUE=""
 
             usage() {
                 echo "Usage: $0 [DEN-PATH] [OPTIONS]"
                 echo "Show the daily statistics for the journal."
                 echo
-                echo "  -n, --note <TAG>               Show notes with the specified tag (note :: <TAG>)."
-                echo "  -w, --weight                   Show weight for the journal."
-                echo "  -m, --macros-entry <TEXT>      Add text entry to the Macros section."
-                echo "  -e, --notes-entry <TEXT>       Add text entry to the Notes section."
-                echo "  --toggle-habit <HABIT>         Toggle habit checkbox completion."
-                echo "  --task-entry <TEXT>            Add task to Today's Tasks section."
-                echo "  --task-tomorrow-entry <TEXT>   Add task to Tomorrow section."
-                echo "  --toggle-task <INDEX>          Toggle task completion by index."
-                echo "  -N, --offset <N>               The number of days to offset from today."
-                echo "  -h, --help                     Display this help and exit."
+                echo "  -n, --note <TAG>                   Show notes with the specified tag (note :: <TAG>)."
+                echo "  -w, --weight                       Show weight for the journal."
+                echo "  --weight-entry <VALUE>             Log weight for the day (format: VALUE or VALUEKg)."
+                echo "  -m, --macros-entry <TEXT>          Add text entry to the Macros section."
+                echo "  -e, --notes-entry <TEXT>           Add text entry to the Notes section."
+                echo "  --toggle-habit <HABIT>             Toggle habit checkbox completion."
+                echo "  --task-entry <TEXT>                Add task to Today's Tasks section."
+                echo "  --task-remove <INDEX>              Remove task from Today's Tasks by index."
+                echo "  --task-tomorrow-entry <TEXT>       Add task to Tomorrow section."
+                echo "  --task-tomorrow-remove <INDEX>     Remove task from Tomorrow section by index."
+                echo "  --toggle-task <INDEX>              Toggle task completion by index."
+                echo "  -N, --offset <N>                   The number of days to offset from today."
+                echo "  -h, --help                         Display this help and exit."
                 echo
-                echo " DEN-PATH                        The path to the den directory."
+                echo " DEN-PATH                            The path to the den directory."
                 echo
                 echo "If DEN-PATH is not provided, the default path will be used."
                 echo "The default path is: $THE_DEN_PATH"
@@ -88,6 +97,16 @@ with lib; {
                         ;;
                     -w|--weight)
                         WEIGHT_MODE=1
+                        ;;
+                    --weight-entry)
+                        shift
+                        if [[ -z "$1" ]]; then
+                            echo "Error: --weight-entry requires a value argument."
+                            usage
+                            exit 1
+                        fi
+                        WEIGHT_ENTRY_MODE=1
+                        WEIGHT_ENTRY_VALUE="$1"
                         ;;
                     -m|--macros-entry)
                         shift
@@ -129,6 +148,16 @@ with lib; {
                         TASK_ENTRY_MODE=1
                         TASK_ENTRY_TEXT="$1"
                         ;;
+                    --task-remove)
+                        shift
+                        if [[ -z "$1" ]]; then
+                            echo "Error: --task-remove requires an index argument."
+                            usage
+                            exit 1
+                        fi
+                        TASK_REMOVE_MODE=1
+                        TASK_REMOVE_INDEX="$1"
+                        ;;
                     --task-tomorrow-entry)
                         shift
                         if [[ -z "$1" ]]; then
@@ -138,6 +167,16 @@ with lib; {
                         fi
                         TASK_TOMORROW_ENTRY_MODE=1
                         TASK_TOMORROW_ENTRY_TEXT="$1"
+                        ;;
+                    --task-tomorrow-remove)
+                        shift
+                        if [[ -z "$1" ]]; then
+                            echo "Error: --task-tomorrow-remove requires an index argument."
+                            usage
+                            exit 1
+                        fi
+                        TASK_TOMORROW_REMOVE_MODE=1
+                        TASK_TOMORROW_REMOVE_INDEX="$1"
                         ;;
                     --toggle-task)
                         shift
@@ -499,6 +538,11 @@ with lib; {
                     # Detect the "Today" header
                     /^Today$/ {
                         in_today = 1;
+                        # Print any buffered blank lines before Today
+                        if (blank_count > 0) {
+                            for (i = 0; i < blank_count; i++) print "";
+                            blank_count = 0;
+                        }
                         print;
                         next;
                     }
@@ -638,6 +682,169 @@ with lib; {
                 echo "Toggled task #$index in $file"
             }
 
+            remove_task() {
+                # Remove a task from Today section by index
+                # $1: The file to modify
+                # $2: The task index (1-based)
+                local file="$1"
+                local index="$2"
+
+                # Use awk to find the Nth task and skip it
+                awk -v idx="$index" '
+                    BEGIN { in_today = 0; task_count = 0; }
+
+                    # Detect the "Today" header
+                    /^Today$/ {
+                        in_today = 1;
+                        print;
+                        next;
+                    }
+
+                    # When in today section
+                    in_today {
+                        # If we hit another section or header, exit
+                        if (/^###/ || /^Tomorrow$/) {
+                            in_today = 0;
+                            print;
+                            next;
+                        }
+                        # If this is a task line
+                        if (/^- \[[ x]\]/) {
+                            task_count++;
+                            # If this is the target task, skip it (dont print)
+                            if (task_count == idx) {
+                                next;
+                            }
+                        }
+                        print;
+                        next;
+                    }
+
+                    # Print all other lines
+                    { print; }
+                ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+
+                echo "Removed task #$index from Today in $file"
+            }
+
+            remove_task_tomorrow() {
+                # Remove a task from Tomorrow section by index
+                # $1: The file to modify
+                # $2: The task index (1-based)
+                local file="$1"
+                local index="$2"
+
+                # Use awk to find the Nth task in Tomorrow and skip it
+                awk -v idx="$index" '
+                    BEGIN { in_tomorrow = 0; task_count = 0; }
+
+                    # Detect the "Tomorrow" header
+                    /^Tomorrow$/ {
+                        in_tomorrow = 1;
+                        print;
+                        next;
+                    }
+
+                    # When in tomorrow section
+                    in_tomorrow {
+                        # If we hit a header, exit tomorrow section
+                        if (/^###/) {
+                            in_tomorrow = 0;
+                            print;
+                            next;
+                        }
+                        # If this is a task line (bullet point)
+                        if (/^- /) {
+                            task_count++;
+                            # If this is the target task, skip it (dont print)
+                            if (task_count == idx) {
+                                next;
+                            }
+                        }
+                        print;
+                        next;
+                    }
+
+                    # Print all other lines
+                    { print; }
+                ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+
+                echo "Removed task #$index from Tomorrow in $file"
+            }
+
+            add_weight_entry() {
+                # Add or update weight entry in the Weight section
+                # $1: The file to modify
+                # $2: The weight value (e.g., "75" or "75Kg" or "75 Kg")
+                local file="$1"
+                local weight_value="$2"
+
+                # Normalize the weight value - extract just the number and ensure "Kg" unit
+                # Remove any existing "Kg" or "kg" and whitespace, then add " Kg"
+                weight_value=$(echo "$weight_value" | sed -E 's/[[:space:]]*(Kg|kg|KG)//g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+                local weight_line="weight :: $weight_value Kg"
+
+                # Use awk to find the Weight section and add/update the weight entry
+                awk -v weight="$weight_line" '
+                    BEGIN { in_weight = 0; has_weight = 0; blank_count = 0; }
+
+                    # Detect the start of the Weight section
+                    /^### 🏋️ Weight/ {
+                        in_weight = 1;
+                        print;
+                        next;
+                    }
+
+                    # When in weight section
+                    in_weight {
+                        # If we find an existing weight entry, replace it
+                        if (/^weight :: /) {
+                            print weight;
+                            has_weight = 1;
+                            next;
+                        }
+                        # If we hit another header and havent added weight yet
+                        if (/^###/) {
+                            if (!has_weight) {
+                                print "";
+                                print weight;
+                            }
+                            for (i = 0; i < blank_count; i++) print "";
+                            in_weight = 0;
+                            blank_count = 0;
+                            print;
+                            next;
+                        }
+                        # If blank line, increment counter
+                        if (/^$/) {
+                            blank_count++;
+                            next;
+                        }
+                        # Non-blank line: print buffered blanks, then this line
+                        if (blank_count > 0) {
+                            for (i = 0; i < blank_count; i++) print "";
+                            blank_count = 0;
+                        }
+                        print;
+                        next;
+                    }
+
+                    # Print all other lines
+                    { print; }
+
+                    # If we reached EOF while still in Weight section
+                    END {
+                        if (in_weight && !has_weight) {
+                            print "";
+                            print weight;
+                            for (i = 0; i < blank_count; i++) print "";
+                        }
+                    }
+                ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+
+                echo "Added/updated weight entry to $weight_value Kg in $file"
+            }
+
             # Get title (first line)
             title() {
               echo "# $(head -n 1 "$FILE" | sed 's/# //')"
@@ -759,6 +966,16 @@ with lib; {
                     fi
 
                     add_task_entry "$FILE" "$TASK_ENTRY_TEXT"
+                elif [[ $TASK_REMOVE_MODE -eq 1 ]]; then
+                    DATE=$(date -d "-$OFFSET days" +%Y-%m-%d-%A)
+                    FILE="$DEN_PATH/Daily/$DATE.md"
+
+                    if [[ ! -f "$FILE" ]]; then
+                        echo "No daily journal entry found for $DATE."
+                        exit 1
+                    fi
+
+                    remove_task "$FILE" "$TASK_REMOVE_INDEX"
                 elif [[ $TASK_TOMORROW_ENTRY_MODE -eq 1 ]]; then
                     DATE=$(date -d "-$OFFSET days" +%Y-%m-%d-%A)
                     FILE="$DEN_PATH/Daily/$DATE.md"
@@ -769,6 +986,16 @@ with lib; {
                     fi
 
                     add_task_tomorrow_entry "$FILE" "$TASK_TOMORROW_ENTRY_TEXT"
+                elif [[ $TASK_TOMORROW_REMOVE_MODE -eq 1 ]]; then
+                    DATE=$(date -d "-$OFFSET days" +%Y-%m-%d-%A)
+                    FILE="$DEN_PATH/Daily/$DATE.md"
+
+                    if [[ ! -f "$FILE" ]]; then
+                        echo "No daily journal entry found for $DATE."
+                        exit 1
+                    fi
+
+                    remove_task_tomorrow "$FILE" "$TASK_TOMORROW_REMOVE_INDEX"
                 elif [[ $TOGGLE_TASK_MODE -eq 1 ]]; then
                     DATE=$(date -d "-$OFFSET days" +%Y-%m-%d-%A)
                     FILE="$DEN_PATH/Daily/$DATE.md"
@@ -779,6 +1006,16 @@ with lib; {
                     fi
 
                     toggle_task "$FILE" "$TOGGLE_TASK_INDEX"
+                elif [[ $WEIGHT_ENTRY_MODE -eq 1 ]]; then
+                    DATE=$(date -d "-$OFFSET days" +%Y-%m-%d-%A)
+                    FILE="$DEN_PATH/Daily/$DATE.md"
+
+                    if [[ ! -f "$FILE" ]]; then
+                        echo "No daily journal entry found for $DATE."
+                        exit 1
+                    fi
+
+                    add_weight_entry "$FILE" "$WEIGHT_ENTRY_VALUE"
                 else
                     DATE=$(date -d "-$OFFSET days" +%Y-%m-%d-%A)
                     FILE="$DEN_PATH/Daily/$DATE.md"
