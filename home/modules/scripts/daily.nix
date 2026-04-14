@@ -42,19 +42,31 @@ with lib; {
             MACROS_ENTRY_TEXT=""
             NOTES_ENTRY_MODE=0
             NOTES_ENTRY_TEXT=""
+            TOGGLE_HABIT_MODE=0
+            TOGGLE_HABIT_NAME=""
+            TASK_ENTRY_MODE=0
+            TASK_ENTRY_TEXT=""
+            TASK_TOMORROW_ENTRY_MODE=0
+            TASK_TOMORROW_ENTRY_TEXT=""
+            TOGGLE_TASK_MODE=0
+            TOGGLE_TASK_INDEX=""
 
             usage() {
                 echo "Usage: $0 [DEN-PATH] [OPTIONS]"
                 echo "Show the daily statistics for the journal."
                 echo
-                echo "  -n, --note <TAG>          Show notes with the specified tag (note :: <TAG>)."
-                echo "  -w, --weight              Show weight for the journal."
-                echo "  -m, --macros-entry <TEXT> Add text entry to the Macros section."
-                echo "  -e, --notes-entry <TEXT>  Add text entry to the Notes section."
-                echo "  -N, --offset <N>          The number of days to offset from today."
-                echo "  -h, --help                Display this help and exit."
+                echo "  -n, --note <TAG>               Show notes with the specified tag (note :: <TAG>)."
+                echo "  -w, --weight                   Show weight for the journal."
+                echo "  -m, --macros-entry <TEXT>      Add text entry to the Macros section."
+                echo "  -e, --notes-entry <TEXT>       Add text entry to the Notes section."
+                echo "  --toggle-habit <HABIT>         Toggle habit checkbox completion."
+                echo "  --task-entry <TEXT>            Add task to Today's Tasks section."
+                echo "  --task-tomorrow-entry <TEXT>   Add task to Tomorrow section."
+                echo "  --toggle-task <INDEX>          Toggle task completion by index."
+                echo "  -N, --offset <N>               The number of days to offset from today."
+                echo "  -h, --help                     Display this help and exit."
                 echo
-                echo " DEN-PATH                   The path to the den directory."
+                echo " DEN-PATH                        The path to the den directory."
                 echo
                 echo "If DEN-PATH is not provided, the default path will be used."
                 echo "The default path is: $THE_DEN_PATH"
@@ -96,6 +108,46 @@ with lib; {
                         fi
                         NOTES_ENTRY_MODE=1
                         NOTES_ENTRY_TEXT="$1"
+                        ;;
+                    --toggle-habit)
+                        shift
+                        if [[ -z "$1" ]]; then
+                            echo "Error: --toggle-habit requires a habit name argument."
+                            usage
+                            exit 1
+                        fi
+                        TOGGLE_HABIT_MODE=1
+                        TOGGLE_HABIT_NAME="$1"
+                        ;;
+                    --task-entry)
+                        shift
+                        if [[ -z "$1" ]]; then
+                            echo "Error: --task-entry requires a text argument."
+                            usage
+                            exit 1
+                        fi
+                        TASK_ENTRY_MODE=1
+                        TASK_ENTRY_TEXT="$1"
+                        ;;
+                    --task-tomorrow-entry)
+                        shift
+                        if [[ -z "$1" ]]; then
+                            echo "Error: --task-tomorrow-entry requires a text argument."
+                            usage
+                            exit 1
+                        fi
+                        TASK_TOMORROW_ENTRY_MODE=1
+                        TASK_TOMORROW_ENTRY_TEXT="$1"
+                        ;;
+                    --toggle-task)
+                        shift
+                        if [[ -z "$1" ]]; then
+                            echo "Error: --toggle-task requires an index argument."
+                            usage
+                            exit 1
+                        fi
+                        TOGGLE_TASK_MODE=1
+                        TOGGLE_TASK_INDEX="$1"
                         ;;
                     -N|--offset)
                         shift
@@ -314,6 +366,278 @@ with lib; {
                 echo "Added entry to Notes section in $file"
             }
 
+            toggle_habit() {
+                # Toggle a habit checkbox
+                # $1: The file to modify
+                # $2: The habit name to toggle
+                local file="$1"
+                local habit_name="$2"
+
+                # Use awk to find the habit and toggle its checkbox
+                awk -v habit="$habit_name" '
+                    BEGIN { in_habits = 0; found = 0; }
+
+                    # Detect the start of the Habits section
+                    /^### 🌱 Habits/ {
+                        in_habits = 1;
+                        print;
+                        next;
+                    }
+
+                    # When in habits section
+                    in_habits {
+                        # If we hit another header, exit habits section
+                        if (/^###/) {
+                            in_habits = 0;
+                            print;
+                            next;
+                        }
+                        # Check if this line contains the habit
+                        if (tolower($0) ~ tolower(habit)) {
+                            found = 1;
+                            # Toggle the checkbox
+                            if ($0 ~ /- \[ \]/) {
+                                gsub(/- \[ \]/, "- [x]");
+                            } else if ($0 ~ /- \[x\]/) {
+                                gsub(/- \[x\]/, "- [ ]");
+                            }
+                        }
+                        print;
+                        next;
+                    }
+
+                    # Print all other lines
+                    { print; }
+                ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+
+                echo "Toggled habit '$habit_name' in $file"
+            }
+
+            add_task_entry() {
+                # Add a task to Today's Tasks section
+                # $1: The file to modify
+                # $2: The text to add
+                local file="$1"
+                local text="$2"
+
+                # Use awk to find Today's Tasks and add a checkbox task
+                awk -v text="- [ ] $text" '
+                    BEGIN { in_today = 0; blank_count = 0; }
+
+                    # Detect the "Today" header in the Tasks section
+                    /^Today$/ {
+                        in_today = 1;
+                        print;
+                        next;
+                    }
+
+                    # When in today section
+                    in_today {
+                        # If we hit another section marker or header, insert text before buffered blanks
+                        if (/^###/ || /^Tomorrow$/) {
+                            print text;
+                            for (i = 0; i < blank_count; i++) print "";
+                            in_today = 0;
+                            print;
+                            next;
+                        }
+                        # If blank line, increment counter
+                        if (/^$/) {
+                            blank_count++;
+                            next;
+                        }
+                        # Non-blank line: print any buffered blank lines, then this line
+                        if (blank_count > 0) {
+                            for (i = 0; i < blank_count; i++) print "";
+                            blank_count = 0;
+                        }
+                        print;
+                        next;
+                    }
+
+                    # Print all other lines
+                    { print; }
+
+                    # If we reached EOF while still in today section, append text
+                    END {
+                        if (in_today) {
+                            print text;
+                            for (i = 0; i < blank_count; i++) print "";
+                        }
+                    }
+                ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+
+                echo "Added task to Today's Tasks in $file"
+            }
+
+            add_task_tomorrow_entry() {
+                # Add a task to Tomorrow section
+                # $1: The file to modify
+                # $2: The text to add
+                local file="$1"
+                local text="$2"
+
+                # Use awk to find Tomorrow section and add a bullet point (no checkbox)
+                # If Tomorrow section doesn't exist, create it after Today section
+                awk -v text="- $text" '
+                    BEGIN { in_tomorrow = 0; in_today = 0; blank_count = 0; has_tomorrow = 0; }
+
+                    # Detect the "Tomorrow" header
+                    /^Tomorrow$/ {
+                        has_tomorrow = 1;
+                        in_tomorrow = 1;
+                        in_today = 0;
+                        # Print any buffered blank lines before Tomorrow
+                        if (blank_count > 0) {
+                            for (i = 0; i < blank_count; i++) print "";
+                            blank_count = 0;
+                        }
+                        print;
+                        next;
+                    }
+
+                    # Detect the "Today" header
+                    /^Today$/ {
+                        in_today = 1;
+                        print;
+                        next;
+                    }
+
+                    # When in tomorrow section
+                    in_tomorrow {
+                        # If we hit a header, insert text before buffered blanks
+                        if (/^###/) {
+                            print text;
+                            for (i = 0; i < blank_count; i++) print "";
+                            in_tomorrow = 0;
+                            print;
+                            next;
+                        }
+                        # If blank line, increment counter
+                        if (/^$/) {
+                            blank_count++;
+                            next;
+                        }
+                        # Non-blank line: print any buffered blank lines, then this line
+                        if (blank_count > 0) {
+                            for (i = 0; i < blank_count; i++) print "";
+                            blank_count = 0;
+                        }
+                        print;
+                        next;
+                    }
+
+                    # When in today section and Tomorrow doesnt exist yet
+                    in_today && !has_tomorrow {
+                        # If we hit another header, insert Tomorrow section before it
+                        if (/^###/) {
+                            # Insert Tomorrow section with the task
+                            print "";
+                            print "Tomorrow";
+                            print text;
+                            for (i = 0; i < blank_count; i++) print "";
+                            has_tomorrow = 1;
+                            in_today = 0;
+                            print;
+                            next;
+                        }
+                        # If blank line, increment counter
+                        if (/^$/) {
+                            blank_count++;
+                            next;
+                        }
+                        # Non-blank line: print any buffered blank lines, then this line
+                        if (blank_count > 0) {
+                            for (i = 0; i < blank_count; i++) print "";
+                            blank_count = 0;
+                        }
+                        print;
+                        next;
+                    }
+
+                    # When not in a special section, handle blank lines
+                    !in_tomorrow && !in_today {
+                        # If blank line, increment counter
+                        if (/^$/) {
+                            blank_count++;
+                            next;
+                        }
+                        # Non-blank line: print any buffered blank lines, then this line
+                        if (blank_count > 0) {
+                            for (i = 0; i < blank_count; i++) print "";
+                            blank_count = 0;
+                        }
+                        print;
+                        next;
+                    }
+
+                    # If we reached EOF
+                    END {
+                        if (in_tomorrow) {
+                            # We were in Tomorrow section, just add the task
+                            print text;
+                            for (i = 0; i < blank_count; i++) print "";
+                        } else if (!has_tomorrow) {
+                            # Tomorrow section never existed, create it at the end
+                            print "";
+                            print "Tomorrow";
+                            print text;
+                        }
+                    }
+                ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+
+                echo "Added task to Tomorrow in $file"
+            }
+
+            toggle_task() {
+                # Toggle a task checkbox by index
+                # $1: The file to modify
+                # $2: The task index (1-based)
+                local file="$1"
+                local index="$2"
+
+                # Use awk to find the Nth task and toggle it
+                awk -v idx="$index" '
+                    BEGIN { in_today = 0; task_count = 0; }
+
+                    # Detect the "Today" header
+                    /^Today$/ {
+                        in_today = 1;
+                        print;
+                        next;
+                    }
+
+                    # When in today section
+                    in_today {
+                        # If we hit another section or header, exit
+                        if (/^###/ || /^Tomorrow$/) {
+                            in_today = 0;
+                            print;
+                            next;
+                        }
+                        # If this is a task line
+                        if (/^- \[[ x]\]/) {
+                            task_count++;
+                            # If this is the target task, toggle it
+                            if (task_count == idx) {
+                                if ($0 ~ /- \[ \]/) {
+                                    gsub(/- \[ \]/, "- [x]");
+                                } else if ($0 ~ /- \[x\]/) {
+                                    gsub(/- \[x\]/, "- [ ]");
+                                }
+                            }
+                        }
+                        print;
+                        next;
+                    }
+
+                    # Print all other lines
+                    { print; }
+                ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+
+                echo "Toggled task #$index in $file"
+            }
+
             # Get title (first line)
             title() {
               echo "# $(head -n 1 "$FILE" | sed 's/# //')"
@@ -415,6 +739,46 @@ with lib; {
                     fi
 
                     add_notes_entry "$FILE" "$NOTES_ENTRY_TEXT"
+                elif [[ $TOGGLE_HABIT_MODE -eq 1 ]]; then
+                    DATE=$(date -d "-$OFFSET days" +%Y-%m-%d-%A)
+                    FILE="$DEN_PATH/Daily/$DATE.md"
+
+                    if [[ ! -f "$FILE" ]]; then
+                        echo "No daily journal entry found for $DATE."
+                        exit 1
+                    fi
+
+                    toggle_habit "$FILE" "$TOGGLE_HABIT_NAME"
+                elif [[ $TASK_ENTRY_MODE -eq 1 ]]; then
+                    DATE=$(date -d "-$OFFSET days" +%Y-%m-%d-%A)
+                    FILE="$DEN_PATH/Daily/$DATE.md"
+
+                    if [[ ! -f "$FILE" ]]; then
+                        echo "No daily journal entry found for $DATE."
+                        exit 1
+                    fi
+
+                    add_task_entry "$FILE" "$TASK_ENTRY_TEXT"
+                elif [[ $TASK_TOMORROW_ENTRY_MODE -eq 1 ]]; then
+                    DATE=$(date -d "-$OFFSET days" +%Y-%m-%d-%A)
+                    FILE="$DEN_PATH/Daily/$DATE.md"
+
+                    if [[ ! -f "$FILE" ]]; then
+                        echo "No daily journal entry found for $DATE."
+                        exit 1
+                    fi
+
+                    add_task_tomorrow_entry "$FILE" "$TASK_TOMORROW_ENTRY_TEXT"
+                elif [[ $TOGGLE_TASK_MODE -eq 1 ]]; then
+                    DATE=$(date -d "-$OFFSET days" +%Y-%m-%d-%A)
+                    FILE="$DEN_PATH/Daily/$DATE.md"
+
+                    if [[ ! -f "$FILE" ]]; then
+                        echo "No daily journal entry found for $DATE."
+                        exit 1
+                    fi
+
+                    toggle_task "$FILE" "$TOGGLE_TASK_INDEX"
                 else
                     DATE=$(date -d "-$OFFSET days" +%Y-%m-%d-%A)
                     FILE="$DEN_PATH/Daily/$DATE.md"
