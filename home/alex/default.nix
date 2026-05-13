@@ -1,4 +1,4 @@
-{pkgs, ...}: let
+{pkgs, inputs, config, ...}: let
   modulesPath = ../modules;
 in {
   # Home Manager needs a bit of information about you and the paths it should
@@ -157,6 +157,19 @@ in {
     ];
   };
 
+  programs.scufris = {
+    enable = true;
+
+    server = {
+      enable = true;
+      bind = "127.0.0.1";
+      port = 8765;
+      model = "qwen3:latest";
+      ollamaUrl = "http://127.0.0.1:11434";
+      environmentFile = "${config.home.homeDirectory}/.config/scufris/env";
+    };
+  };
+
   home.pointerCursor = {
     gtk.enable = true;
     # x11.enable = true;
@@ -207,5 +220,6 @@ in {
     "${modulesPath}/hyprland"
     "${modulesPath}/dunst"
     "${modulesPath}/scripts"
+    inputs.scufris.homeManagerModules.default
   ];
 }

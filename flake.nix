@@ -31,6 +31,10 @@
       url = "github:alexjercan/macros.nvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    scufris = {
+      url = "github:alexjercan/scufris-bot";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs:
