@@ -170,6 +170,11 @@ in {
     };
   };
 
+  xdg.configFile."scufris/env".text = ''
+    # scufris environment variables
+    # Add API keys and other secrets here (e.g. OPENAI_API_KEY=...)
+  '';
+
   home.pointerCursor = {
     gtk.enable = true;
     # x11.enable = true;
