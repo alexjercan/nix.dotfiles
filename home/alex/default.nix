@@ -173,6 +173,7 @@ in {
   xdg.configFile."scufris/env".text = ''
     # scufris environment variables
     # Add API keys and other secrets here (e.g. OPENAI_API_KEY=...)
+    SCUFRIS_SHUTDOWN_GRACE=5
   '';
 
   home.pointerCursor = {
