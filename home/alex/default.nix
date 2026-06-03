@@ -160,21 +160,36 @@ in {
   programs.scufris = {
     enable = true;
 
-    server = {
-      enable = true;
-      bind = "127.0.0.1";
-      port = 8765;
-      model = "qwen3:latest";
-      ollamaUrl = "http://127.0.0.1:11434";
-      environmentFile = "${config.home.homeDirectory}/.config/scufris/env";
-    };
-  };
+    settings = {
+      user.username = "alex";
+      user.timezone = "Europe/Bucharest";
+      user.identity.telegram = "8231376426";
+      user.identity.cli = "alex";
+      user.journal.den_path = "~/personal/the-den/";
 
-  xdg.configFile."scufris/env".text = ''
-    # scufris environment variables
-    # Add API keys and other secrets here (e.g. OPENAI_API_KEY=...)
-    SCUFRIS_SHUTDOWN_GRACE=5
-  '';
+      telegram.allowed_user_ids = [8231376426];
+
+      ollama.model = "qwen3:latest";
+      ollama.base_url    = "http://localhost:11434";
+      ollama.temperature = 0.7;
+      ollama.reasoning   = true;
+
+      history.max_per_user = 20;
+
+      server.bind = "127.0.0.1";
+      server.port = 8765;
+      server.log_level = "INFO";
+      server.shutdown_grace = 5;
+
+      client.server_url = "http://127.0.0.1:8765";
+      client.full_thinking = true;
+    };
+
+    server.enable = true;
+    bot.enable = true;
+
+    environmentFile = "${config.home.homeDirectory}/.config/scufris/env";
+  };
 
   home.pointerCursor = {
     gtk.enable = true;
