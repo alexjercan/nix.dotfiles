@@ -162,7 +162,6 @@
 
           "$mod, F, fullscreen, "
           "$mod, Space, togglefloating, "
-          "$mod, S, togglesplit, "
 
           "$mod, B, exec, firefox"
           "$mod, E, exec, pcmanfm"
