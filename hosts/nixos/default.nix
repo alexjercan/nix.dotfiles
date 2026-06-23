@@ -280,9 +280,26 @@
     };
   };
 
-  services.ollama = {
-    package = pkgs.ollama-cuda;
+  services.llama-cpp = {
     enable = true;
+    package = pkgs.llama-cpp.override { cudaSupport = true; };
+    openFirewall = false;
+    port = 11433;
+    modelsPreset = {
+      "Qwen3.6-35B-A3B" = {
+        hf-repo = "ggml-org/Qwen3.6-35B-A3B-GGUF";
+        hf-file = "Qwen3.6-35B-A3B-Q8_0.gguf";
+        alias = "ggml-org/Qwen3.6-35B-A3B";
+        fit = "on";
+        seed = "3407";
+        temp = "1.0";
+        top-p = "0.95";
+        min-p = "0.01";
+        top-k = "40";
+        jinja = "on";
+      };
+    };
+    extraFlags = [ "--ctx-size" "32768" ];
   };
 
   services.logmein-hamachi.enable = true;
