@@ -241,7 +241,12 @@
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
-  # services.openssh.enable = true;
+  services.openssh = {
+    enable = true;
+    settings = {
+      AllowUsers = ["alex"];
+    };
+  };
 
   # Open ports in the firewall.
   networking.firewall.allowedUDPPorts = [8080];
@@ -282,7 +287,7 @@
 
   services.llama-cpp = {
     enable = true;
-    package = pkgs.llama-cpp.override { cudaSupport = true; };
+    package = pkgs.llama-cpp.override {cudaSupport = true;};
     openFirewall = false;
     port = 11433;
     modelsPreset = {
@@ -299,7 +304,7 @@
         jinja = "on";
       };
     };
-    extraFlags = [ "--ctx-size" "32768" ];
+    extraFlags = ["--ctx-size" "32768"];
   };
 
   services.logmein-hamachi.enable = true;

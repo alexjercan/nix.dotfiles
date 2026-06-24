@@ -1,4 +1,9 @@
-{pkgs, inputs, config, ...}: let
+{
+  pkgs,
+  inputs,
+  config,
+  ...
+}: let
   modulesPath = ../modules;
 in {
   # Home Manager needs a bit of information about you and the paths it should
@@ -172,9 +177,9 @@ in {
       telegram.allowed_user_ids = [8231376426];
 
       ollama.model = "qwen3:latest";
-      ollama.base_url    = "http://localhost:11434";
+      ollama.base_url = "http://localhost:11434";
       ollama.temperature = 0.7;
-      ollama.reasoning   = true;
+      ollama.reasoning = true;
 
       history.max_per_user = 20;
 

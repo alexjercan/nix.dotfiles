@@ -782,12 +782,12 @@ with lib; {
                 # Normalize the weight value - ensure it has decimal point and "Kg" unit
                 # Remove any existing "Kg" or "kg" and whitespace
                 weight_value=$(echo "$weight_value" | sed -E 's/[[:space:]]*(Kg|kg|KG)//g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-                
+
                 # Add .0 if no decimal point exists
                 if ! echo "$weight_value" | grep -q '\.'; then
                     weight_value="''${weight_value}.0"
                 fi
-                
+
                 local weight_line="weight :: $weight_value Kg"
 
                 # Use awk to find the Notes section and add/update the weight entry
