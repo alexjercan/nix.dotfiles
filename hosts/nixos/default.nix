@@ -303,8 +303,33 @@
         top-k = "40";
         jinja = "on";
       };
+      "gemma-4-26B-A4B-it" = {
+        hf-repo = "ggml-org/gemma-4-26B-A4B-it-GGUF";
+        hf-file = "gemma-4-26B-A4B-it-Q8_0.gguf";
+        alias = "ggml-org/gemma-4-26B-A4B-it-GGUF";
+        fit = "on";
+        seed = "3407";
+        temp = "1.0";
+        top-p = "0.95";
+        min-p = "0.01";
+        top-k = "40";
+        jinja = "on";
+      };
+      "gemma-4-12B-it" = {
+        hf-repo = "ggml-org/gemma-4-12B-it-GGUF";
+        hf-file = "gemma-4-12B-it-Q4_K_M.gguf";
+        alias = "ggml-org/gemma-4-12B-it-GGUF";
+        fit = "on";
+        seed = "3407";
+        temp = "1.0";
+        top-p = "0.95";
+        min-p = "0.01";
+        top-k = "40";
+        jinja = "on";
+        no-mmproj = "on";
+      };
     };
-    extraFlags = ["--ctx-size" "32768"];
+    extraFlags = ["--ctx-size" "128000"];
   };
 
   services.logmein-hamachi.enable = true;
