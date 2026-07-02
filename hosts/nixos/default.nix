@@ -4,6 +4,7 @@
 {
   config,
   pkgs,
+  lib,
   ...
 }: {
   imports = [
@@ -289,47 +290,69 @@
     enable = true;
     package = pkgs.llama-cpp.override {cudaSupport = true;};
     openFirewall = false;
-    port = 11433;
-    modelsPreset = {
-      "Qwen3.6-35B-A3B" = {
-        hf-repo = "ggml-org/Qwen3.6-35B-A3B-GGUF";
-        hf-file = "Qwen3.6-35B-A3B-Q8_0.gguf";
-        alias = "ggml-org/Qwen3.6-35B-A3B";
-        fit = "on";
-        seed = "3407";
-        temp = "1.0";
-        top-p = "0.95";
-        min-p = "0.01";
-        top-k = "40";
-        jinja = "on";
-      };
-      "gemma-4-26B-A4B-it" = {
-        hf-repo = "ggml-org/gemma-4-26B-A4B-it-GGUF";
-        hf-file = "gemma-4-26B-A4B-it-Q8_0.gguf";
-        alias = "ggml-org/gemma-4-26B-A4B-it-GGUF";
-        fit = "on";
-        seed = "3407";
-        temp = "1.0";
-        top-p = "0.95";
-        min-p = "0.01";
-        top-k = "40";
-        jinja = "on";
-      };
-      "gemma-4-12B-it" = {
-        hf-repo = "ggml-org/gemma-4-12B-it-GGUF";
-        hf-file = "gemma-4-12B-it-Q4_K_M.gguf";
-        alias = "ggml-org/gemma-4-12B-it-GGUF";
-        fit = "on";
-        seed = "3407";
-        temp = "1.0";
-        top-p = "0.95";
-        min-p = "0.01";
-        top-k = "40";
-        jinja = "on";
-        no-mmproj = "on";
-      };
+    settings = {
+      port = 11433;
+      ctx-size = 128000;
+      models-preset =
+        pkgs.writeText "llama-cpp-models-preset.ini"
+        (lib.generators.toINI {} {
+          "Qwen3.6-35B-A3B" = {
+            hf-repo = "ggml-org/Qwen3.6-35B-A3B-GGUF";
+            hf-file = "Qwen3.6-35B-A3B-Q8_0.gguf";
+            alias = "ggml-org/Qwen3.6-35B-A3B";
+            fit = "on";
+            seed = "3407";
+            temp = "0.2";
+            top-p = "0.9";
+            min-p = "0.05";
+            top-k = "20";
+            repeat-penalty = "1.05";
+            repeat-last-n = "256";
+            dry-multiplier = "0.5";
+            dry-base = "1.75";
+            dry-allowed-length = "8";
+            dry-penalty-last-n = "4096";
+            jinja = "on";
+          };
+          "gemma-4-26B-A4B-it" = {
+            hf-repo = "ggml-org/gemma-4-26B-A4B-it-GGUF";
+            hf-file = "gemma-4-26B-A4B-it-Q8_0.gguf";
+            alias = "ggml-org/gemma-4-26B-A4B-it-GGUF";
+            fit = "on";
+            seed = "3407";
+            temp = "0.2";
+            top-p = "0.9";
+            min-p = "0.05";
+            top-k = "20";
+            repeat-penalty = "1.05";
+            repeat-last-n = "256";
+            dry-multiplier = "0.5";
+            dry-base = "1.75";
+            dry-allowed-length = "8";
+            dry-penalty-last-n = "4096";
+            jinja = "on";
+          };
+          "gemma-4-12B-it" = {
+            hf-repo = "ggml-org/gemma-4-12B-it-GGUF";
+            hf-file = "gemma-4-12B-it-Q4_K_M.gguf";
+            alias = "ggml-org/gemma-4-12B-it-GGUF";
+            fit = "on";
+            seed = "3407";
+            temp = "0.2";
+            top-p = "0.9";
+            min-p = "0.05";
+            top-k = "20";
+            repeat-penalty = "1.05";
+            repeat-last-n = "256";
+            dry-multiplier = "0.5";
+            dry-base = "1.75";
+            dry-allowed-length = "8";
+            dry-penalty-last-n = "4096";
+            jinja = "on";
+            no-mmproj = "on";
+          };
+        });
     };
-    extraFlags = ["--ctx-size" "128000"];
   };
 
   services.logmein-hamachi.enable = true;

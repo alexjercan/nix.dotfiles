@@ -30,12 +30,15 @@ in {
     # # "Hello, world!" when run.
     hello
 
+    agent-browser
+    ast-grep
     audacity
     bat
     blender
     brave
     btop
     chromium
+    claude-code
     cmake
     davinci-resolve
     dconf
@@ -49,6 +52,7 @@ in {
     ffmpeg
     firefox
     fzf
+    gh
     gimp
     graphviz
     i3lock
@@ -60,6 +64,7 @@ in {
     kitty
     libnotify
     libreoffice-qt
+    llama-cpp
     lxappearance
     macros
     mpv
@@ -85,8 +90,6 @@ in {
     wesnoth
     xclip
     zip
-
-    llama-cpp
 
     # # You can also create simple shell scripts directly inside your
     # # configuration. For example, this adds a command 'my-hello' to your
