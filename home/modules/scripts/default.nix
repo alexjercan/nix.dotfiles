@@ -4,6 +4,7 @@ in {
   imports = [
     ./today.nix
     ./daily.nix
+    ./sprout.nix
   ];
 
   today = {
