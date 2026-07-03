@@ -31,6 +31,8 @@ fixing.
      weakened or deleted to get to green?
    - Design: consistency with the repo's conventions, needless complexity,
      missed reuse.
+   - Docs: behavior changes worth documenting are covered in the repo's
+     `docs/` folder.
    - Honesty: TASK.md notes match what the code actually does.
 
 3. **Write the findings.** Create or append to `tasks/<id>/REVIEW.md` (format

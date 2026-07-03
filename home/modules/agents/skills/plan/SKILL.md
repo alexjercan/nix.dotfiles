@@ -84,7 +84,10 @@ One or two sentences on what this task delivers and why.
   "implement rate limiting".
 - List order is execution order; each step builds on the previous one, so the
   implementer can go top to bottom.
-- Include a step for tests or a runnable example when the change warrants it.
+- Include a step for tests or a runnable example when the change warrants it,
+  and a step for documentation (in the repo's `docs/` folder, where all
+  project documentation lives) when the change alters behavior worth
+  documenting.
 - Record the files and facts you discovered while reading the code in Notes,
   so the implementer does not have to re-search.
 - Call out assumptions and open questions explicitly in Notes rather than

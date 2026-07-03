@@ -46,6 +46,11 @@ that appears to work.
      would (preferred over isolated unit tests where practical);
    - a small runnable example when the component warrants one.
 
+   When the change warrants written documentation (new component, changed
+   behavior, design decision worth explaining), put it in the repo's `docs/`
+   folder - that is where all project documentation lives - rather than
+   scattering README fragments or NOTES.md files around the tree.
+
 5. **Verify.** Run the project's full check suite: tests, linter, formatter,
    type checker, build - whatever the project defines. Fix what breaks. Do
    not report success on the strength of the diff alone; the tests must

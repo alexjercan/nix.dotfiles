@@ -30,4 +30,4 @@ After meaningful changes, document:
 - Difficulties encountered and any bugs that came up along the way, including how they were diagnosed and fixed.
 - Self-reflected feedback: what could have gone better during the implementation, and what to do differently next time. This is for future sessions to learn from.
 
-Keep these notes close to the code (e.g. a `NOTES.md`, ADR files, or a dated log section), so future agent sessions can pick up the context.
+Keep these notes in the repository's `docs/` folder, which is where all project documentation is expected to live, so future agent sessions can pick up the context.
