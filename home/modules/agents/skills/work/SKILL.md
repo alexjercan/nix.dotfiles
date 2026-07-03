@@ -61,8 +61,21 @@ that appears to work.
 7. **Commit and report.** Commit the code and the TASK.md changes together on
    the feature branch; use several focused commits if the steps form natural
    units. Then report: branch name, task ID, summary of the change, and test
-   results. Do not merge into the default branch or push unless the user
-   asks.
+   results. The branch is now ready for `/review`. Do not merge into the
+   default branch or push unless the user asks.
+
+## Addressing Review Feedback
+
+When `/review` has left a `tasks/<id>/REVIEW.md` with a REQUEST_CHANGES
+verdict, addressing it is also `/work`'s job:
+
+1. Stay on the same feature branch. Read the latest round's findings.
+2. For each finding that is not ticked: either fix it and write
+   `Response: fixed in <commit>` on its Response line, or push back with
+   concrete reasoning if you believe the finding is wrong. Never tick the
+   checkboxes yourself; those belong to the reviewer.
+3. Re-run the full check suite after the fixes, commit (including REVIEW.md
+   with the responses), and hand the branch back for the next review round.
 
 ## Guidelines
 
@@ -77,10 +90,14 @@ that appears to work.
 - If the task turns out to be much larger than planned, stop and split it
   into new tasks rather than delivering a half-working mega-change.
 
-## Relationship to Planning
+## Relationship to Planning and Review
 
 `/plan` produces the task with its Steps checklist; `/work` consumes it. If a
 task has no Steps section (created ad hoc, not via planning), write one first
 following the plan skill's format, then implement it. Planning and working in
 the same session is fine, but the TASK.md is still the source of truth, not
 the conversation.
+
+After implementation, `/review` critiques the branch and `/work` addresses
+the findings, cycling until the review verdict is APPROVE. Only close the
+loop with the user (merge, push) when they ask.
