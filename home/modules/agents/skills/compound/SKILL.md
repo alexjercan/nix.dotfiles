@@ -46,9 +46,10 @@ differently.
    - follow-up code work becomes a new tatr task;
    - one-off observations just stay in the retro.
 
-6. **Commit and report.** Commit the retro (on the feature branch if the work
-   has not been merged yet, so it travels with the task; otherwise on the
-   default branch). Summarize the key lessons and any follow-ups created.
+6. **Commit and report.** Commit the retro (on the feature branch, from inside
+   its sprout worktree, if the work has not been merged yet, so it travels with
+   the task; otherwise on the default branch in the main checkout). Summarize
+   the key lessons and any follow-ups created.
 
 ## Retro File Format
 

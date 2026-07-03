@@ -29,13 +29,17 @@ the handoffs, and when to stop and ask the user.
 
    1. Read the most recent retros in `docs/retros/` - apply the lessons; this
       is where the compounding pays off.
-   2. Run the work skill: feature branch, implement the Steps, tests, full
-      check suite.
+   2. Run the work skill: sprout worktree + branch, implement the Steps,
+      tests, full check suite.
    3. Run the review skill: critique into REVIEW.md, then alternate work and
       review rounds until the verdict is APPROVE.
-   4. On APPROVE, merge the feature branch into the default branch locally
-      (do not push) so the next task builds on finished work, and delete the
-      branch.
+   4. On APPROVE, merge the feature branch into the default branch locally.
+      The main checkout has stayed on the default branch the whole time (the
+      work happened in a separate worktree), so `cd` back to it - you cannot
+      remove a worktree while standing inside it - and run
+      `git merge --no-ff <branch>` (do not push) so the next task builds on
+      finished work, then `sprout rm <feature>` to remove the worktree, delete
+      the branch, and close its tmux session.
    5. Run the compound skill: write the retro for this task.
    6. Report one short progress line to the user (task, verdict, rounds,
       what is next), then continue with the next task.
@@ -64,7 +68,7 @@ instead of grinding when:
   make the loop converge; the cycle only compounds if each phase does its
   real job.
 - New work discovered mid-flow becomes a new tatr task and joins the queue in
-  priority order; it does not widen the current branch.
+  priority order; it does not widen the current worktree/branch.
 - One flow, one goal. A second goal gets its own `/flow` run.
 - Keep the trail on disk: tasks, reviews and retros must be committed as the
   skills prescribe, so a flow interrupted at any point can be resumed by a
@@ -76,4 +80,5 @@ Flow adds no new mechanics; it is the loop around them. tatr tracks, `/plan`
 scopes, `/work` implements, `/review` critiques, `/compound` distills - flow
 just keeps the wheel turning until the goal is done. The one thing flow does
 that the individual skills do not: merge an APPROVEd branch into the default
-branch, because the next task needs to build on it.
+branch (then `sprout rm` its worktree), because the next task needs to build
+on it.

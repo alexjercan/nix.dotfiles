@@ -18,9 +18,13 @@ fixing.
 ## Workflow
 
 1. **Locate the work.** Identify the task (ID from the user, or the task the
-   current feature branch belongs to) and diff the branch against the default
-   branch (`git diff <default>...<branch>`). Read TASK.md fully - Goal, Steps
-   and Notes are the spec the diff is judged against.
+   feature branch belongs to) and diff the branch against the default branch
+   (`git diff <default>...<branch>`). The branch usually lives in a sprout
+   worktree; the diff works from anywhere in the repo since the refs are
+   shared, but run the check suite in the worktree
+   (`cd "$(sprout show <feature>)"`) where the code is actually checked out.
+   Read TASK.md fully - Goal, Steps and Notes are the spec the diff is judged
+   against.
 
 2. **Review with fresh eyes.** Do not trust the implementer's summary; verify.
    - Correctness: bugs, edge cases, error handling, concurrency, security.

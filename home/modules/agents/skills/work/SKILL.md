@@ -1,6 +1,6 @@
 ---
 name: work
-description: Implement a planned tatr task end to end on a feature branch, with tests and verification. Use this skill when the user asks to start work with `/work`, to implement or pick up a task from the backlog, or to execute a plan created earlier. It takes a tatr task (given by ID or chosen from the backlog), creates a feature branch, works through the task's steps, and delivers a working, tested solution.
+description: Implement a planned tatr task end to end in an isolated git worktree (via sprout), with tests and verification. Use this skill when the user asks to start work with `/work`, to implement or pick up a task from the backlog, or to execute a plan created earlier. It takes a tatr task (given by ID or chosen from the backlog), creates a sprout worktree and feature branch, works through the task's steps, and delivers a working, tested solution.
 ---
 
 # Work - Implement a Tatr Task on a Feature Branch
@@ -21,17 +21,25 @@ that appears to work.
    including Notes and any `Depends on:` entries; if a dependency task is not
    CLOSED, stop and tell the user instead of building on missing work.
 
-2. **Start the task.** Set STATUS to `IN_PROGRESS` in TASK.md. Create a
-   feature branch off the default branch:
+2. **Start the task.** Prefer an isolated worktree over a bare branch, so this
+   task never collides with other work in flight. With `HEAD` on the intended
+   base (usually the default branch), create the worktree with sprout and move
+   into it:
 
    ```bash
-   git checkout -b <type>/<short-slug>
+   cd "$(sprout new <type>/<short-slug>)"
    ```
 
+   `sprout new` cuts the branch off the current `HEAD` and checks it out in a
+   fresh worktree under the sprouts cache, printing its path. Do all of the
+   task's work inside that worktree. Only after you are in it, set STATUS to
+   `IN_PROGRESS` in `tasks/<id>/TASK.md` (the tasks/ tree is present on the
+   branch, so edits and commits travel with the work and merge back later).
    Derive `<type>` from the task's tags (`feature`, `bug` -> `fix`,
    `refactor`, ...) and `<short-slug>` from the title, e.g.
-   `feature/api-rate-limiting`. If the working tree is dirty with unrelated
-   changes, ask the user before touching anything.
+   `feature/api-rate-limiting`. If sprout is unavailable, fall back to a plain
+   `git checkout -b <type>/<short-slug>` in place. If the main working tree is
+   dirty with unrelated changes, ask the user before touching anything.
 
 3. **Understand before writing.** Read the files named in the task and enough
    surrounding code to match its conventions (naming, error handling, test
@@ -64,17 +72,19 @@ that appears to work.
      differently next time. Future sessions read this.
 
 7. **Commit and report.** Commit the code and the TASK.md changes together on
-   the feature branch; use several focused commits if the steps form natural
-   units. Then report: branch name, task ID, summary of the change, and test
-   results. The branch is now ready for `/review`. Do not merge into the
-   default branch or push unless the user asks.
+   the feature branch (inside the worktree); use several focused commits if
+   the steps form natural units. Then report: worktree path, branch name, task
+   ID, summary of the change, and test results. Leave the worktree in place -
+   the branch is now ready for `/review`. Do not merge into the default branch,
+   remove the worktree, or push unless the user asks.
 
 ## Addressing Review Feedback
 
 When `/review` has left a `tasks/<id>/REVIEW.md` with a REQUEST_CHANGES
 verdict, addressing it is also `/work`'s job:
 
-1. Stay on the same feature branch. Read the latest round's findings.
+1. Stay in the same worktree on the same feature branch. Read the latest
+   round's findings.
 2. For each finding that is not ticked: either fix it and write
    `Response: fixed in <commit>` on its Response line, or push back with
    concrete reasoning if you believe the finding is wrong. Never tick the
@@ -84,8 +94,8 @@ verdict, addressing it is also `/work`'s job:
 
 ## Guidelines
 
-- One task per branch. If mid-implementation you discover unrelated work,
-  create a new tatr task for it instead of widening the diff.
+- One task per worktree/branch. If mid-implementation you discover unrelated
+  work, create a new tatr task for it instead of widening the diff.
 - Follow the repo's existing patterns before inventing new ones; consistency
   beats local elegance.
 - Do not weaken or delete failing tests to get to green; fix the code, or if
