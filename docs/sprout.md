@@ -46,9 +46,16 @@ Worktrees are created under:
 ${XDG_CACHE_HOME:-$HOME/.cache}/sprouts/<project>/<feature>
 ```
 
-where `<project>` is the basename of the repo root (`git rev-parse
---show-toplevel`). For example, feature `login` in `~/personal/nix.dotfiles`
-lands at `~/.cache/sprouts/nix.dotfiles/login`.
+where `<project>` is the basename of the repo's main worktree. For example,
+feature `login` in `~/personal/nix.dotfiles` lands at
+`~/.cache/sprouts/nix.dotfiles/login`.
+
+`<project>` is resolved from the first entry of `git worktree list` (the main
+worktree), not `git rev-parse --show-toplevel`, so sprout resolves the same
+project whether you run it from the main checkout or from inside one of its
+worktrees. This matters for the parallel-agent workflow: an agent working
+inside `sprouts/nix.dotfiles/login` can still run `sprout ls`/`rm`/`show` and
+see the whole project's worktrees.
 
 ### Why a central hidden cache root
 
