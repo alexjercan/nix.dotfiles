@@ -45,10 +45,13 @@ with lib; {
 
             usage() {
                 echo "Usage: $0 [DEN-PATH] [OPTIONS]"
-                echo "Open the daily journal entry for today."
+                echo "Open (or create) today's daily journal entry."
                 echo
                 echo "  -t, --template  Use a template for the journal entry."
-                echo "  -c, --create    Create the journal entry without opening the editor."
+                echo "  -c, --create    Create the entry if missing, do not open the"
+                echo "                  editor, and print its path to stdout."
+                echo "  -p, --path      Print the path to today's entry to stdout"
+                echo "                  WITHOUT creating it. Does not open the editor."
                 echo "  -h, --help      Display this help and exit."
                 echo
                 echo " DEN-PATH        The path to the den directory."
@@ -56,6 +59,11 @@ with lib; {
                 echo "If DEN-PATH is not provided, the default path will be used."
                 echo "The default path is: $THE_DEN_PATH"
                 echo "The default template is: $DEFAULT_TEMPLATE"
+                echo
+                echo "Exit codes: 0 success, 1 runtime error (e.g. missing template),"
+                echo "2 usage error (unknown option). With --create/--path the only"
+                echo "thing written to stdout is the entry path, so it composes:"
+                echo "  file=\$($0 --create)"
             }
 
             templator() {
@@ -77,9 +85,12 @@ with lib; {
                 YESTERDAY_FILE="$DAILY_PATH/$YESTERDAY.md"
                 TARGET_FILE="$1"
 
+                # A missing yesterday file is normal (e.g. the first entry ever,
+                # or a gap in the journal): warn and skip the carry-over instead
+                # of aborting, so creating today's entry still succeeds.
                 if [[ ! -f "$YESTERDAY_FILE" ]]; then
-                  echo "Warning: $YESTERDAY_FILE not found" >&2
-                  exit 1
+                  echo "Warning: $YESTERDAY_FILE not found, skipping carry-over" >&2
+                  return 0
                 fi
 
                 grep -Pzo "Tomorrow\n(- .*\n)+" "$YESTERDAY_FILE" | \
@@ -100,6 +111,10 @@ with lib; {
                 # Create a new journal entry
                 # $1: The file to create
                 if [[ -n "$TEMPLATE" ]]; then
+                    if [[ ! -f "$DEN_PATH/Templates/$TEMPLATE" ]]; then
+                        echo "Error: template not found: $DEN_PATH/Templates/$TEMPLATE" >&2
+                        exit 1
+                    fi
                     cp "$DEN_PATH/Templates/$TEMPLATE" "$1"
                     templator "$1"
                 else
@@ -109,6 +124,7 @@ with lib; {
 
             # Parse options
             CREATE_ONLY=false
+            PATH_ONLY=false
             while [[ $# -gt 0 ]]; do
                 case "$1" in
                     -t|--template)
@@ -118,13 +134,21 @@ with lib; {
                     -c|--create)
                         CREATE_ONLY=true
                         ;;
+                    -p|--path)
+                        PATH_ONLY=true
+                        ;;
                     -h|--help)
                         usage
                         exit 0
                         ;;
+                    -*)
+                        echo "Error: unknown option: $1" >&2
+                        usage >&2
+                        exit 2
+                        ;;
                     *)
                         DEN_PATH="$1"
-                        DEN_PATH="$${DEN_PATH%/}"
+                        DEN_PATH="''${DEN_PATH%/}"
                         ;;
                 esac
                 shift
@@ -152,15 +176,26 @@ with lib; {
                 EDITOR="$DEFAULT_EDITOR"
             fi
 
-            # If file does not exits create it
+            # --path: report where today's entry lives without creating anything.
+            if [[ "$PATH_ONLY" == true ]]; then
+                echo "$FILE"
+                exit 0
+            fi
+
+            # If file does not exist create it
             if [[ ! -f "$FILE" ]]; then
                 create "$FILE"
             fi
 
-            # Only open the editor if --create flag is not set
-            if [[ "$CREATE_ONLY" == false ]]; then
-                edit "$FILE"
+            # --create: non-interactive. Print the entry path (and only that) so
+            # the command composes, and do not open the editor.
+            if [[ "$CREATE_ONLY" == true ]]; then
+                echo "$FILE"
+                exit 0
             fi
+
+            # Interactive default: open the entry in the editor.
+            edit "$FILE"
           '';
       })
     ];

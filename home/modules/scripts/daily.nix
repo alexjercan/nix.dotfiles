@@ -23,7 +23,7 @@ with lib; {
     home.packages = [
       (pkgs.writeShellApplication {
         name = "daily";
-        runtimeInputs = [];
+        runtimeInputs = [pkgs.jq];
         text =
           /*
           bash
@@ -56,6 +56,7 @@ with lib; {
             TOGGLE_TASK_INDEX=""
             WEIGHT_ENTRY_MODE=0
             WEIGHT_ENTRY_VALUE=""
+            JSON_MODE=0
 
             usage() {
                 echo "Usage: $0 [DEN-PATH] [OPTIONS]"
@@ -73,6 +74,7 @@ with lib; {
                 echo "  --task-tomorrow-remove <INDEX>     Remove task from Tomorrow section by index."
                 echo "  --toggle-task <INDEX>              Toggle task completion by index."
                 echo "  -N, --offset <N>                   The number of days to offset from today."
+                echo "  -j, --json                         Print the day as a single JSON object (machine-readable)."
                 echo "  -h, --help                         Display this help and exit."
                 echo
                 echo " DEN-PATH                            The path to the den directory."
@@ -80,6 +82,10 @@ with lib; {
                 echo "If DEN-PATH is not provided, the default path will be used."
                 echo "The default path is: $THE_DEN_PATH"
                 echo "The default offset is: $DEFAULT_OFFSET"
+                echo
+                echo "Exit codes: 0 success, 1 missing/unreadable entry, 2 usage error."
+                echo "Data is written to stdout; confirmations and errors go to stderr,"
+                echo "so \`daily --json | jq .\` and \`daily > out.md\` stay clean."
             }
 
             # Parse options
@@ -88,9 +94,9 @@ with lib; {
                     -n|--note)
                         shift
                         if [[ -z "$1" || "$1" == -* ]]; then
-                            echo "Error: --note requires a tag argument."
-                            usage
-                            exit 1
+                            echo "Error: --note requires a tag argument." >&2
+                            usage >&2
+                            exit 2
                         fi
                         NOTE_MODE=1
                         NOTE_TAG="$1"
@@ -101,9 +107,9 @@ with lib; {
                     --weight-entry)
                         shift
                         if [[ -z "$1" ]]; then
-                            echo "Error: --weight-entry requires a value argument."
-                            usage
-                            exit 1
+                            echo "Error: --weight-entry requires a value argument." >&2
+                            usage >&2
+                            exit 2
                         fi
                         WEIGHT_ENTRY_MODE=1
                         WEIGHT_ENTRY_VALUE="$1"
@@ -111,9 +117,9 @@ with lib; {
                     -m|--macros-entry)
                         shift
                         if [[ -z "$1" ]]; then
-                            echo "Error: --macros-entry requires a text argument."
-                            usage
-                            exit 1
+                            echo "Error: --macros-entry requires a text argument." >&2
+                            usage >&2
+                            exit 2
                         fi
                         MACROS_ENTRY_MODE=1
                         MACROS_ENTRY_TEXT="$1"
@@ -121,9 +127,9 @@ with lib; {
                     -e|--notes-entry)
                         shift
                         if [[ -z "$1" ]]; then
-                            echo "Error: --notes-entry requires a text argument."
-                            usage
-                            exit 1
+                            echo "Error: --notes-entry requires a text argument." >&2
+                            usage >&2
+                            exit 2
                         fi
                         NOTES_ENTRY_MODE=1
                         NOTES_ENTRY_TEXT="$1"
@@ -131,9 +137,9 @@ with lib; {
                     --toggle-habit)
                         shift
                         if [[ -z "$1" ]]; then
-                            echo "Error: --toggle-habit requires a habit name argument."
-                            usage
-                            exit 1
+                            echo "Error: --toggle-habit requires a habit name argument." >&2
+                            usage >&2
+                            exit 2
                         fi
                         TOGGLE_HABIT_MODE=1
                         TOGGLE_HABIT_NAME="$1"
@@ -141,9 +147,9 @@ with lib; {
                     --task-entry)
                         shift
                         if [[ -z "$1" ]]; then
-                            echo "Error: --task-entry requires a text argument."
-                            usage
-                            exit 1
+                            echo "Error: --task-entry requires a text argument." >&2
+                            usage >&2
+                            exit 2
                         fi
                         TASK_ENTRY_MODE=1
                         TASK_ENTRY_TEXT="$1"
@@ -151,9 +157,9 @@ with lib; {
                     --task-remove)
                         shift
                         if [[ -z "$1" ]]; then
-                            echo "Error: --task-remove requires an index argument."
-                            usage
-                            exit 1
+                            echo "Error: --task-remove requires an index argument." >&2
+                            usage >&2
+                            exit 2
                         fi
                         TASK_REMOVE_MODE=1
                         TASK_REMOVE_INDEX="$1"
@@ -161,9 +167,9 @@ with lib; {
                     --task-tomorrow-entry)
                         shift
                         if [[ -z "$1" ]]; then
-                            echo "Error: --task-tomorrow-entry requires a text argument."
-                            usage
-                            exit 1
+                            echo "Error: --task-tomorrow-entry requires a text argument." >&2
+                            usage >&2
+                            exit 2
                         fi
                         TASK_TOMORROW_ENTRY_MODE=1
                         TASK_TOMORROW_ENTRY_TEXT="$1"
@@ -171,9 +177,9 @@ with lib; {
                     --task-tomorrow-remove)
                         shift
                         if [[ -z "$1" ]]; then
-                            echo "Error: --task-tomorrow-remove requires an index argument."
-                            usage
-                            exit 1
+                            echo "Error: --task-tomorrow-remove requires an index argument." >&2
+                            usage >&2
+                            exit 2
                         fi
                         TASK_TOMORROW_REMOVE_MODE=1
                         TASK_TOMORROW_REMOVE_INDEX="$1"
@@ -181,9 +187,9 @@ with lib; {
                     --toggle-task)
                         shift
                         if [[ -z "$1" ]]; then
-                            echo "Error: --toggle-task requires an index argument."
-                            usage
-                            exit 1
+                            echo "Error: --toggle-task requires an index argument." >&2
+                            usage >&2
+                            exit 2
                         fi
                         TOGGLE_TASK_MODE=1
                         TOGGLE_TASK_INDEX="$1"
@@ -191,19 +197,27 @@ with lib; {
                     -N|--offset)
                         shift
                         if [[ -z "$1" || "$1" == -* ]]; then
-                            echo "Error: --offset requires a numeric argument."
-                            usage
-                            exit 1
+                            echo "Error: --offset requires a numeric argument." >&2
+                            usage >&2
+                            exit 2
                         fi
                         OFFSET="$1"
+                        ;;
+                    -j|--json)
+                        JSON_MODE=1
                         ;;
                     -h|--help)
                         usage
                         exit 0
                         ;;
+                    -*)
+                        echo "Error: unknown option: $1" >&2
+                        usage >&2
+                        exit 2
+                        ;;
                     *)
                         DEN_PATH="$1"
-                        DEN_PATH="$${DEN_PATH%/}"
+                        DEN_PATH="''${DEN_PATH%/}"
                         ;;
                 esac
                 shift
@@ -343,7 +357,7 @@ with lib; {
                     }
                 ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
 
-                echo "Added entry to Macros section in $file"
+                echo "Added entry to Macros section in $file" >&2
             }
 
             add_notes_entry() {
@@ -402,7 +416,7 @@ with lib; {
                     }
                 ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
 
-                echo "Added entry to Notes section in $file"
+                echo "Added entry to Notes section in $file" >&2
             }
 
             toggle_habit() {
@@ -449,7 +463,7 @@ with lib; {
                     { print; }
                 ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
 
-                echo "Toggled habit '$habit_name' in $file"
+                echo "Toggled habit '$habit_name' in $file" >&2
             }
 
             add_task_entry() {
@@ -506,7 +520,7 @@ with lib; {
                     }
                 ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
 
-                echo "Added task to Today's Tasks in $file"
+                echo "Added task to Today's Tasks in $file" >&2
             }
 
             add_task_tomorrow_entry() {
@@ -630,7 +644,7 @@ with lib; {
                     }
                 ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
 
-                echo "Added task to Tomorrow in $file"
+                echo "Added task to Tomorrow in $file" >&2
             }
 
             toggle_task() {
@@ -679,7 +693,7 @@ with lib; {
                     { print; }
                 ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
 
-                echo "Toggled task #$index in $file"
+                echo "Toggled task #$index in $file" >&2
             }
 
             remove_task() {
@@ -724,7 +738,7 @@ with lib; {
                     { print; }
                 ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
 
-                echo "Removed task #$index from Today in $file"
+                echo "Removed task #$index from Today in $file" >&2
             }
 
             remove_task_tomorrow() {
@@ -769,7 +783,7 @@ with lib; {
                     { print; }
                 ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
 
-                echo "Removed task #$index from Tomorrow in $file"
+                echo "Removed task #$index from Tomorrow in $file" >&2
             }
 
             add_weight_entry() {
@@ -865,7 +879,7 @@ with lib; {
                     }
                 ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
 
-                echo "Added/updated weight entry to $weight_value Kg in $file"
+                echo "Added/updated weight entry to $weight_value Kg in $file" >&2
             }
 
             # Get title (first line)
@@ -893,22 +907,27 @@ with lib; {
                 ' "$FILE"
             }
 
-            # Get macros
-            macros() {
-              awk "/### 🍽️ Macros/ {flag=1; next} /###/ {flag=0} flag" "$FILE" | tail -n +2 | head -n -1 > /tmp/macros.csv
+            # Extract the Macros CSV block (header + rows), without surrounding blanks.
+            macros_csv() {
+              awk "/### 🍽️ Macros/ {flag=1; next} /###/ {flag=0} flag" "$FILE" | tail -n +2 | head -n -1
+            }
 
-              if [ ! -s /tmp/macros.csv ]; then
-                echo "**Total Macros**: 0g protein, 0g carbs, 0g fat"
-                echo "**Total Calories**: 0 calories"
+            # Compute macro totals. Echoes: "<protein> <carbs> <fat> <calories>".
+            # Shared by the human `macros` output and the JSON output.
+            macros_values() {
+              local csv header protein_col carbs_col fat_col
+              csv=$(macros_csv)
+              if [[ -z "$csv" ]]; then
+                echo "0 0 0 0"
                 return
               fi
 
-              header=$(head -n 1 /tmp/macros.csv)
+              header=$(echo "$csv" | head -n 1)
               protein_col=$(echo "$header" | tr ',' '\n' | grep -n 'protein' | cut -d: -f1)
               carbs_col=$(echo "$header" | tr ',' '\n' | grep -n 'carbs' | cut -d: -f1)
               fat_col=$(echo "$header" | tr ',' '\n' | grep -n 'fat' | cut -d: -f1)
 
-              tail -n +2 /tmp/macros.csv | awk -F, -v p="$protein_col" -v c="$carbs_col" -v f="$fat_col" '
+              echo "$csv" | tail -n +2 | awk -F, -v p="$protein_col" -v c="$carbs_col" -v f="$fat_col" '
               {
                 if (index($0, ",") == 0) next;
                 protein += $p;
@@ -916,10 +935,88 @@ with lib; {
                 fat += $f;
               }
               END {
-                calories = protein * 4 + carbs * 4 + fat * 9;
-                printf "**Total Macros**: %.2fg protein, %.2fg carbs, %.2fg fat\n", protein, carbs, fat;
-                printf "**Total Calories**: %.0f calories\n", calories;
+                printf "%.2f %.2f %.2f %.0f\n", protein, carbs, fat, protein * 4 + carbs * 4 + fat * 9;
               }'
+            }
+
+            # Get macros (human markdown)
+            macros() {
+              local protein carbs fat calories
+              read -r protein carbs fat calories < <(macros_values)
+              echo "**Total Macros**: ''${protein}g protein, ''${carbs}g carbs, ''${fat}g fat"
+              echo "**Total Calories**: $calories calories"
+            }
+
+            # Tomorrow's tasks are plain bullets under the `Tomorrow` header.
+            tomorrow_tasks() {
+                awk '
+                  /^Tomorrow$/ { flag=1; next }
+                  /^###/ { flag=0 }
+                  flag && /^- / { print }
+                ' "$FILE"
+            }
+
+            # The weight for the day as a bare number, or empty if not logged.
+            weight_value() {
+                grep -oE 'weight :: [0-9]+(\.[0-9]+)? Kg' "$FILE" | \
+                  grep -oE '[0-9]+(\.[0-9]+)?' | head -n 1
+            }
+
+            # Emit the whole day as one JSON object for machine consumption.
+            # Indices in `tasks` / `tomorrow` are 1-based and match the arguments
+            # to --toggle-task / --task-remove / --task-tomorrow-remove.
+            run_json() {
+                local title_text habits_json tasks_json tomorrow_json
+                local protein carbs fat calories weight_v weight_json
+
+                title_text=$(head -n 1 "$FILE" | sed 's/^# //')
+
+                habits_json=$(habits | jq -R -s '
+                  split("\n")
+                  | map(select(test("^- \\[[ x]\\]")))
+                  | map(capture("- \\[(?<d>[ x])\\] (?<name>.*)")
+                        | {name: .name, done: (.d == "x")})')
+
+                tasks_json=$(today_tasks | jq -R -s '
+                  split("\n")
+                  | map(select(test("^- \\[[ x]\\]")))
+                  | to_entries
+                  | map((.value | capture("- \\[(?<d>[ x])\\] (?<t>.*)")) as $c
+                        | {index: (.key + 1), text: $c.t, done: ($c.d == "x")})')
+
+                tomorrow_json=$(tomorrow_tasks | jq -R -s '
+                  split("\n")
+                  | map(select(length > 0))
+                  | to_entries
+                  | map({index: (.key + 1), text: (.value | sub("^- "; ""))})')
+
+                read -r protein carbs fat calories < <(macros_values)
+
+                weight_v=$(weight_value)
+                if [[ -z "$weight_v" ]]; then weight_json="null"; else weight_json="$weight_v"; fi
+
+                jq -n \
+                  --arg date "$DATE" \
+                  --arg file "$FILE" \
+                  --arg title "$title_text" \
+                  --argjson habits "$habits_json" \
+                  --argjson tasks "$tasks_json" \
+                  --argjson tomorrow "$tomorrow_json" \
+                  --argjson protein "$protein" \
+                  --argjson carbs "$carbs" \
+                  --argjson fat "$fat" \
+                  --argjson calories "$calories" \
+                  --argjson weight "$weight_json" \
+                  '{
+                    date: $date,
+                    file: $file,
+                    title: $title,
+                    habits: $habits,
+                    tasks: $tasks,
+                    tomorrow: $tomorrow,
+                    macros: {protein: $protein, carbs: $carbs, fat: $fat, calories: $calories},
+                    weight: $weight
+                  }'
             }
 
             run_daily() {
@@ -954,7 +1051,7 @@ with lib; {
                     FILE="$DEN_PATH/Daily/$DATE.md"
 
                     if [[ ! -f "$FILE" ]]; then
-                        echo "No daily journal entry found for $DATE."
+                        echo "No daily journal entry found for $DATE." >&2
                         exit 1
                     fi
 
@@ -964,7 +1061,7 @@ with lib; {
                     FILE="$DEN_PATH/Daily/$DATE.md"
 
                     if [[ ! -f "$FILE" ]]; then
-                        echo "No daily journal entry found for $DATE."
+                        echo "No daily journal entry found for $DATE." >&2
                         exit 1
                     fi
 
@@ -974,7 +1071,7 @@ with lib; {
                     FILE="$DEN_PATH/Daily/$DATE.md"
 
                     if [[ ! -f "$FILE" ]]; then
-                        echo "No daily journal entry found for $DATE."
+                        echo "No daily journal entry found for $DATE." >&2
                         exit 1
                     fi
 
@@ -984,7 +1081,7 @@ with lib; {
                     FILE="$DEN_PATH/Daily/$DATE.md"
 
                     if [[ ! -f "$FILE" ]]; then
-                        echo "No daily journal entry found for $DATE."
+                        echo "No daily journal entry found for $DATE." >&2
                         exit 1
                     fi
 
@@ -994,7 +1091,7 @@ with lib; {
                     FILE="$DEN_PATH/Daily/$DATE.md"
 
                     if [[ ! -f "$FILE" ]]; then
-                        echo "No daily journal entry found for $DATE."
+                        echo "No daily journal entry found for $DATE." >&2
                         exit 1
                     fi
 
@@ -1004,7 +1101,7 @@ with lib; {
                     FILE="$DEN_PATH/Daily/$DATE.md"
 
                     if [[ ! -f "$FILE" ]]; then
-                        echo "No daily journal entry found for $DATE."
+                        echo "No daily journal entry found for $DATE." >&2
                         exit 1
                     fi
 
@@ -1014,7 +1111,7 @@ with lib; {
                     FILE="$DEN_PATH/Daily/$DATE.md"
 
                     if [[ ! -f "$FILE" ]]; then
-                        echo "No daily journal entry found for $DATE."
+                        echo "No daily journal entry found for $DATE." >&2
                         exit 1
                     fi
 
@@ -1024,7 +1121,7 @@ with lib; {
                     FILE="$DEN_PATH/Daily/$DATE.md"
 
                     if [[ ! -f "$FILE" ]]; then
-                        echo "No daily journal entry found for $DATE."
+                        echo "No daily journal entry found for $DATE." >&2
                         exit 1
                     fi
 
@@ -1034,7 +1131,7 @@ with lib; {
                     FILE="$DEN_PATH/Daily/$DATE.md"
 
                     if [[ ! -f "$FILE" ]]; then
-                        echo "No daily journal entry found for $DATE."
+                        echo "No daily journal entry found for $DATE." >&2
                         exit 1
                     fi
 
@@ -1044,11 +1141,15 @@ with lib; {
                     FILE="$DEN_PATH/Daily/$DATE.md"
 
                     if [[ ! -f "$FILE" ]]; then
-                        echo "No daily journal entry found for $DATE."
+                        echo "No daily journal entry found for $DATE." >&2
                         exit 1
                     fi
 
-                    run_daily
+                    if [[ $JSON_MODE -eq 1 ]]; then
+                        run_json
+                    else
+                        run_daily
+                    fi
                 fi
             }
           '';
