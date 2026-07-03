@@ -20,6 +20,28 @@ sprout help                 Show usage
 `cd "$(sprout show feat)"`. `sprout new` does the same on success (git's own
 progress text is sent to stderr), so `cd "$(sprout new feat)"` works too.
 
+### `sprout ls` output
+
+`sprout ls` prints one line per worktree, three whitespace-separated columns
+(no header row, so the output stays easy to pipe and to feed to `fzf`):
+
+```
+<feature>   <branch>   <path>
+```
+
+- `<feature>` - the feature name you passed to `sprout new`, i.e. the worktree
+  directory name under the sprouts root. This is what `show`/`rm` take as their
+  argument.
+- `<branch>` - the git branch checked out in that worktree, or `-` if the
+  worktree is in a detached-HEAD state. Usually identical to `<feature>`.
+- `<path>` - the absolute path of the worktree
+  (`.../sprouts/<project>/<feature>`).
+
+Only worktrees under this project's sprouts root are listed; worktrees you
+created by hand elsewhere are omitted. In interactive mode (`sprout -i ls`) the
+`fzf` picker shows just the first two columns (`<feature>` and `<branch>`) while
+still resolving the selection back to its path.
+
 ## Interactive (tmux) mode
 
 With `-i, --interactive` (a leading flag), sprout integrates with tmux the way
