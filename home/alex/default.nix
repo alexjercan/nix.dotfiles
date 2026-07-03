@@ -30,7 +30,6 @@ in {
     # # "Hello, world!" when run.
     hello
 
-    agent-browser
     ast-grep
     audacity
     bat
@@ -38,7 +37,6 @@ in {
     brave
     btop
     chromium
-    claude-code
     cmake
     davinci-resolve
     dconf
@@ -73,7 +71,6 @@ in {
     networkmanagerapplet
     nitrogen
     obs-studio
-    opencode
     openssl
     openvpn
     pcmanfm
@@ -251,6 +248,7 @@ in {
     "${modulesPath}/hyprland"
     "${modulesPath}/dunst"
     "${modulesPath}/scripts"
+    "${modulesPath}/agents"
     inputs.scufris.homeManagerModules.default
   ];
 }
