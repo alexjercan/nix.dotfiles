@@ -33,13 +33,17 @@
               echo "directory name."
           }
 
-          # Resolve the repository root; every command needs to run inside a repo.
-          repo_root=$(git rev-parse --show-toplevel 2> /dev/null)
-          if [[ -z $repo_root ]]; then
+          # Resolve the project from the MAIN worktree so sprout behaves the
+          # same whether it is run from the main checkout or from inside one of
+          # its own worktrees (where 'git rev-parse --show-toplevel' would point
+          # at the worktree, not the repo). The first entry of 'git worktree
+          # list' is always the main worktree.
+          main_worktree=$(git worktree list --porcelain 2> /dev/null | awk '/^worktree /{print substr($0, 10); exit}')
+          if [[ -z $main_worktree ]]; then
               echo "sprout: not inside a git repository" >&2
               exit 1
           fi
-          project=$(basename "$repo_root")
+          project=$(basename "$main_worktree")
 
           cache_home=''${XDG_CACHE_HOME:-$HOME/.cache}
           sprouts_root="$cache_home/sprouts/$project"
