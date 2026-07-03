@@ -17,6 +17,10 @@
   it succeeded. This defeats the tool's contract in exactly the parallel-agent
   scenario it exists for. Capture the result and fail loudly, e.g.:
   `if ! git worktree add ... 1>&2; then echo "sprout: failed to create worktree for '$feature'" >&2; exit 1; fi` (for both the reuse and the `-b` branch), and only `echo "$path"` on success.
+  - Response: fixed. `cmd_new` now checks `[[ -d $path ]]` after the add and
+    exits 1 with "failed to create worktree" if the worktree was not created,
+    before any path is printed. Verified `sprout new ../escape` now exits 1
+    and prints nothing on stdout.
 
 - [ ] R1.2 (MINOR) home/modules/scripts/sprout.nix (worktree_path / cmd_new) -
   the feature name is interpolated straight into the worktree path with no
@@ -26,12 +30,21 @@
   the traversed path. Add a guard that rejects an empty name, a name starting
   with `-`, `/`, or `.`, or containing a `..` segment, before building the
   path.
+  - Response: fixed. Added a `require_feature` helper (rejects empty names,
+    names starting with `-` or `/`, and any `..` segment) called by `new`,
+    `show`, and `rm`. Verified `sprout show ..` and `sprout new -weird` both
+    exit 1 with a clear message. (Leading `.` other than `..` is left allowed;
+    only `..` traversal is unsafe.)
 
 - [ ] R1.3 (NIT) home/modules/scripts/sprout.nix (cmd_rm) - removing a
   slash-named feature (`feature/login`) leaves the now-empty intermediate
   directory (`.../sprouts/<project>/feature/`) behind. Optional: after a
   successful `git worktree remove`, `rmdir -p --ignore-fail-on-non-empty` the
   parent chain up to `sprouts_root`.
+  - Response: fixed. After a successful `git worktree remove`, `rm` walks up
+    from the worktree's parent calling `rmdir` (which only removes empty dirs),
+    stopping at `sprouts_root`. Verified creating+removing `feature/login`
+    leaves no empty `feature/` dir behind.
 
 ### Notes for context
 

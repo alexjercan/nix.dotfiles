@@ -102,6 +102,13 @@ docs/sprout.md). `new` and `ls` reuse an existing branch rather than failing.
   in a scratch git repo. A full `home-manager build` was not run; the isolated
   package build is sufficient to validate this module.
 
+**Review round 1 (REQUEST_CHANGES -> addressed).** Reviewer found that
+`cmd_new` ignored `git worktree add`'s failure and printed a bogus path with
+exit 0 (`sprout new ../escape`) - MAJOR. Fixed by asserting `[[ -d $path ]]`
+after the add. Also added a `require_feature` guard (no empty / leading `-`
+or `/` / `..` segment) used by new/show/rm (MINOR), and made `rm` prune empty
+parent dirs left by slash-named features (NIT). All re-verified.
+
 **Self-reflection.** The two bugs both came from not checking git's exact
 stdout/stderr contract up front; testing the scripting use case
 (`$(...)` capture) early is what surfaced them. Next time, decide a command's

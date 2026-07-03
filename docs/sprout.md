@@ -58,4 +58,11 @@ simple until a real need appears.
   the sprouts root, so unrelated worktrees you created by hand are not listed.
 - `rm` uses `git worktree remove`, falling back to `--force` when the worktree
   is dirty, then deletes the branch with `git branch -D`. It exits non-zero
-  only when there was nothing at all to remove.
+  only when there was nothing at all to remove, and prunes any now-empty parent
+  directories left by slash-named features (up to the sprouts root).
+- Feature names are validated (`require_feature`): a name may not be empty,
+  start with `-` or `/`, or contain a `..` segment, so it cannot escape the
+  sprouts root or be mistaken for a flag. Slashes are allowed
+  (`sprout new feature/login` works).
+- `new` only prints the worktree path and succeeds if `git worktree add`
+  actually created it; a failed add exits non-zero with no path on stdout.

@@ -44,13 +44,29 @@
               echo "$sprouts_root/$1"
           }
 
+          require_feature() {
+              # $1: feature name. Fails (non-zero, message on stderr) if the name
+              # is missing or would escape the sprouts root / be an unsafe branch.
+              case "$1" in
+                  "")
+                      echo "sprout: missing <feature>" >&2
+                      return 1
+                      ;;
+                  -* | /*)
+                      echo "sprout: invalid feature name '$1' (must not start with '-' or '/')" >&2
+                      return 1
+                      ;;
+                  .. | ../* | */.. | */../*)
+                      echo "sprout: invalid feature name '$1' (must not contain '..')" >&2
+                      return 1
+                      ;;
+              esac
+              return 0
+          }
+
           cmd_new() {
               feature=$1
-              if [[ -z $feature ]]; then
-                  echo "sprout new: missing <feature>" >&2
-                  usage
-                  exit 1
-              fi
+              require_feature "$feature" || exit 1
 
               path=$(worktree_path "$feature")
               if [[ -e $path ]]; then
@@ -58,15 +74,21 @@
                   exit 1
               fi
 
-              mkdir -p "$sprouts_root"
+              mkdir -p "$(dirname "$path")"
 
               # Reuse the branch if it already exists, otherwise create it off HEAD.
               # git's progress chatter goes to stderr so stdout is only the path,
-              # which lets callers do: cd "$(sprout new feat)".
+              # which lets callers do: cd "$(sprout new feat)". Fail loudly if the
+              # worktree could not be created rather than reporting a bogus path.
               if git show-ref --verify --quiet "refs/heads/$feature"; then
                   git worktree add "$path" "$feature" 1>&2
               else
                   git worktree add -b "$feature" "$path" HEAD 1>&2
+              fi
+
+              if [[ ! -d $path ]]; then
+                  echo "sprout: failed to create worktree for '$feature'" >&2
+                  exit 1
               fi
 
               echo "$path"
@@ -89,10 +111,7 @@
 
           cmd_show() {
               feature=$1
-              if [[ -z $feature ]]; then
-                  echo "sprout show: missing <feature>" >&2
-                  exit 1
-              fi
+              require_feature "$feature" || exit 1
 
               path=$(worktree_path "$feature")
               if [[ ! -d $path ]]; then
@@ -104,10 +123,7 @@
 
           cmd_rm() {
               feature=$1
-              if [[ -z $feature ]]; then
-                  echo "sprout rm: missing <feature>" >&2
-                  exit 1
-              fi
+              require_feature "$feature" || exit 1
 
               path=$(worktree_path "$feature")
               removed=false
@@ -115,6 +131,14 @@
               if git worktree list --porcelain | grep -qx "worktree $path"; then
                   git worktree remove "$path" || git worktree remove --force "$path"
                   removed=true
+
+                  # Drop now-empty parent dirs left by slash-named features
+                  # (e.g. .../sprouts/<project>/feature/), stopping at the root.
+                  parent=$(dirname "$path")
+                  while [[ $parent == "$sprouts_root"/* ]]; do
+                      rmdir "$parent" 2> /dev/null || break
+                      parent=$(dirname "$parent")
+                  done
               else
                   echo "sprout: no worktree at $path" >&2
               fi
