@@ -1,6 +1,6 @@
 # Write Claude Code skills that drive `daily` and `today` as CLI tools
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 80
 - TAGS: feature
 
@@ -27,16 +27,16 @@ Done means:
 
 ## Steps
 
-- [ ] Create `home/modules/agents/skills/today/SKILL.md`: frontmatter, a
+- [x] Create `home/modules/agents/skills/today/SKILL.md`: frontmatter, a
       command table, the `--create`/`--path` stdout contract, exit codes, and
       agent examples. Point at `home/modules/scripts/today.nix` as the source.
-- [ ] Create `home/modules/agents/skills/daily/SKILL.md`: frontmatter, command
+- [x] Create `home/modules/agents/skills/daily/SKILL.md`: frontmatter, command
       table (read `--json`, query `--note`/`--weight`, mutate
       task/habit/macros/notes/weight), index semantics, exit codes, and agent
       examples.
-- [ ] Keep both consistent with existing skills: concise, imperative, a clear
+- [x] Keep both consistent with existing skills: concise, imperative, a clear
       "Workflow for agents" section; reference `docs/` where useful.
-- [ ] Confirm no change to `agents/default.nix` is needed (recursive skills
+- [x] Confirm no change to `agents/default.nix` is needed (recursive skills
       source picks up new files); note this in the record.
 
 ## Notes
@@ -44,3 +44,28 @@ Done means:
 - Depends on 20260703-203435 (today) and 20260703-203438 (daily) so the docs
   describe the final flags and contracts.
 - Existing skills to match in tone/structure: `home/modules/agents/skills/{sprout,work,plan}/SKILL.md`.
+
+## Record
+
+**What changed.** Added two skills:
+- `home/modules/agents/skills/today/SKILL.md`: documents `today` for agents -
+  the `--create`/`--path` stdout-is-just-the-path contract, "never run with no
+  flags (it opens $EDITOR)", idempotent create, first-entry warning, exit codes
+  (0/1/2), and a create-then-read workflow that hands off to `daily`.
+- `home/modules/agents/skills/daily/SKILL.md`: documents `daily` - the full
+  command table (read `--json`, query `--note`/`--weight`, and the mutation
+  flags), the exact `--json` object shape, the 1-based index semantics shared
+  with `--toggle-task`/`--task-remove`/`--task-tomorrow-remove`, `--offset`,
+  exit codes, and jq-based agent examples. Both frontmatter descriptions are
+  written for skill selection and cross-reference each other.
+
+**Decisions.** No change to `home/modules/agents/default.nix`: it links
+`./skills` with `recursive = true`, so the new `today/` and `daily/` dirs are
+picked up automatically (confirmed by reading the module). Kept each skill's
+"For agents" section example-first and warned explicitly against the two
+easy-to-hit traps (running `today` with no flags; scraping `daily`'s markdown
+instead of `--json`).
+
+**Testing.** Docs were written against the final `--help` output of the built
+`today` and `daily` derivations, so the flags, defaults, and exit codes match
+what shipped. Verified the recursive skills wiring needs no edit.
