@@ -2,7 +2,7 @@
   home.packages = [
     (pkgs.writeShellApplication {
       name = "sprout";
-      runtimeInputs = [pkgs.git pkgs.fzf];
+      runtimeInputs = [pkgs.git pkgs.fzf pkgs.tmux];
       text =
         /*
         bash
@@ -13,15 +13,20 @@
           set +o nounset
 
           usage() {
-              echo "Usage: sprout [COMMAND] [ARGS]"
+              echo "Usage: sprout [-i|--interactive] [COMMAND] [ARGS]"
               echo "Manage git worktrees so several agents can work a repo in parallel."
               echo
               echo "Commands:"
               echo "  new <feature>    Create a worktree and branch for <feature>, off HEAD"
               echo "  ls               List this project's worktrees"
               echo "  show <feature>   Print the path to <feature>'s worktree"
-              echo "  rm <feature>     Remove <feature>'s worktree and branch"
+              echo "  rm <feature>     Remove <feature>'s worktree, branch and tmux session"
               echo "  help             Show this help message"
+              echo
+              echo "Options:"
+              echo "  -i, --interactive  Open a tmux session on the worktree: 'new' drops"
+              echo "                     you into the new worktree's session; 'ls' fzf-picks"
+              echo "                     an existing worktree and switches to its session."
               echo
               echo "Worktrees live under \$XDG_CACHE_HOME/sprouts/<project>/<feature>"
               echo "(\$HOME/.cache/sprouts/... by default), where <project> is the repo"
@@ -62,6 +67,35 @@
                       ;;
               esac
               return 0
+          }
+
+          session_name() {
+              # $1: feature -> prints the tmux session name, namespaced by
+              # project so a 'main' feature in two repos does not collide. tmux
+              # forbids '.' and ':' in names, so fold '.', '/' and space to '_'.
+              echo "$project"_"$1" | tr './ :' '____'
+          }
+
+          open_session() {
+              # $1: worktree path  $2: feature name. Opens or switches to the
+              # worktree's tmux session, mirroring tmux-sessionizer (sesh).
+              wt=$1
+              name=$(session_name "$2")
+
+              # new-session -ds also starts the server if none is running, so no
+              # separate pgrep check is needed.
+              if ! tmux has-session -t "=$name" 2> /dev/null; then
+                  if ! tmux new-session -ds "$name" -c "$wt"; then
+                      echo "sprout: failed to create tmux session '$name'" >&2
+                      exit 1
+                  fi
+              fi
+
+              if [[ -z $TMUX ]]; then
+                  tmux attach -t "=$name"
+              else
+                  tmux switch-client -t "=$name"
+              fi
           }
 
           cmd_new() {
@@ -109,6 +143,17 @@
               '
           }
 
+          cmd_ls_interactive() {
+              # fzf-pick a worktree from the ls table and open its session.
+              line=$(cmd_ls | fzf --with-nth=1,2)
+              if [[ -z $line ]]; then
+                  echo "sprout: nothing selected" >&2
+                  exit 1
+              fi
+              feature=$(echo "$line" | awk '{print $1}')
+              open_session "$(worktree_path "$feature")" "$feature"
+          }
+
           cmd_show() {
               feature=$1
               require_feature "$feature" || exit 1
@@ -151,6 +196,9 @@
                   echo "sprout: branch '$feature' already gone" >&2
               fi
 
+              # Tear down the tmux session for this worktree, if any exists.
+              tmux kill-session -t "=$(session_name "$feature")" 2> /dev/null || true
+
               # Nothing matched at all: report failure rather than a silent no-op.
               if [[ $removed == false ]]; then
                   echo "sprout: nothing to remove for '$feature'" >&2
@@ -158,14 +206,34 @@
               fi
           }
 
+          # A leading -i/--interactive gates the tmux behavior of new and ls.
+          interactive=false
+          case "''${1:-}" in
+              -i | --interactive)
+                  interactive=true
+                  shift
+                  ;;
+          esac
+
           cmd=''${1:-}
           if [[ $# -gt 0 ]]; then
               shift
           fi
 
           case "$cmd" in
-              new)             cmd_new "$@" ;;
-              ls)              cmd_ls "$@" ;;
+              new)
+                  cmd_new "$@"
+                  if [[ $interactive == true ]]; then
+                      open_session "$(worktree_path "$1")" "$1"
+                  fi
+                  ;;
+              ls)
+                  if [[ $interactive == true ]]; then
+                      cmd_ls_interactive
+                  else
+                      cmd_ls
+                  fi
+                  ;;
               show)            cmd_show "$@" ;;
               rm)              cmd_rm "$@" ;;
               help | -h | --help) usage ;;

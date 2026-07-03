@@ -9,16 +9,34 @@ isolated directory outside the repo.
 ## Commands
 
 ```
-sprout new <feature>    Create a worktree + branch <feature> off HEAD
-sprout ls               List this project's worktrees
-sprout show <feature>   Print the path to <feature>'s worktree
-sprout rm <feature>     Remove <feature>'s worktree and branch
-sprout help             Show usage
+sprout [-i] new <feature>   Create a worktree + branch <feature> off HEAD
+sprout [-i] ls              List this project's worktrees
+sprout show <feature>       Print the path to <feature>'s worktree
+sprout rm <feature>         Remove <feature>'s worktree, branch and session
+sprout help                 Show usage
 ```
 
 `sprout show` prints only the path, so it composes:
 `cd "$(sprout show feat)"`. `sprout new` does the same on success (git's own
 progress text is sent to stderr), so `cd "$(sprout new feat)"` works too.
+
+## Interactive (tmux) mode
+
+With `-i, --interactive` (a leading flag), sprout integrates with tmux the way
+`tmux-sessionizer.nix` (the `sesh` command) does:
+
+- `sprout -i new <feature>` creates the worktree/branch, then opens or switches
+  to a tmux session rooted in it.
+- `sprout -i ls` runs an `fzf` picker over the project's worktrees and opens or
+  switches to a session on the selection.
+
+Sessions are named `<project>_<feature>` (with `.`, `/`, space and `:` folded
+to `_`, since tmux forbids some of those). Namespacing by project keeps a
+`main` feature in two different repos from colliding. Outside tmux the session
+is attached; inside tmux the client is switched to it. `sprout rm` always kills
+the matching session (no flag needed), whether or not it was created with `-i`.
+Without `-i`, `new` and `ls` are pure worktree operations with no tmux
+coupling, so they stay usable in scripts.
 
 ## Where worktrees live
 
