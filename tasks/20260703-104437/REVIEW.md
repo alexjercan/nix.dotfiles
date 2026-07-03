@@ -7,7 +7,7 @@
 
 - VERDICT: REQUEST_CHANGES
 
-- [ ] R1.1 (MAJOR) home/modules/scripts/sprout.nix (cmd_new) - `cmd_new`
+- [x] R1.1 (MAJOR) home/modules/scripts/sprout.nix (cmd_new) - `cmd_new`
   ignores the exit status of `git worktree add`. With `errexit` off, when the
   add fails (invalid branch name, branch already checked out in another
   worktree, path conflict) the function still runs `echo "$path"` and returns
@@ -22,7 +22,7 @@
     before any path is printed. Verified `sprout new ../escape` now exits 1
     and prints nothing on stdout.
 
-- [ ] R1.2 (MINOR) home/modules/scripts/sprout.nix (worktree_path / cmd_new) -
+- [x] R1.2 (MINOR) home/modules/scripts/sprout.nix (worktree_path / cmd_new) -
   the feature name is interpolated straight into the worktree path with no
   validation, so `..` segments and leading `/` produce paths outside
   `sprouts_root` (`sprout show ..` resolves to the parent of the root). Git
@@ -36,7 +36,7 @@
     exit 1 with a clear message. (Leading `.` other than `..` is left allowed;
     only `..` traversal is unsafe.)
 
-- [ ] R1.3 (NIT) home/modules/scripts/sprout.nix (cmd_rm) - removing a
+- [x] R1.3 (NIT) home/modules/scripts/sprout.nix (cmd_rm) - removing a
   slash-named feature (`feature/login`) leaves the now-empty intermediate
   directory (`.../sprouts/<project>/feature/`) behind. Optional: after a
   successful `git worktree remove`, `rmdir -p --ignore-fail-on-non-empty` the
@@ -57,3 +57,17 @@
 - No automated tests exist for the scripts module (today/daily have none), so
   the manual end-to-end coverage matches repo conventions; not a finding.
 - Docs (docs/sprout.md) and TASK.md notes accurately match the implementation.
+
+## Round 2
+
+- VERDICT: APPROVE
+
+All three round-1 findings verified resolved in commit b0409de:
+- R1.1: `sprout new ../escape` now exits 1 and prints no path; `cmd_new`
+  asserts `[[ -d $path ]]` after the add.
+- R1.2: `require_feature` rejects empty / `-*` / `/*` / `..`-segment names;
+  confirmed `show ..` and `new -weird` exit 1.
+- R1.3: the parent-prune loop is correctly bounded by `"$sprouts_root"/*`, so
+  it never runs for non-slash features and never climbs above the root;
+  confirmed `feature/login` create+remove leaves no empty dir.
+Package still builds and passes shellcheck. No new issues introduced.
