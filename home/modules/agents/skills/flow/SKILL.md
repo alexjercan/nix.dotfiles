@@ -92,11 +92,15 @@ instead of grinding when:
 
 ## Relationship to the Other Skills
 
-Flow adds no new mechanics; it is the loop around them. tatr tracks, `/plan`
-scopes, sprout isolates each task in its own worktree, `/work` implements,
-`/review` critiques, `/compound` distills - flow just keeps the wheel turning
-until the goal is done. Every task in the cycle starts by sprouting a
-worktree and ends back on the default branch; the one thing flow does that the
+Flow adds no new mechanics; it is the loop around them. tatr tracks, `/spike`
+explores when the goal is still fuzzy, `/plan` scopes, sprout isolates each
+task in its own worktree, `/work` implements, `/review` critiques, `/compound`
+distills - flow just keeps the wheel turning until the goal is done. Spike is
+the optional pre-step: when the goal handed to flow is undefined, spike it
+first, then start the flow from the `docs/spikes/` doc and the direction-level
+tasks it seeded (flow's own `/plan` phase breaks those into steps). Every task
+in the cycle starts by sprouting a worktree and ends back on the default
+branch; the one thing flow does that the
 individual skills do not is squash-merge an APPROVEd branch into the default
 branch as a single commit (then `sprout rm` its worktree), because the next
 task needs to build on it.

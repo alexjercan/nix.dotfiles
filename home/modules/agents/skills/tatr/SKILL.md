@@ -68,7 +68,10 @@ the full plan-work-review-compound cycle, not just editing TASK.md:
 
 `/flow` runs this whole loop end to end for you; reach for the individual
 skills to step through it by hand. If a task has no Steps yet (created ad hoc),
-plan it first with `/plan`. Tatr itself only owns the file: creating it, and
+plan it first with `/plan`; and when even planning is premature because the
+direction itself is unknown, `/spike` explores it first and seeds the coarse
+tasks that plan then breaks into steps - so the fullest cycle is spike, plan,
+work, review, compound. Tatr itself only owns the file: creating it, and
 reading or updating its STATUS, Steps and notes.
 
 ## Gotchas

@@ -13,6 +13,13 @@ the code. See the tatr skill for the CLI commands and file format.
 The goal is not to write code. The goal is to leave behind a clear, ordered
 list of steps so implementation is mechanical.
 
+Planning assumes the *what* is already decided and only the *how* needs
+breaking down. If the request is still genuinely undefined - the open question
+is what to build, not how - run `/spike` first. A spike researches the
+direction and leaves a `docs/spikes/` doc plus coarse, direction-level tasks;
+planning then expands each of those tasks into steps, citing the spike doc as
+the input it was scoped from.
+
 ## Workflow
 
 1. **Understand the request.** Read the relevant code first; do not plan
