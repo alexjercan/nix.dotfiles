@@ -97,6 +97,27 @@ verdict, addressing it is also `/work`'s job:
 3. Re-run the full check suite after the fixes, commit (including REVIEW.md
    with the responses), and hand the branch back for the next review round.
 
+## Syncing with the Default Branch
+
+A feature branch cannot land on the default branch until it is up to date with
+it, exactly like a pull request that must be current with its base before it
+merges. When the default branch has moved on since the branch was cut (other
+tasks landed there), sync before merging:
+
+1. In the worktree, merge the default branch into the feature branch
+   (`git merge <default>`, the local default branch - not `origin/*` when the
+   workflow does not push). Do this on the branch so that any conflicts are
+   resolved here, not on the default branch.
+2. Resolve conflicts on the branch and commit the merge, then re-run the full
+   check suite (step 5's verify) on the updated branch. Fix whatever the merge
+   broke; the branch is only ready to merge back once it is green and
+   `git merge-base --is-ancestor <default> <branch>` succeeds.
+
+Only then is the branch ready to merge back. `/work` itself does not merge into
+the default branch - that stays the caller's call (`/flow` does it as its
+squash-merge step) - but keeping the branch current is branch hygiene `/work`
+owns, whether or not flow is driving.
+
 ## Guidelines
 
 - One task per worktree/branch. If mid-implementation you discover unrelated

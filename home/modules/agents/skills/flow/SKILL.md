@@ -40,22 +40,40 @@ the handoffs, and when to stop and ask the user.
       the branch sprouted in the previous step.
    4. Run the review skill: critique into REVIEW.md, then alternate work and
       review rounds until the verdict is APPROVE.
-   5. On APPROVE, squash-merge the feature branch into the default branch
-      locally, so the whole task lands as a single commit. The main checkout
-      has stayed on the default branch the whole time (the work happened in a
-      separate worktree), so `cd` back to it - you cannot remove a worktree
-      while standing inside it - and run `git merge --squash <branch>`, which
-      stages the branch's changes without committing. Then `git commit` with a
-      message that summarizes the finished task as a whole (a
-      Conventional-Commit subject plus a short body); git pre-fills the
-      concatenated branch commit messages, so replace them with one clean
-      summary rather than shipping the intermediate steps. Do not push. This
-      leaves the default branch with one commit per task instead of the
-      branch's individual commits and a merge bubble, while the next task still
-      builds on finished work. Finally `sprout rm <feature>` to remove the
-      worktree, delete the branch, and close its tmux session (`--squash`
-      records no merge parent, but `sprout rm` force-deletes the branch, so
-      this is fine).
+   5. On APPROVE, first bring the branch up to date with the default branch,
+      then squash-merge it back so the whole task lands as a single commit.
+      This mirrors landing a PR: update the branch from its base, re-verify,
+      and only then merge.
+      1. In the worktree, merge the current default branch into the feature
+         branch (`git merge <default>`, where `<default>` is the local default
+         branch - flow does not push, so this is not `origin/*`). Resolve any
+         conflicts here, on the branch, and commit the merge; this keeps
+         conflict resolution off the default branch, where a bad merge is far
+         harder to unwind.
+      2. Re-run the full check suite on the updated branch (`/work`'s verify
+         step). Proceed only when it is green; if the merge broke something,
+         fix it on the branch, and if it changed the work materially, send it
+         back through `/review` before merging.
+      3. Confirm the branch is now up to date:
+         `git merge-base --is-ancestor <default> <branch>` must succeed - the
+         default branch tip is an ancestor of the branch. Only an up-to-date
+         branch may merge back.
+      4. `cd` back to the main checkout - it has stayed on the default branch
+         the whole time (the work happened in a separate worktree), and you
+         cannot remove a worktree while standing inside it - and run
+         `git merge --squash <branch>`, which stages the branch's changes
+         without committing. Because the branch already contains the default
+         tip, this applies cleanly with no conflicts on the default branch.
+         Then `git commit` with a message that summarizes the finished task as
+         a whole (a Conventional-Commit subject plus a short body); git
+         pre-fills the concatenated branch commit messages, so replace them
+         with one clean summary rather than shipping the intermediate steps.
+         Do not push. This leaves the default branch with one commit per task
+         instead of the branch's individual commits and a merge bubble, while
+         the next task still builds on finished work.
+      5. Finally `sprout rm <feature>` to remove the worktree, delete the
+         branch, and close its tmux session (`--squash` records no merge
+         parent, but `sprout rm` force-deletes the branch, so this is fine).
    6. Run the compound skill: write the retro for this task.
    7. Report one short progress line to the user (task, verdict, rounds,
       what is next), then continue with the next task.
@@ -100,7 +118,7 @@ the optional pre-step: when the goal handed to flow is undefined, spike it
 first, then start the flow from the `docs/spikes/` doc and the direction-level
 tasks it seeded (flow's own `/plan` phase breaks those into steps). Every task
 in the cycle starts by sprouting a worktree and ends back on the default
-branch; the one thing flow does that the
-individual skills do not is squash-merge an APPROVEd branch into the default
-branch as a single commit (then `sprout rm` its worktree), because the next
-task needs to build on it.
+branch; the one thing flow does that the individual skills do not is land an
+APPROVEd branch PR-style - update it from the default branch first, then, once
+it is up to date, squash-merge it into the default branch as a single commit
+(and `sprout rm` its worktree) - because the next task needs to build on it.
