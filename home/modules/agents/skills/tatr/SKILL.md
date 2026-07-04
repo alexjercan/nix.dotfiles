@@ -52,6 +52,25 @@ Status values are case-sensitive: `OPEN`, `IN_PROGRESS`, `CLOSED`. Priority is a
 - Use consistent tags within the project (`feature`, `bug`, `refactor`, `testing`, `docs`, `security`, `performance`).
 - Create tasks for any non-trivial follow-up work discovered mid-session instead of leaving TODO comments in code.
 
+## Implementing a Task
+
+A tatr task is a tracking record, not the work itself. When the ask is to
+"implement task <id>" (or to pick one off the backlog and build it), that means
+the full plan-work-review-compound cycle, not just editing TASK.md:
+
+1. Sprout an isolated worktree and feature branch for the task (see the sprout
+   skill) so implementation never collides with the main checkout or other
+   tasks in flight.
+2. Implement it with `/work`, which does the sprout for you, sets STATUS to
+   `IN_PROGRESS`, ticks the Steps, and writes tests inside that worktree.
+3. Review with `/review` and address findings until the verdict is APPROVE.
+4. Retro with `/compound` once the task is CLOSED.
+
+`/flow` runs this whole loop end to end for you; reach for the individual
+skills to step through it by hand. If a task has no Steps yet (created ad hoc),
+plan it first with `/plan`. Tatr itself only owns the file: creating it, and
+reading or updating its STATUS, Steps and notes.
+
 ## Gotchas
 
 - "No 'tasks' directory found": create `tasks/` at the project root first.

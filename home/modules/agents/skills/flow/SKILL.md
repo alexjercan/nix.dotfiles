@@ -29,19 +29,26 @@ the handoffs, and when to stop and ask the user.
 
    1. Read the most recent retros in `docs/retros/` - apply the lessons; this
       is where the compounding pays off.
-   2. Run the work skill: sprout worktree + branch, implement the Steps,
-      tests, full check suite.
-   3. Run the review skill: critique into REVIEW.md, then alternate work and
+   2. Sprout the task's worktree. From the default branch, cut an isolated
+      worktree and feature branch for this task with
+      `cd "$(sprout new <type>/<short-slug>)"`, so implementation, tests,
+      reviews and the TASK.md updates all live on that branch and never touch
+      the main checkout. This is the opening move of every task; `/work`
+      performs it, but flow names it explicitly because step 5's merge depends
+      on the work having happened in a separate worktree.
+   3. Run the work skill: implement the Steps, tests and full check suite on
+      the branch sprouted in the previous step.
+   4. Run the review skill: critique into REVIEW.md, then alternate work and
       review rounds until the verdict is APPROVE.
-   4. On APPROVE, merge the feature branch into the default branch locally.
+   5. On APPROVE, merge the feature branch into the default branch locally.
       The main checkout has stayed on the default branch the whole time (the
       work happened in a separate worktree), so `cd` back to it - you cannot
       remove a worktree while standing inside it - and run
       `git merge --no-ff <branch>` (do not push) so the next task builds on
       finished work, then `sprout rm <feature>` to remove the worktree, delete
       the branch, and close its tmux session.
-   5. Run the compound skill: write the retro for this task.
-   6. Report one short progress line to the user (task, verdict, rounds,
+   6. Run the compound skill: write the retro for this task.
+   7. Report one short progress line to the user (task, verdict, rounds,
       what is next), then continue with the next task.
 
 4. **Finish.** When no OPEN tasks remain: run the full check suite on the
@@ -77,8 +84,9 @@ instead of grinding when:
 ## Relationship to the Other Skills
 
 Flow adds no new mechanics; it is the loop around them. tatr tracks, `/plan`
-scopes, `/work` implements, `/review` critiques, `/compound` distills - flow
-just keeps the wheel turning until the goal is done. The one thing flow does
-that the individual skills do not: merge an APPROVEd branch into the default
-branch (then `sprout rm` its worktree), because the next task needs to build
-on it.
+scopes, sprout isolates each task in its own worktree, `/work` implements,
+`/review` critiques, `/compound` distills - flow just keeps the wheel turning
+until the goal is done. Every task in the cycle starts by sprouting a
+worktree and ends back on the default branch; the one thing flow does that the
+individual skills do not is merge an APPROVEd branch into the default branch
+(then `sprout rm` its worktree), because the next task needs to build on it.

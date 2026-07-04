@@ -92,3 +92,13 @@ stay safe to use in scripts.
   intended base branch first if it is not the default.
 - `rm` uses `git branch -D` (force): it does not protect unmerged branches, so
   only remove a feature you are truly done with.
+
+## Where Sprout Fits
+
+Sprout is just worktrees and branches; it knows nothing about tasks, plans or
+reviews. "Create a sprout" means exactly that - a new branch and worktree,
+nothing more - so if that is all that was asked, that is all this skill does.
+The higher-level skills build on top of it: `/work` (and `/flow`, through it)
+sprouts one worktree per tatr task so each task's implementation, tests and
+review stay isolated, and cleans it up with `sprout rm` once the branch is
+merged. The workflow around the worktree lives in those skills, not here.
