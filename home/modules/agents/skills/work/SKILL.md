@@ -73,9 +73,14 @@ that appears to work.
 
 7. **Commit and report.** Commit the code and the TASK.md changes together on
    the feature branch (inside the worktree); use several focused commits if
-   the steps form natural units. Then report: worktree path, branch name, task
-   ID, summary of the change, and test results. Leave the worktree in place -
-   the branch is now ready for `/review`. Do not merge into the default branch,
+   the steps form natural units. These commits are the branch's working
+   history for review - when `/flow` merges the approved branch it squashes
+   them into a single commit on the default branch, so the durable record of
+   the task is TASK.md and that squash commit, not the intermediate messages;
+   keep the commits focused for the reviewer without agonizing over wording
+   that will be collapsed. Then report: worktree path, branch name, task ID,
+   summary of the change, and test results. Leave the worktree in place - the
+   branch is now ready for `/review`. Do not merge into the default branch,
    remove the worktree, or push unless the user asks.
 
 ## Addressing Review Feedback

@@ -40,13 +40,22 @@ the handoffs, and when to stop and ask the user.
       the branch sprouted in the previous step.
    4. Run the review skill: critique into REVIEW.md, then alternate work and
       review rounds until the verdict is APPROVE.
-   5. On APPROVE, merge the feature branch into the default branch locally.
-      The main checkout has stayed on the default branch the whole time (the
-      work happened in a separate worktree), so `cd` back to it - you cannot
-      remove a worktree while standing inside it - and run
-      `git merge --no-ff <branch>` (do not push) so the next task builds on
-      finished work, then `sprout rm <feature>` to remove the worktree, delete
-      the branch, and close its tmux session.
+   5. On APPROVE, squash-merge the feature branch into the default branch
+      locally, so the whole task lands as a single commit. The main checkout
+      has stayed on the default branch the whole time (the work happened in a
+      separate worktree), so `cd` back to it - you cannot remove a worktree
+      while standing inside it - and run `git merge --squash <branch>`, which
+      stages the branch's changes without committing. Then `git commit` with a
+      message that summarizes the finished task as a whole (a
+      Conventional-Commit subject plus a short body); git pre-fills the
+      concatenated branch commit messages, so replace them with one clean
+      summary rather than shipping the intermediate steps. Do not push. This
+      leaves the default branch with one commit per task instead of the
+      branch's individual commits and a merge bubble, while the next task still
+      builds on finished work. Finally `sprout rm <feature>` to remove the
+      worktree, delete the branch, and close its tmux session (`--squash`
+      records no merge parent, but `sprout rm` force-deletes the branch, so
+      this is fine).
    6. Run the compound skill: write the retro for this task.
    7. Report one short progress line to the user (task, verdict, rounds,
       what is next), then continue with the next task.
@@ -88,5 +97,6 @@ scopes, sprout isolates each task in its own worktree, `/work` implements,
 `/review` critiques, `/compound` distills - flow just keeps the wheel turning
 until the goal is done. Every task in the cycle starts by sprouting a
 worktree and ends back on the default branch; the one thing flow does that the
-individual skills do not is merge an APPROVEd branch into the default branch
-(then `sprout rm` its worktree), because the next task needs to build on it.
+individual skills do not is squash-merge an APPROVEd branch into the default
+branch as a single commit (then `sprout rm` its worktree), because the next
+task needs to build on it.
