@@ -8,6 +8,10 @@ Global guidelines for agent sessions. Keep these in mind for all work.
 - Stick to plain ASCII-adjacent programmer syntax: `-`, `--`, `...`, `->`, straight quotes.
 - This applies to code, comments, docs, commit messages, and chat output.
 
+## Commits
+
+- Do not add a Claude co-author trailer or any AI attribution to commits. Write plain commit messages authored by me only.
+
 ## Technical decisions
 
 - Do not factor implementation time into technical decisions. Agents write code much faster than humans, so "this would take too long" is not a valid argument.
