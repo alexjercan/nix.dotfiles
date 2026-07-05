@@ -11,12 +11,31 @@ Tatr stores tasks as `tasks/<YYYYMMDD-HHMMSS>/TASK.md` files. The timestamp dire
 
 ```bash
 tatr new "Title" [-p <priority>] [-t tag1,tag2] [-s OPEN|IN_PROGRESS|CLOSED]
-tatr ls [--sort created|priority|title]
+tatr ls [--sort created|priority|title] [-R] [-f '<query>']
+tatr show <id>
+tatr edit <id> [-T "New title"] [-p <priority>] [-t tag1,tag2] [-s <status>]
+tatr rm <id>
 ```
 
 - `tatr new` creates the task directory and TASK.md, and prints the task ID. Default status is OPEN, default priority 0.
-- `tatr ls` prints one line per task: `<filepath>: [PRIORITY: N, TAGS: ...] Title`.
-- There are no edit, close, filter, or delete commands. Edit TASK.md directly to change status or content. Use `tatr ls | grep <tag>` to filter. Delete the task directory to remove a task.
+- `tatr ls` prints one line per task: `<filepath>: [PRIORITY: N, TAGS: ...] Title`. `-R` recurses into nested `tasks/` dirs; `-f` filters (see below).
+- `tatr show <id>` prints a single task's full details: title, status, priority, tags, and the whole description body, with a clickable file path.
+- `tatr edit <id>` updates fields in place without opening an editor. Only the flags you pass change; everything else, including the description body, is preserved. `-t` replaces the tag set (it does not merge). An invalid status is rejected and the file is left untouched. This is how automation moves a task OPEN -> IN_PROGRESS -> CLOSED.
+- `tatr rm <id>` deletes the task's directory (its TASK.md and anything else inside it). It only ever touches the validated `tasks/<id>/` path.
+
+All of `show`, `edit` and `rm` take the task ID (the `YYYYMMDD-HHMMSS` directory name) and exit non-zero with a clear message if the ID is malformed or the task does not exist.
+
+## Filtering
+
+`tatr ls -f` takes a small query language over task fields (`:status`, `:priority`, `:tags`), with operators `eq`, `contains`, `in` (with `[...]` lists) and the connectives `and`, `or`, `not`, grouped with parentheses:
+
+```bash
+tatr ls -f '(:status eq OPEN)'
+tatr ls -f ':tags contains feature'
+tatr ls -f '(:status eq OPEN) and (:tags contains feature)'
+```
+
+Filtering composes with `--sort` and `-R` (applied per section in recursive mode). Prefer `-f` over piping `tatr ls` through `grep`.
 
 ## Task File Format
 
@@ -35,15 +54,17 @@ notes, and progress logs.
 
 Status values are case-sensitive: `OPEN`, `IN_PROGRESS`, `CLOSED`. Priority is a non-negative integer, higher = more important (0 low, 50 medium, 100 high).
 
+Prefer `tatr edit` for the metadata fields (status, priority, tags, title) so the header stays well-formed; hand-edit the file only for the free-form description body below the metadata.
+
 ## Workflow
 
 **Picking up work:**
-1. `tatr ls --sort priority` to see the backlog.
-2. Open the chosen `tasks/<id>/TASK.md`, set STATUS to `IN_PROGRESS`.
-3. Append implementation notes to the description as you go.
+1. `tatr ls --sort priority` (or `tatr ls -f '(:status eq OPEN)'`) to see the backlog.
+2. `tatr show <id>` to read the full task, then `tatr edit <id> -s IN_PROGRESS` to claim it.
+3. Append implementation notes to the description as you go (edit TASK.md directly for the free-form body; `tatr edit` handles the metadata fields).
 
 **Finishing work:**
-1. Set STATUS to `CLOSED` in TASK.md.
+1. `tatr edit <id> -s CLOSED`.
 2. In the description, record what changed and why, difficulties or bugs hit along the way, and brief self-reflection on what could have gone better. Future sessions read this.
 3. Commit the TASK.md change together with the code changes.
 
