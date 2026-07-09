@@ -113,3 +113,24 @@ simple until a real need appears.
   (`sprout new feature/login` works).
 - `new` only prints the worktree path and succeeds if `git worktree add`
   actually created it; a failed add exits non-zero with no path on stdout.
+
+## Skill layout (token cost)
+
+The agent skill in `home/modules/agents/skills/sprout/` is split in two on
+purpose. A skill's body is loaded into the model's context every time the
+skill triggers, and sprout triggered often (its description matches
+"worktrees" and "parallel branches", and every /work and /flow cycle touches
+worktrees), so a verbose body was the single most expensive skill by tokens
+across requests even though the file itself was average-sized.
+
+- `SKILL.md` holds only what an agent needs to run the CLI correctly: the
+  four commands, the stdout-is-a-path contract, the `ls` format, and the
+  safety notes (`rm` force-deletes, branches cut from `HEAD`).
+- `reference.md` holds the interactive tmux mode and background prose; it is
+  read on demand only, so it costs nothing unless actually opened.
+- The frontmatter description (loaded into every request for every skill)
+  states that /work and /flow embed their own sprout commands, so the skill
+  does not need to be loaded again during those cycles.
+
+Keep new detail in `reference.md` or here unless an agent cannot use the CLI
+correctly without it; only that belongs in `SKILL.md`.
