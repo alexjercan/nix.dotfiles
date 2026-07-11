@@ -32,7 +32,10 @@ fixing.
      really done?
    - Tests: run the full check suite yourself. Are the tests meaningful (they
      assert behavior, not just execute code)? Were any existing tests
-     weakened or deleted to get to green?
+     weakened or deleted to get to green? Any "X stays zero / nothing
+     happens" assertion needs a paired delivery guard proving the
+     provoking stimulus actually fired - a steady hull and a dead engine
+     must not be indistinguishable.
    - Design: consistency with the repo's conventions, needless complexity,
      missed reuse.
    - Docs: behavior changes worth documenting are covered in the repo's
@@ -90,6 +93,11 @@ fixing.
   noise.
 - Do not invent nits to look thorough. A clean diff deserves a short round
   and an APPROVE.
+- When implementer and reviewer share one session, the review has a
+  structural blind spot. For any substantial branch, independently
+  re-derive or re-verify at least one load-bearing claim (a formula, an
+  ordering, a hierarchy assumption) instead of reading the diff alone;
+  for large changes consider an out-of-context pass (/code-review).
 - Review the diff, not the repo. Pre-existing problems you notice become new
   tatr tasks, not blockers on this branch.
 - Severity reflects impact, not effort to fix.

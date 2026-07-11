@@ -99,6 +99,12 @@ One or two sentences on what this task delivers and why.
   so the implementer does not have to re-search.
 - Call out assumptions and open questions explicitly in Notes rather than
   baking an unstated guess into a step.
+- A step that encodes a physical mechanism, a formula, or a dependency's
+  schedule/ordering behavior must either cite the file or derivation that
+  verifies it, or be phrased as a verify-first question ("confirm X,
+  then..."). Plans written from a model of the system instead of the
+  system have been wrong repeatedly (nova-protocol, three cycles in a
+  row on 2026-07-11).
 - Do not pad the plan. A three-line change gets a three-line plan.
 
 ## Relationship to Implementation

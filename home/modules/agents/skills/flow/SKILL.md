@@ -58,9 +58,14 @@ the handoffs, and when to stop and ask the user.
          `git merge-base --is-ancestor <default> <branch>` must succeed - the
          default branch tip is an ancestor of the branch. Only an up-to-date
          branch may merge back.
-      4. `cd` back to the main checkout - it has stayed on the default branch
+      4. Land from the main checkout - it has stayed on the default branch
          the whole time (the work happened in a separate worktree), and you
-         cannot remove a worktree while standing inside it - and run
+         cannot remove a worktree while standing inside it. The landing is
+         its OWN command that contains no `cd` at all and starts with
+         `pwd` to prove where it runs - this rule exists because the
+         squash keeps getting appended to compound commands that cd'd
+         into the worktree, where it silently no-ops or merges a branch
+         into itself (three retros and counting). Then run
          `git merge --squash <branch>`, which stages the branch's changes
          without committing. Because the branch already contains the default
          tip, this applies cleanly with no conflicts on the default branch.
@@ -103,6 +108,17 @@ instead of grinding when:
   real job.
 - New work discovered mid-flow becomes a new tatr task and joins the queue in
   priority order; it does not widen the current worktree/branch.
+- User feedback arriving mid-cycle follows the same discipline: finish the
+  cycle in flight first, then file each REQUEST as its own prioritized
+  task, and record each VERDICT ("X feels fixed", "Y still happens") as a
+  dated interim note on the relevant open task or umbrella - playtest
+  confirmations are evidence, and losing them costs a re-test.
+- A cycle may legitimately end in a falsification instead of a fix: the
+  investigation proves the reported mechanism does not exist, closes the
+  task with the evidence rig recorded and a regression pinning the
+  non-behavior, and routes the residual observation to the right task.
+  Such a cycle still goes through review and retro - do not force a code
+  change where the evidence says none is warranted.
 - One flow, one goal. A second goal gets its own `/flow` run.
 - Keep the trail on disk: tasks, reviews and retros must be committed as the
   skills prescribe, so a flow interrupted at any point can be resumed by a

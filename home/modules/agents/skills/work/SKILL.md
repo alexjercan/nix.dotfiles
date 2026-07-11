@@ -54,6 +54,17 @@ that appears to work.
      would (preferred over isolated unit tests where practical);
    - a small runnable example when the component warrants one.
 
+   For a BUG FIX, prove the regression test against the bug: demonstrate
+   it failing on the pre-fix behavior (a temporary revert or sabotage of
+   the fix) and record the failing numbers in TASK.md before trusting it.
+   A/B safety rule: COMMIT the fix before applying any sabotage, so the
+   revert (`git checkout <file>`) restores the fix and not the branch
+   base - a file-level checkout against an uncommitted tree has destroyed
+   finished work before. And when a test rig models scheduling or clock
+   behavior, mirror the production entity's scheduling-relevant components
+   (interpolation opt-ins, sync configs); a clean trace on a non-faithful
+   rig is not evidence.
+
    When the change warrants written documentation (new component, changed
    behavior, design decision worth explaining), put it in the repo's `docs/`
    folder - that is where all project documentation lives - rather than

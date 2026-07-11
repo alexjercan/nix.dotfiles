@@ -40,13 +40,37 @@ differently.
    below). Create `docs/retros/` if it does not exist. The `docs/` folder is
    where all project documentation lives.
 
-5. **Turn lessons into action.** A retro that changes nothing is shelf-ware:
+5. **Update the lessons ledger.** Append or bump each generalizable lesson
+   in `docs/retros/LESSONS.md` (create it from the format below if
+   missing): one line per lesson with a slug, one sentence, an occurrence
+   count, and retro links. The ledger is what makes recurrence detection
+   mechanical - with a hundred retros nobody re-reads them all, and "is
+   this the third time?" must be answerable by grepping one file. A
+   lesson reaching three occurrences moves to the ledger's "Pending
+   promotions" section for the user to fold into AGENTS.md or a skill.
+
+   ```markdown
+   # Lessons ledger
+
+   One line per recurring lesson; /compound appends or bumps counts.
+
+   - `diagnostic-first` (x4): trace the exact reported scenario before
+     theorizing a mechanism. 20260709-125640, 20260711-103527, ...
+
+   ## Pending promotions (3+ occurrences, user decides)
+
+   - `verify-first-plan-steps` -> plan skill: ...
+   ```
+
+6. **Turn lessons into action.** A retro that changes nothing is shelf-ware:
    - a lesson that should apply to every future session belongs in AGENTS.md
-     or the relevant skill - propose the edit;
+     or the relevant skill - propose the edit (and park it under the
+     ledger's Pending promotions so it cannot scroll away inside one
+     retro file);
    - follow-up code work becomes a new tatr task;
    - one-off observations just stay in the retro.
 
-6. **Commit and report.** Commit the retro (on the feature branch, from inside
+7. **Commit and report.** Commit the retro (on the feature branch, from inside
    its sprout worktree, if the work has not been merged yet, so it travels with
    the task; otherwise on the default branch in the main checkout). Summarize
    the key lessons and any follow-ups created.
@@ -88,7 +112,11 @@ differently.
 - Look for patterns across retros in `docs/retros/`: a lesson appearing for
   the third time is a rule waiting to be added to AGENTS.md or a skill.
 - Do not restate the diff or duplicate TASK.md's close-out notes; link to
-  them instead.
+  them instead. The same goes for a spike's fix-record entry: the
+  division is TASK.md = what/why/evidence rig (complete), spike fix
+  record = a few lines of family status pointing at the task, retro =
+  process observations only. Writing the same prose three times is the
+  main cost of the documentation habit - keep each file to its lane.
 
 ## Relationship to the Cycle
 

@@ -99,6 +99,15 @@ Direction-level tasks this spike seeded, for `/plan` to break into steps:
 
 - tatr 20260704-131500: build the token-bucket rate limiter
 - tatr 20260704-131530: expose the rate as a config knob
+
+## Fix record
+
+(Only for spikes that seed MULTIPLE tasks.) Each implementing task
+appends a few lines here as it lands - what shipped, the headline
+number, a pointer to its TASK.md - so this doc stays the family's
+single source of current state and later cycles start here instead of
+re-reading every sibling task. Keep entries short; the task file holds
+the detail.
 ```
 
 ## Guidelines
