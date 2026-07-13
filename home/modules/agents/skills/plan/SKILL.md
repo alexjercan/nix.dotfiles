@@ -16,9 +16,9 @@ list of steps so implementation is mechanical.
 Planning assumes the *what* is already decided and only the *how* needs
 breaking down. If the request is still genuinely undefined - the open question
 is what to build, not how - run `/spike` first. A spike researches the
-direction and leaves a `docs/spikes/` doc plus coarse, direction-level tasks;
-planning then expands each of those tasks into steps, citing the spike doc as
-the input it was scoped from.
+direction and leaves a `SPIKE.md` (in the spike's own task folder) plus
+coarse, direction-level tasks; planning then expands each of those tasks into
+steps, citing the spike doc as the input it was scoped from.
 
 ## Workflow
 
@@ -42,7 +42,9 @@ the input it was scoped from.
    ```
 
    Each invocation prints the new task ID; keep it, you need it to edit the
-   file. Priorities encode order: higher runs first (0 low, 50 medium,
+   file. Run ONE `tatr new` per command - never several chained or scripted;
+   same-second calls silently share an ID (see the tatr skill's gotchas).
+   Priorities encode order: higher runs first (0 low, 50 medium,
    100 high). When one task cannot start before another finishes, also record
    that in its Notes section (`Depends on: <task-id>`); priority alone is only
    a soft ordering.
@@ -92,9 +94,9 @@ One or two sentences on what this task delivers and why.
 - List order is execution order; each step builds on the previous one, so the
   implementer can go top to bottom.
 - Include a step for tests or a runnable example when the change warrants it,
-  and a step for documentation (in the repo's `docs/` folder, where all
-  project documentation lives) when the change alters behavior worth
-  documenting.
+  and a documentation step when the change alters behavior worth documenting
+  (a design/fix record is `tasks/<id>/NOTES.md`; reference docs live in
+  `docs/`).
 - Record the files and facts you discovered while reading the code in Notes,
   so the implementer does not have to re-search.
 - Call out assumptions and open questions explicitly in Notes rather than

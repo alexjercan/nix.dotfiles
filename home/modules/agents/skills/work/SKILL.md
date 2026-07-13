@@ -66,19 +66,24 @@ that appears to work.
    rig is not evidence.
 
    When the change warrants written documentation (new component, changed
-   behavior, design decision worth explaining), put it in the repo's `docs/`
-   folder - that is where all project documentation lives - rather than
-   scattering README fragments or NOTES.md files around the tree.
+   behavior, design decision worth explaining), write it as
+   `tasks/<id>/NOTES.md` next to TASK.md, or update the relevant reference
+   doc in `docs/`. Do not scatter README fragments around the tree.
 
 5. **Verify.** Run the project's full check suite: tests, linter, formatter,
    type checker, build - whatever the project defines. Fix what breaks. Do
    not report success on the strength of the diff alone; the tests must
-   actually pass, and if some fail, say so with the output.
+   actually pass, and if some fail, say so with the output. Every
+   verification must be able to fail: if a check would still pass with the
+   mechanism deleted, it proves nothing - replace it with one that can.
 
 6. **Close the task.** In TASK.md set STATUS to `CLOSED` and append to the
    description:
    - what changed and why, including alternatives considered;
    - difficulties or bugs hit along the way and how they were diagnosed;
+   - for a diagnostic or falsification close, the exact evidence rig
+     (systems run, command path, components) - without it the evidence
+     misleads the next session;
    - brief self-reflection: what could have gone better, what to do
      differently next time. Future sessions read this.
 
@@ -133,6 +138,13 @@ owns, whether or not flow is driving.
 
 - One task per worktree/branch. If mid-implementation you discover unrelated
   work, create a new tatr task for it instead of widening the diff.
+- Before closing a task that deletes, moves, or swaps a mechanism or marker,
+  grep the workspace for (1) its symbol names, (2) its describing words, and
+  (3) everything that observes or queries it - including comments, docs,
+  examples, tests, and the CHANGELOG. Silent consumers outlive clean symbol
+  sweeps.
+- Any commit made in the shared main checkout (not a worktree) starts with
+  `git branch --show-current` - parallel sessions can move its HEAD.
 - Follow the repo's existing patterns before inventing new ones; consistency
   beats local elegance.
 - Do not weaken or delete failing tests to get to green; fix the code, or if

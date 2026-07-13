@@ -100,4 +100,4 @@ reading or updating its STATUS, Steps and notes.
 - "No 'tasks' directory found": create `tasks/` at the project root first.
 - A task only shows in `tatr ls` if its directory matches `YYYYMMDD-HHMMSS` and contains a well-formed TASK.md.
 - Timestamps are local time.
-- IDs are second-resolution: two `tatr new` calls in the same second get the SAME ID and the second silently overwrites the first's title (observed 2026-07-11). Put a `sleep 1` between consecutive `tatr new` calls and verify each printed ID is distinct.
+- IDs are second-resolution: two `tatr new` calls in the same second get the SAME ID and the second silently overwrites the first (recurred six times, always from chained calls). Run ONE `tatr new` per command - never several in one `&&` chain or script - and check each printed ID is distinct before the next call.

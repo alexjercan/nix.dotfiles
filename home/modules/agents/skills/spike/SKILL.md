@@ -1,6 +1,6 @@
 ---
 name: spike
-description: Explore a fuzzy idea or open question before committing to it - brainstorm approaches, weigh tradeoffs, and land on a direction, then capture the research as a durable doc in docs/spikes/ plus the tatr tasks it seeds. Use this skill when the user asks to spike, ideate, brainstorm, or research an approach with `/spike`, or whenever a request is too fuzzy to plan yet because the real question is "what should we even build here". A spike's output is research and direction-level tasks, not shipped code.
+description: Explore a fuzzy idea or open question before committing to it - brainstorm approaches, weigh tradeoffs, and land on a direction, then capture the research as a durable SPIKE.md in the spike's task folder plus the tatr tasks it seeds. Use this skill when the user asks to spike, ideate, brainstorm, or research an approach with `/spike`, or whenever a request is too fuzzy to plan yet because the real question is "what should we even build here". A spike's output is research and direction-level tasks, not shipped code.
 ---
 
 # Spike - Ideate and Research Before Committing
@@ -13,10 +13,10 @@ plan yet, because the plan itself is the unknown. The spike answers that
 question, writes the answer down where it will not evaporate, and seeds the
 tatr tasks that turn the chosen direction into work.
 
-The output of a spike is not code. It is a durable research doc in
-`docs/spikes/` plus one or more tatr tasks that reference it. Because the doc
-lives in the repo, multiple later `/flow` runs can build on the same research
-instead of each session re-deriving it.
+The output of a spike is not code. It is a durable research doc - the spike's
+own tatr task folder's `SPIKE.md` - plus one or more seeded tasks that
+reference it. Because the doc lives in the repo, multiple later `/flow` runs
+can build on the same research instead of each session re-deriving it.
 
 ## Workflow
 
@@ -37,17 +37,18 @@ instead of each session re-deriving it.
    spike is allowed to conclude "not worth doing" or "need more information",
    and that is a successful spike, not a failed one.
 
-4. **Write the research doc.** Save it as
-   `docs/spikes/<YYYYMMDD-HHMMSS>-<slug>.md` (format below). Create
-   `docs/spikes/` if it does not exist. The `docs/` folder is where all
-   project documentation lives, and this doc is the spike's primary,
-   long-lived deliverable - write it to be read cold by a future session that
-   was not here.
+4. **Write the research doc.** Create the spike's own task
+   (`tatr new "Spike: <question>" -t spike`) and save the doc as
+   `tasks/<id>/SPIKE.md` (format below); close the spike task once the doc
+   is written - the seeded tasks carry the work forward. This doc is the
+   spike's primary, long-lived deliverable; write it to be read cold by a
+   future session that was not here.
 
 5. **Seed the tasks.** Turn the recommended direction into one or more tatr
-   tasks with `tatr new` (see the tatr skill). Keep them coarse and
-   direction-level - a Goal, a `Spike: docs/spikes/<file>.md` link in Notes,
-   and a `spike` tag - not a detailed Steps list. Breaking a task into Steps
+   tasks with `tatr new` (see the tatr skill; one call per command, never
+   chained). Keep them coarse and direction-level - a Goal, a
+   `Spike: tasks/<id>/SPIKE.md` link in Notes, and a `spike` tag - not a
+   detailed Steps list. Breaking a task into Steps
    is `/plan`'s job, and it runs later when the task is picked up (tatr's rule
    that a stepless ad-hoc task is planned first with `/plan` applies here).
    Spike owns the what and why; plan owns the how. If the spike concluded "do
@@ -136,7 +137,7 @@ place - so a fuzzy request is spiked first, then its seeded direction-level
 tasks are planned into steps and built. The full lifecycle is: `/spike`
 explores, `/plan` scopes, sprout
 isolates, `/work` implements, `/review` critiques, `/compound` distills, and
-`/flow` drives the whole loop. A spike's `docs/spikes/` artifact is durable
-and shared: several tasks - and several separate `/flow` runs - can all cite
+`/flow` drives the whole loop. A spike's SPIKE.md is durable and
+shared: several tasks - and several separate `/flow` runs - can all cite
 the same research, which is the point of writing it down rather than deciding
 in the moment and forgetting why.

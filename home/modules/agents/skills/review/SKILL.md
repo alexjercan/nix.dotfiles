@@ -35,11 +35,13 @@ fixing.
      weakened or deleted to get to green? Any "X stays zero / nothing
      happens" assertion needs a paired delivery guard proving the
      provoking stimulus actually fired - a steady hull and a dead engine
-     must not be indistinguishable.
+     must not be indistinguishable. Ask of each new test: would it fail
+     with the fix deleted? A test that cannot fail (often one copied from
+     a neighbor) verifies nothing.
    - Design: consistency with the repo's conventions, needless complexity,
      missed reuse.
-   - Docs: behavior changes worth documenting are covered in the repo's
-     `docs/` folder.
+   - Docs: behavior changes worth documenting are covered in the task's
+     `NOTES.md` or the relevant reference doc in `docs/`.
    - Honesty: TASK.md notes match what the code actually does.
 
 3. **Write the findings.** Create or append to `tasks/<id>/REVIEW.md` (format

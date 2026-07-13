@@ -27,7 +27,8 @@ the handoffs, and when to stop and ask the user.
 3. **Cycle per task.** Pick the highest-priority OPEN task whose dependencies
    are CLOSED, then:
 
-   1. Read the most recent retros in `docs/retros/` - apply the lessons; this
+   1. Read `docs/LESSONS.md` (the lessons ledger), and the last few
+      `tasks/*/RETRO.md` when more context helps - apply the lessons; this
       is where the compounding pays off.
    2. Sprout the task's worktree. From the default branch, cut an isolated
       worktree and feature branch for this task with
@@ -59,23 +60,19 @@ the handoffs, and when to stop and ask the user.
          default branch tip is an ancestor of the branch. Only an up-to-date
          branch may merge back.
       4. Land from the main checkout - it has stayed on the default branch
-         the whole time (the work happened in a separate worktree), and you
-         cannot remove a worktree while standing inside it. The landing is
-         its OWN command that contains no `cd` at all and starts with
-         `pwd` to prove where it runs - this rule exists because the
-         squash keeps getting appended to compound commands that cd'd
-         into the worktree, where it silently no-ops or merges a branch
-         into itself (three retros and counting). Then run
-         `git merge --squash <branch>`, which stages the branch's changes
-         without committing. Because the branch already contains the default
-         tip, this applies cleanly with no conflicts on the default branch.
-         Then `git commit` with a message that summarizes the finished task as
-         a whole (a Conventional-Commit subject plus a short body); git
-         pre-fills the concatenated branch commit messages, so replace them
-         with one clean summary rather than shipping the intermediate steps.
-         Do not push. This leaves the default branch with one commit per task
-         instead of the branch's individual commits and a merge bubble, while
-         the next task still builds on finished work.
+         the whole time, and you cannot remove a worktree while standing
+         inside it. The landing is its OWN command with no `cd` in it,
+         starting with `pwd` and `git branch --show-current` to prove where
+         and on what branch it runs - the squash keeps getting appended to
+         commands that cd'd into the worktree (where it no-ops or merges a
+         branch into itself), and parallel sessions can move the shared
+         checkout's HEAD out from under you. Then
+         `git merge --squash <branch>` (stages the branch's changes; the
+         branch already contains the default tip, so it applies cleanly)
+         and `git commit` with one clean summary of the finished task
+         (Conventional-Commit subject plus short body; replace the
+         pre-filled concatenated branch messages). Do not push. This leaves
+         the default branch with one commit per task.
       5. Finally `sprout rm <feature>` to remove the worktree, delete the
          branch, and close its tmux session (`--squash` records no merge
          parent, but `sprout rm` force-deletes the branch, so this is fine).
@@ -131,7 +128,7 @@ explores when the goal is still fuzzy, `/plan` scopes, sprout isolates each
 task in its own worktree, `/work` implements, `/review` critiques, `/compound`
 distills - flow just keeps the wheel turning until the goal is done. Spike is
 the optional pre-step: when the goal handed to flow is undefined, spike it
-first, then start the flow from the `docs/spikes/` doc and the direction-level
+first, then start the flow from its SPIKE.md and the direction-level
 tasks it seeded (flow's own `/plan` phase breaks those into steps). Every task
 in the cycle starts by sprouting a worktree and ends back on the default
 branch; the one thing flow does that the individual skills do not is land an

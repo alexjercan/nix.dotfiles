@@ -1,6 +1,6 @@
 ---
 name: compound
-description: Run a retrospective after a tatr task is CLOSED and its review is APPROVEd, and record the lessons in the repo's docs folder. Use this skill when the user asks for a retro or reflection with `/compound`, or as the final step of the plan-work-review cycle. It answers what went well, what went wrong, and what to improve next time, writes the result to docs/retros/, and turns recurring lessons into concrete follow-ups.
+description: Run a retrospective after a tatr task is CLOSED and its review is APPROVEd, and record the lessons. Use this skill when the user asks for a retro or reflection with `/compound`, or as the final step of the plan-work-review cycle. It answers what went well, what went wrong, and what to improve next time, writes the result to the task's RETRO.md, and turns recurring lessons into concrete follow-ups.
 ---
 
 # Compound - Retro and Self-Reflection After the Cycle
@@ -36,18 +36,18 @@ differently.
    - What to improve next time - phrased as something a future session can
      actually act on.
 
-4. **Write the retro.** Save it as `docs/retros/<task-id>-<slug>.md` (format
-   below). Create `docs/retros/` if it does not exist. The `docs/` folder is
-   where all project documentation lives.
+4. **Write the retro.** Save it as `tasks/<id>/RETRO.md`, next to TASK.md
+   and REVIEW.md (format below).
 
 5. **Update the lessons ledger.** Append or bump each generalizable lesson
-   in `docs/retros/LESSONS.md` (create it from the format below if
-   missing): one line per lesson with a slug, one sentence, an occurrence
-   count, and retro links. The ledger is what makes recurrence detection
-   mechanical - with a hundred retros nobody re-reads them all, and "is
-   this the third time?" must be answerable by grepping one file. A
-   lesson reaching three occurrences moves to the ledger's "Pending
-   promotions" section for the user to fold into AGENTS.md or a skill.
+   in `docs/LESSONS.md` (create it from the format below if missing): one
+   or two lines per lesson with a slug, one sentence, an occurrence count,
+   and task ids. Keep entries SHORT - when a new occurrence adds a variant,
+   sharpen the sentence instead of appending a paragraph. The ledger makes
+   recurrence detection mechanical: "is this the third time?" must be
+   answerable by grepping one file. A lesson reaching three occurrences
+   moves to the ledger's "Pending promotions" section for the user to fold
+   into AGENTS.md or a skill.
 
    ```markdown
    # Lessons ledger
@@ -72,8 +72,10 @@ differently.
 
 7. **Commit and report.** Commit the retro (on the feature branch, from inside
    its sprout worktree, if the work has not been merged yet, so it travels with
-   the task; otherwise on the default branch in the main checkout). Summarize
-   the key lessons and any follow-ups created.
+   the task; otherwise on the default branch in the main checkout - and there,
+   check `git branch --show-current` first, since parallel sessions can move
+   the shared checkout's HEAD). Summarize the key lessons and any follow-ups
+   created.
 
 ## Retro File Format
 
@@ -109,8 +111,8 @@ differently.
   outcome, and say why it seemed right at the time.
 - Short beats complete. Three sharp observations are worth more than a page
   of filler; a smooth cycle deserves a short retro that says so.
-- Look for patterns across retros in `docs/retros/`: a lesson appearing for
-  the third time is a rule waiting to be added to AGENTS.md or a skill.
+- Look for patterns in the ledger: a lesson appearing for the third time is
+  a rule waiting to be added to AGENTS.md or a skill.
 - Do not restate the diff or duplicate TASK.md's close-out notes; link to
   them instead. The same goes for a spike's fix-record entry: the
   division is TASK.md = what/why/evidence rig (complete), spike fix
