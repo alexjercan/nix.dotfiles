@@ -10,6 +10,8 @@
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
+    # Optional PostgreSQL + Keycloak testing stack, toggled below.
+    ./keycloak-testing.nix
   ];
 
   # Bootloader.
@@ -355,30 +357,9 @@
     };
   };
 
-  services.postgresql = {
-    enable = true;
-    package = pkgs.postgresql_17;
-
-    # Listen on all interfaces so the LAN can reach it. Access is still
-    # gated by the authentication rules and the firewall below.
-    enableTCPIP = true;
-    settings.listen_addresses = lib.mkForce "*";
-
-    # Allow password-authenticated connections from the local LAN subnet.
-    authentication = lib.mkOverride 10 ''
-      # type  database  user  address           auth-method
-      local   all       all                     peer
-      host    all       all   127.0.0.1/32      scram-sha-256
-      host    all       all   ::1/128          scram-sha-256
-      host    all       all   192.168.0.0/24   scram-sha-256
-    '';
-  };
-
-  # Expose PostgreSQL to the LAN only. This rule restricts the port to the
-  # local subnet instead of using the global allowedTCPPorts.
-  networking.firewall.extraCommands = ''
-    iptables -A nixos-fw -p tcp --source 192.168.0.0/24 --dport 5432 -j nixos-fw-accept
-  '';
+  # PostgreSQL + Keycloak testing stack. Defined in ./keycloak-testing.nix and
+  # off by default; flip this to true when you need to test against it.
+  local.keycloak.enable = true;
 
   services.logmein-hamachi.enable = true;
   documentation.man.cache.enable = false;
