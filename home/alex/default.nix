@@ -36,7 +36,7 @@ in {
     blender
     brave
     btop
-    chromium
+    (chromium.override { commandLineArgs = "--enable-features=Vulkan --use-angle=vulkan --enable-unsafe-webgpu"; })
     cmake
     davinci-resolve
     dconf
