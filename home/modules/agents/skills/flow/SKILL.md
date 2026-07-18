@@ -18,7 +18,10 @@ the handoffs, and when to stop and ask the user.
 1. **Take the goal.** Restate it in one or two sentences and pin down what
    "done" means - observable behavior, not vibes. If the goal is genuinely
    ambiguous (a real fork that changes what gets built), ask now; this is the
-   cheapest moment to be corrected.
+   cheapest moment to be corrected. Also pin the LANDING SCOPE now: when the
+   user's ask mentions a branch or sprout, confirm whether flow lands each
+   task to the default branch as usual or stops at the branch - discovering
+   this at the land step wastes the whole cycle's momentum.
 
 2. **Plan.** Run the plan skill: read the code, break the goal into tatr
    tasks with Steps checklists, priorities and dependencies. Report the task
@@ -29,7 +32,10 @@ the handoffs, and when to stop and ask the user.
 
    1. Read `docs/LESSONS.md` (the lessons ledger), and the last few
       `tasks/*/RETRO.md` when more context helps - apply the lessons; this
-      is where the compounding pays off.
+      is where the compounding pays off. When the ledger is long, read its
+      header, the Pending promotions section and any domain-specific section
+      fully, then grep the rest for slugs matching the task's area (crate
+      names, subsystem words) rather than re-reading every entry each cycle.
    2. Sprout the task's worktree. From the default branch, cut an isolated
       worktree and feature branch for this task with
       `cd "$(sprout new <type>/<short-slug>)"`, so implementation, tests,
@@ -50,7 +56,11 @@ the handoffs, and when to stop and ask the user.
          branch - flow does not push, so this is not `origin/*`). Resolve any
          conflicts here, on the branch, and commit the merge; this keeps
          conflict resolution off the default branch, where a bad merge is far
-         harder to unwind.
+         harder to unwind. If the merge surfaces a red test, run
+         `git show <default>:<file>` on the failing test FIRST to decide
+         whether your change caused it or you inherited it from a parallel
+         task - fix an inherited red as merge integration, naming the source
+         task, instead of mis-blaming this branch.
       2. Re-run the full check suite on the updated branch (`/work`'s verify
          step). Proceed only when it is green; if the merge broke something,
          fix it on the branch, and if it changed the work materially, send it
@@ -61,18 +71,25 @@ the handoffs, and when to stop and ask the user.
          branch may merge back.
       4. Land from the main checkout - it has stayed on the default branch
          the whole time, and you cannot remove a worktree while standing
-         inside it. The landing is its OWN command with no `cd` in it,
-         starting with `pwd` and `git branch --show-current` to prove where
-         and on what branch it runs - the squash keeps getting appended to
-         commands that cd'd into the worktree (where it no-ops or merges a
-         branch into itself), and parallel sessions can move the shared
-         checkout's HEAD out from under you. Then
-         `git merge --squash <branch>` (stages the branch's changes; the
-         branch already contains the default tip, so it applies cleanly)
-         and `git commit` with one clean summary of the finished task
-         (Conventional-Commit subject plus short body; replace the
-         pre-filled concatenated branch messages). Do not push. This leaves
-         the default branch with one commit per task.
+         inside it. Inspect the diff on the BRANCH before this point; once
+         the landing starts there is no pausing to look. The landing is ONE
+         atomic command with no `cd` in it:
+
+         ```bash
+         pwd && git branch --show-current && git merge --squash <branch> && git commit -m "<subject>" -m "<body>"
+         ```
+
+         Never split the squash and the commit across separate tool calls:
+         a parallel session's `git add -A`/`git commit -a` in the shared
+         checkout will sweep your staged-but-uncommitted squash into ITS
+         commit (this has happened even after the "own command" rule; only
+         atomicity closes it). The `pwd` + branch check prove where and on
+         what branch it runs - the squash keeps getting appended to commands
+         that cd'd into the worktree (where it no-ops or merges a branch into
+         itself), and parallel sessions can move the shared checkout's HEAD.
+         Write one clean summary of the finished task (Conventional-Commit
+         subject plus short body), not the concatenated branch messages. Do
+         not push. This leaves the default branch with one commit per task.
       5. Finally `sprout rm <feature>` to remove the worktree, delete the
          branch, and close its tmux session (`--squash` records no merge
          parent, but `sprout rm` force-deletes the branch, so this is fine).
@@ -86,6 +103,31 @@ the handoffs, and when to stop and ask the user.
    final report - what was built, task by task, key lessons from the retros,
    and anything deliberately left out. Pushing is the user's call.
 
+## Task Playbooks
+
+How a task is tackled depends on what kind of task it is; the cycle is the
+same, the emphasis differs.
+
+**Bugs: reproduce first, then research, then fix.** The first deliverable of
+a bug task is a failing test that replicates the reported behavior - written
+BEFORE any fix, so the diagnosis is aimed rather than guessed. Prefer the
+highest-fidelity harness the project has (an end-to-end or scenario-driving
+harness that plays the exact reported situation beats a unit test of the
+suspected mechanism; the project's AGENTS.md usually names its harness).
+With the reproduction red, trace the actual mechanism (real numbers, real
+traces - not theory), fix it, and let the same test go green as the
+regression pin. A reproduction that CANNOT be made to fail is a result too:
+it falsifies the report - convert the rig into a pin of the non-behavior and
+close with the evidence.
+
+**Features: spike when fuzzy, then plan, build, verify end to end.** If the
+direction is undefined, `/spike` first; then `/plan` into tasks with Steps
+and a Definition of Done; then `/work` each task with tests written
+alongside - including at least one harness-level test that exercises the
+feature the way a user would, not only unit tests of its parts; then
+`/review` until APPROVE and `/compound`. A feature without a harness test
+has only proven its pieces, not itself.
+
 ## When to Stop and Ask
 
 Flow is autonomous between checkpoints, but it stops and surfaces to the user
@@ -93,6 +135,9 @@ instead of grinding when:
 
 - the plan turns out wrong enough that the task list needs restructuring, not
   just a new task appended;
+- seeded tasks turn out architecturally inseparable (splitting them would
+  mean throwaway shim code) - surface the re-cut and merge them into one
+  cycle rather than grinding out shims;
 - a review dispute survives three rounds (per the review skill);
 - the same task fails work-review twice in a row with no clear path forward;
 - the goal itself turns out to mean something different than assumed;
@@ -104,7 +149,13 @@ instead of grinding when:
   make the loop converge; the cycle only compounds if each phase does its
   real job.
 - New work discovered mid-flow becomes a new tatr task and joins the queue in
-  priority order; it does not widen the current worktree/branch.
+  priority order; it does not widen the current worktree/branch. Create such
+  tasks inside the current worktree (or carry-and-clean a main-checkout stub
+  in as the next task's first act) so the file is born on a branch.
+- A lesson written mid-flow applies BACKWARD too: re-audit the remaining
+  queued tasks and plans against it (re-run the sweeps it invalidates)
+  instead of only applying it forward - a poisoned plan sitting in the queue
+  is not fixed by the ledger entry alone.
 - User feedback arriving mid-cycle follows the same discipline: finish the
   cycle in flight first, then file each REQUEST as its own prioritized
   task, and record each VERDICT ("X feels fixed", "Y still happens") as a

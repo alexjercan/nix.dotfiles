@@ -26,6 +26,12 @@ Global guidelines for agent sessions. Keep these in mind for all work.
   - a web-facing feature can get a demo HTML page
 - These are not mandatory. Treat them as easy wins: if the user wants one or it is cheap to add, do it.
 
+## Shell and verification
+
+- Never end a build/test command with a pipe or echo that eats its exit code (`cargo test | grep ...` reports grep's 0 on a failed compile). Run it bare, or write output to a file and grep the file, or `set -o pipefail`.
+- Kill helper processes by recorded PID, never `pkill -f <pattern>` - the pattern can match your own shell's command line or an unrelated process.
+- An edit you believe you made is a hypothesis until the artifact shows it; re-read the produced text, not just the tool's success report.
+
 ## Documentation and reflection
 
 After meaningful changes, document:
@@ -34,4 +40,4 @@ After meaningful changes, document:
 - Difficulties encountered and any bugs that came up along the way, including how they were diagnosed and fixed.
 - Self-reflected feedback: what could have gone better during the implementation, and what to do differently next time. This is for future sessions to learn from.
 
-Keep these notes in the repository's `docs/` folder, which is where all project documentation is expected to live, so future agent sessions can pick up the context.
+Keep these notes where the repository's own AGENTS.md says records live (task folders, a wiki, a lessons ledger). Only default to the repository's `docs/` folder when it defines no convention of its own.

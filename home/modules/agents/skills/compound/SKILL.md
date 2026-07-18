@@ -42,9 +42,12 @@ differently.
 5. **Update the lessons ledger.** Append or bump each generalizable lesson
    in `docs/LESSONS.md` (create it from the format below if missing): one
    or two lines per lesson with a slug, one sentence, an occurrence count,
-   and task ids. Keep entries SHORT - when a new occurrence adds a variant,
-   sharpen the sentence instead of appending a paragraph. The ledger makes
-   recurrence detection mechanical: "is this the third time?" must be
+   and task ids. Keep entries SHORT - two lines is the cap; if your addition
+   needs more, you are writing a variant, so sharpen the one sentence
+   instead of appending a paragraph. When a lesson is really a rule for one
+   of the skills, say so in the entry (`-> work skill`) at any count - the
+   promotion pass then knows its target without re-deriving it. The ledger
+   makes recurrence detection mechanical: "is this the third time?" must be
    answerable by grepping one file. A lesson reaching three occurrences
    moves to the ledger's "Pending promotions" section for the user to fold
    into AGENTS.md or a skill.
@@ -67,6 +70,11 @@ differently.
      or the relevant skill - propose the edit (and park it under the
      ledger's Pending promotions so it cannot scroll away inside one
      retro file);
+   - a lesson that keeps recurring because a TOOL permits the mistake is a
+     bug in the tool: propose fixing the tool so the mistake becomes
+     impossible, instead of adding a third warning about it (the tatr
+     same-second overwrite recurred seven times under prompt warnings and
+     died with a four-line CLI guard);
    - follow-up code work becomes a new tatr task;
    - one-off observations just stay in the retro.
 

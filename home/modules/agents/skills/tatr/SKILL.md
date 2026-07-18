@@ -5,20 +5,22 @@ description: Track work items with the tatr CLI, which stores tasks as markdown 
 
 # Tatr - Task Tracking for Code Projects
 
-Tatr stores tasks as `tasks/<YYYYMMDD-HHMMSS>/TASK.md` files. The timestamp directory is the task ID. Tatr searches upward from the current directory to find `tasks/`, so it works from anywhere inside the project.
+Tatr stores tasks as `tasks/<YYYYMMDD-HHMMSS>/TASK.md` files. The timestamp directory is the task ID. Tatr searches upward from the current directory to find `tasks/`, so it works from anywhere inside the project; `-r ROOT` runs it against another directory.
 
 ## Commands
 
 ```bash
-tatr new "Title" [-p <priority>] [-t tag1,tag2] [-s OPEN|IN_PROGRESS|CLOSED]
-tatr ls [--sort created|priority|title] [-R] [-f '<query>']
+tatr [-r ROOT] <subcommand> [options]
+
+tatr new "Title" [-p <priority>] [-t tag1,tag2] [-s OPEN|IN_PROGRESS|CLOSED] [-b <file>]
+tatr ls [-s created|priority|title] [-R] [-f '<query>']
 tatr show <id>
 tatr edit <id> [-T "New title"] [-p <priority>] [-t tag1,tag2] [-s <status>]
 tatr rm <id>
 ```
 
-- `tatr new` creates the task directory and TASK.md, and prints the task ID. Default status is OPEN, default priority 0.
-- `tatr ls` prints one line per task: `<filepath>: [PRIORITY: N, TAGS: ...] Title`. `-R` recurses into nested `tasks/` dirs; `-f` filters (see below).
+- `tatr new` creates the task directory and TASK.md, and prints the task ID. Default status is OPEN, default priority 0. `-b/--body-file <file>` seeds the description body from a file (`-` reads stdin) - prefer it over creating an empty task and editing the file afterwards. If the generated ID already exists (two `new` calls in the same second), tatr FAILS instead of overwriting; just retry for a fresh ID.
+- `tatr ls` prints one line per task: `<filepath>: [PRIORITY: N, TAGS: ...] Title`. `-s/--sort` orders by `created` (default), `priority` (descending), or `title`; `-R` recurses into nested `tasks/` dirs (one section per project); `-f` filters (see below).
 - `tatr show <id>` prints a single task's full details: title, status, priority, tags, and the whole description body, with a clickable file path.
 - `tatr edit <id>` updates fields in place without opening an editor. Only the flags you pass change; everything else, including the description body, is preserved. `-t` replaces the tag set (it does not merge). An invalid status is rejected and the file is left untouched. This is how automation moves a task OPEN -> IN_PROGRESS -> CLOSED.
 - `tatr rm <id>` deletes the task's directory (its TASK.md and anything else inside it). It only ever touches the validated `tasks/<id>/` path.
@@ -33,13 +35,14 @@ All of `show`, `edit` and `rm` take the task ID (the `YYYYMMDD-HHMMSS` directory
 tatr ls -f '(:status eq OPEN)'
 tatr ls -f ':tags contains feature'
 tatr ls -f '(:status eq OPEN) and (:tags contains feature)'
+tatr ls -f ':tags contains v0.8.0' --sort priority
 ```
 
-Filtering composes with `--sort` and `-R` (applied per section in recursive mode). Prefer `-f` over piping `tatr ls` through `grep`.
+Filtering composes with `-s/--sort` and `-R` (applied per section in recursive mode). Prefer `-f` over piping `tatr ls` through `grep`.
 
 ## Task File Format
 
-Keep this exact structure when editing or creating TASK.md files by hand:
+Keep the metadata header exact; tatr owns it:
 
 ```markdown
 # Task Title
@@ -48,20 +51,42 @@ Keep this exact structure when editing or creating TASK.md files by hand:
 - PRIORITY: 100
 - TAGS: feature, security
 
-Free-form description. Use this area for requirements, implementation
-notes, and progress logs.
+<free-form description body>
 ```
 
-Status values are case-sensitive: `OPEN`, `IN_PROGRESS`, `CLOSED`. Priority is a non-negative integer, higher = more important (0 low, 50 medium, 100 high).
+Status values are case-sensitive: `OPEN`, `IN_PROGRESS`, `CLOSED`. Priority is a non-negative integer, higher = more important - slot it RELATIVE to the existing list (`tatr ls --sort priority` first), not on an absolute scale. Projects may define scheduling-tag conventions in their AGENTS.md (e.g. every task carries `backlog` or the current release tag); check before tagging.
 
-Prefer `tatr edit` for the metadata fields (status, priority, tags, title) so the header stays well-formed; hand-edit the file only for the free-form description body below the metadata.
+For any non-trivial task, structure the body as a story:
+
+```markdown
+## Story
+
+As a <who>, I want <what>, so that <why>. Plus the context a cold
+session needs to start.
+
+## Steps
+
+- [ ] Concrete, verifiable actions; /work ticks these as they land.
+
+## Definition of Done
+
+- Observable outcomes; the review contract.
+
+## Notes
+
+- Constraints, file pointers, `Depends on: <task-id>`, sequencing.
+```
+
+Trivial tasks may use a plain paragraph. Prefer `tatr edit` for the metadata fields and `tatr new -b` for the initial body; hand-edit the file only for later body updates.
+
+The task's folder is also the home for its sibling records: `SPIKE.md` (/spike), `REVIEW.md` (/review), `RETRO.md` (/compound), `NOTES.md` (design/fix record) - all next to TASK.md, never loose in docs/.
 
 ## Workflow
 
 **Picking up work:**
-1. `tatr ls --sort priority` (or `tatr ls -f '(:status eq OPEN)'`) to see the backlog.
+1. `tatr ls --sort priority` (or with `-f '(:status eq OPEN)'`) to see the backlog.
 2. `tatr show <id>` to read the full task, then `tatr edit <id> -s IN_PROGRESS` to claim it.
-3. Append implementation notes to the description as you go (edit TASK.md directly for the free-form body; `tatr edit` handles the metadata fields).
+3. Append implementation notes to the description as you go.
 
 **Finishing work:**
 1. `tatr edit <id> -s CLOSED`.
@@ -70,8 +95,10 @@ Prefer `tatr edit` for the metadata fields (status, priority, tags, title) so th
 
 **Planning a feature:**
 - Break it into multiple tasks with `tatr new`, one per component, with priorities that encode the intended order.
-- Use consistent tags within the project (`feature`, `bug`, `refactor`, `testing`, `docs`, `security`, `performance`).
+- Use consistent tags within the project (`feature`, `bug`, `refactor`, `testing`, `docs`, `security`, `performance`), plus the project's scheduling tags if it defines them.
 - Create tasks for any non-trivial follow-up work discovered mid-session instead of leaving TODO comments in code.
+
+**With worktrees:** when the work will happen in a sprout worktree, sprout FIRST and run `tatr new` inside the worktree, so the task file is born on the branch. A task stub unavoidably created in the shared main checkout gets carried in as the first act after sprouting: copy it into the worktree, `rm` it from the main checkout.
 
 ## Implementing a Task
 
@@ -100,4 +127,4 @@ reading or updating its STATUS, Steps and notes.
 - "No 'tasks' directory found": create `tasks/` at the project root first.
 - A task only shows in `tatr ls` if its directory matches `YYYYMMDD-HHMMSS` and contains a well-formed TASK.md.
 - Timestamps are local time.
-- IDs are second-resolution: two `tatr new` calls in the same second get the SAME ID and the second silently overwrites the first (recurred six times, always from chained calls). Run ONE `tatr new` per command - never several in one `&&` chain or script - and check each printed ID is distinct before the next call.
+- IDs are second-resolution. Since tatr 0.2.0 a same-second `tatr new` FAILS with "already exists" instead of silently overwriting (the old behavior lost tasks seven recorded times); on that error, retry once the second has passed. Still run one `tatr new` per command rather than chaining several - the chain would just fail midway.

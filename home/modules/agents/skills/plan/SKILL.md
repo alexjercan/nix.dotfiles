@@ -42,10 +42,13 @@ steps, citing the spike doc as the input it was scoped from.
    ```
 
    Each invocation prints the new task ID; keep it, you need it to edit the
-   file. Run ONE `tatr new` per command - never several chained or scripted;
-   same-second calls silently share an ID (see the tatr skill's gotchas).
-   Priorities encode order: higher runs first (0 low, 50 medium,
-   100 high). When one task cannot start before another finishes, also record
+   file (or seed the body directly with `tatr new -b <file>`). Run ONE
+   `tatr new` per command - never several chained; a same-second call now
+   FAILS rather than overwriting (see the tatr skill's gotchas), so a chain
+   just dies midway. Priorities encode order: higher runs first - slot each
+   new task RELATIVE to the existing list (`tatr ls --sort priority`), and
+   follow the project's scheduling-tag convention from its AGENTS.md if it
+   has one. When one task cannot start before another finishes, also record
    that in its Notes section (`Depends on: <task-id>`); priority alone is only
    a soft ordering.
 
@@ -68,9 +71,10 @@ Keep the tatr header exact, then use the description for the plan itself:
 - PRIORITY: 100
 - TAGS: feature, api
 
-## Goal
+## Story
 
-One or two sentences on what this task delivers and why.
+As an API operator, I want per-client rate limiting, so that one client
+cannot starve the rest. Plus whatever context a cold session needs.
 
 ## Steps
 
@@ -79,12 +83,21 @@ One or two sentences on what this task delivers and why.
 - [ ] Read the limit from config, defaulting to 100 req/min.
 - [ ] Add an integration test that exceeds the limit and asserts a 429.
 
+## Definition of Done
+
+- Requests over the limit get a 429 with a Retry-After header; the
+  integration test pins it; the config knob is documented.
+
 ## Notes
 
 - Relevant files: src/server.rs, src/config.rs
 - Assumption: token-bucket, not a sliding window.
 - Depends on: 20260703-101500 (config loader refactor)
 ```
+
+A `## Goal` paragraph may stand in for Story on trivial tasks, but Steps plus
+a Definition of Done is the shape /work implements against and /review
+verifies against - the DoD is the review contract.
 
 ## Guidelines for Good Steps
 
@@ -106,7 +119,14 @@ One or two sentences on what this task delivers and why.
   verifies it, or be phrased as a verify-first question ("confirm X,
   then..."). Plans written from a model of the system instead of the
   system have been wrong repeatedly (nova-protocol, three cycles in a
-  row on 2026-07-11).
+  row on 2026-07-11). The same goes for engine/dependency behavior: read the
+  dependency's source (or write a five-line probe) before designing around
+  its ordering, observer semantics, or failure modes - a reasoned verdict
+  about a dependency is a hypothesis, not evidence.
+- When a task adds a new route into an existing state or mode (a new setter
+  of a state machine, a new entry into "paused"), plan a step that greps for
+  everything gated on that state and lists what newly runs in the new
+  context - new entry paths keep surprising their consumers.
 - Do not pad the plan. A three-line change gets a three-line plan.
 
 ## Relationship to Implementation

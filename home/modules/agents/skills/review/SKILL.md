@@ -37,7 +37,11 @@ fixing.
      provoking stimulus actually fired - a steady hull and a dead engine
      must not be indistinguishable. Ask of each new test: would it fail
      with the fix deleted? A test that cannot fail (often one copied from
-     a neighbor) verifies nothing.
+     a neighbor) verifies nothing. A bug fix must be pinned at its OWN
+     boundary (a unit test that fails under the bug), not only by a
+     downstream end-to-end test - and when a refactor changes how an
+     invariant is enforced, the invariant gets re-pinned on the new
+     mechanism, not the old assertion massaged until it passes.
    - Design: consistency with the repo's conventions, needless complexity,
      missed reuse.
    - Docs: behavior changes worth documenting are covered in the task's

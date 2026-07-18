@@ -54,7 +54,11 @@ that appears to work.
      would (preferred over isolated unit tests where practical);
    - a small runnable example when the component warrants one.
 
-   For a BUG FIX, prove the regression test against the bug: demonstrate
+   For a BUG FIX, reproduce before you fix: the first artifact is a failing
+   test that replicates the reported behavior, at the highest fidelity the
+   project offers (an end-to-end/scenario harness that plays the exact
+   situation beats a unit test of the suspected mechanism). Then prove the
+   regression test against the bug: demonstrate
    it failing on the pre-fix behavior (a temporary revert or sabotage of
    the fix) and record the failing numbers in TASK.md before trusting it.
    A/B safety rule: COMMIT the fix before applying any sabotage, so the
@@ -76,6 +80,21 @@ that appears to work.
    actually pass, and if some fail, say so with the output. Every
    verification must be able to fail: if a check would still pass with the
    mechanism deleted, it proves nothing - replace it with one that can.
+   Verification pitfalls that have shipped breakage before:
+   - Never pipe the check command through a filter that eats its exit code
+     (`| grep`, `| tail`, trailing `echo`); a failed compile reads as
+     success. Run it bare or write output to a file and grep the file.
+   - When the change touches a SHARED system/observer or adds to a shared
+     schedule chain, run the whole affected module's suite, not just the new
+     tests - only the existing tests catch a silently broken consumer.
+   - A new required field or parameter breaks exhaustive constructors in
+     tests and examples that a plain check never compiles; build ALL targets
+     (e.g. `cargo check --all-targets`) and grep the whole repo for the
+     type's literal before landing.
+   - Before landing a content/data change, grep for fixture tests that
+     assert on or `include_str!` the exact files touched - fixture pins live
+     far from the diff. Pin durable intents, not frozen literals a sibling
+     will legitimately move.
 
 6. **Close the task.** In TASK.md set STATUS to `CLOSED` and append to the
    description:
@@ -145,12 +164,23 @@ owns, whether or not flow is driving.
   sweeps.
 - Any commit made in the shared main checkout (not a worktree) starts with
   `git branch --show-current` - parallel sessions can move its HEAD.
+- A grep sweep that feeds a checklist is never head-truncated; dump it in
+  full (or to a file) and count the matches into the plan - `| head` has
+  hidden whole files' worth of work.
+- Compose test rigs and expected values from the production helpers/bundles,
+  not hand-written re-derivations; grep the test module for an existing rig
+  of the same kind first.
+- A validation gate must check a value's meaning in EACH domain it crosses
+  (fs path, URL segment, storage key, served set), not just the domain it
+  was written in.
 - Follow the repo's existing patterns before inventing new ones; consistency
   beats local elegance.
 - Do not weaken or delete failing tests to get to green; fix the code, or if
   the test is genuinely wrong, say so explicitly in the task notes.
-- Keep TASK.md truthful at all times: checkboxes reflect what is actually
-  done, and Steps reflect the plan as executed, not as first written.
+- Keep TASK.md truthful at all times: tick a step only when EVERY clause of
+  it is done - otherwise split it, or amend the step text in the same edit
+  when the implementation legitimately adapted. Steps reflect the plan as
+  executed, not as first written.
 - If the task turns out to be much larger than planned, stop and split it
   into new tasks rather than delivering a half-working mega-change.
 

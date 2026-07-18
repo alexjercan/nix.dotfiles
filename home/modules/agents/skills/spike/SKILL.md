@@ -125,6 +125,11 @@ the detail.
 - Diverge before you converge. If you only ever considered one approach, you
   did not spike; you guessed. Name the alternatives even when the answer is
   obvious, so the reader can trust it was actually weighed.
+- A recommendation that rests on "which feels better" is a hypothesis, not a
+  verdict - the on-paper primary can lose to its runner-up in the hand. Keep
+  the deciding parameter a single tunable so the reversal is a one-line
+  change, and treat a playtest reversal as a normal cycle, not a failed
+  spike.
 - Do not pad. A small question gets a short doc. The value is in the decision
   and its reasons, not in length.
 

@@ -22,7 +22,9 @@ sprout rm <feature>             # remove worktree, force-delete branch, kill tmu
 - `new` and `show` print only the worktree path on stdout, so they compose
   with `cd "$(...)"`. `new` reuses the branch if it already exists.
 - Branches are cut from the current `HEAD`, so check out the intended base
-  branch first if it is not the default.
+  branch first if it is not the default. Cutting from local HEAD also makes
+  sprout the right isolation when the work depends on unpushed local commits
+  (an origin-based worktree would omit them).
 - Feature names may contain slashes (`feature/login`) but may not be empty,
   start with `-` or `/`, or contain a `..` segment.
 - `ls` shows only this project's worktrees; `<branch>` is `-` on detached
@@ -31,6 +33,16 @@ sprout rm <feature>             # remove worktree, force-delete branch, kill tmu
 - `rm` uses `git branch -D` (no unmerged protection), so only remove a
   feature you are truly done with. It exits non-zero only when there was
   nothing at all to remove.
+
+## Worktree facts
+
+- A fresh worktree starts with an empty build cache (e.g. `target/`): accept
+  the cold build. Never share a build dir (`CARGO_TARGET_DIR`) with the main
+  checkout - same crates clobber each other's artifacts, and a worktree
+  binary has silently linked the main checkout's code before.
+- Gitignored files (caches, autosaves, generated junk) exist only in the main
+  checkout. After landing a change that moves or stops shipping a directory,
+  clean up its ignored leftovers in the main checkout by hand.
 
 ## Rules
 
