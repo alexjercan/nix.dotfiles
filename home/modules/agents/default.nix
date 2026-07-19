@@ -4,6 +4,7 @@
     agent-browser
     claude-code
     opencode
+    codex
   ];
 
   # Shared guidelines for all coding agents. `AGENTS.md` is the emerging
