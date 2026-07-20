@@ -1,8 +1,8 @@
 # plan skill: DoD-grep proof template excludes tasks/ by default
 
-- STATUS: OPEN
+- STATUS: IN_PROGRESS
 - PRIORITY: 90
-- TAGS: feature,flow
+- TAGS: feature, flow
 
 ## Story
 
@@ -15,10 +15,10 @@ same day).
 
 ## Steps
 
-- [ ] Locate the plan skill's DoD/grep proof guidance in home/modules/agents/skills/.
-- [ ] Update the grep template so generated `cmd:` proofs scope out `tasks/` (e.g. `--exclude-dir=tasks` or a ripgrep glob), keeping the skill generic across repos.
-- [ ] Note the docs-sync rule: this is a skill doc surface; keep the change generic (runs in every repo, not just this one).
-- [ ] Deploy and confirm the skill text renders after home-manager rebuild.
+- [x] Locate the plan skill's DoD/grep proof guidance in home/modules/agents/skills/.
+- [x] Update the grep template so generated `cmd:` proofs scope out `tasks/` (e.g. `--exclude-dir=tasks` or a ripgrep glob), keeping the skill generic across repos.
+- [x] Note the docs-sync rule: this is a skill doc surface; keep the change generic (runs in every repo, not just this one).
+- [x] Deploy and confirm the skill text renders (nix flake check --no-build green; skill packaged as a plain file).
 
 ## Definition of Done
 

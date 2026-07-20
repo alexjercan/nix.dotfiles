@@ -117,7 +117,13 @@ literally in markdown:
 - `(cmd: <command>)` - a command whose output shows the criterion holds
   (a grep, a build, a script); write it as `` (cmd: `grep -n foo file`) `` so
   brace-globs like `{a,b}` do not get mangled. /work and /review run it
-  verbatim.
+  verbatim. A repo-wide grep that proves an ABSENCE (no stale references to a
+  renamed symbol remain, no leftover TODO) must exclude the `tasks/` tree from
+  the start - the task's own record and this very DoD item quote the string
+  being searched, so an unscoped grep self-matches its own file and can never go
+  green. Scope it to the code/doc paths that matter, e.g.
+  `` (cmd: `grep -rn oldname src/ docs/`) ``, or exclude the records explicitly,
+  e.g. `` (cmd: `grep -rn --exclude-dir=tasks oldname .`) ``.
 - `(manual: <what the user confirms>)` - a human judgement no test can make
   (it reads well, it feels right, the burst does not degrade latency). When
   the whole criterion IS the judgement, lead the item with a bare
