@@ -48,7 +48,9 @@ Updated as tasks land (one line per land, like a spike's Fix record).
 - [x] 20260720-152438 (p95, nix.dotfiles) review skill: out-of-context round-1 default
       landed 24aec4f; 2 rounds (R1 caught a docs-only carve-out loophole,
       MAJOR); REVIEWER field now in the skill's round format
-- [ ] 20260720-152451 (p90, nix.dotfiles) flow skill: umbrella task + GOAL.md
+- [x] 20260720-152451 (p90, nix.dotfiles) flow skill: umbrella task + GOAL.md
+      landed 158f23e; 1 review round (out-of-context APPROVE, 2 NITs, 1 fixed);
+      GOAL.md format block + step 1/plan/3.7/Finish wiring; tatr+plan cross-refs
 - [ ] 20260720-152503 (p90, ~/personal/tatr) tatr check artifact linter
 - [ ] 20260720-152457 (p85, nix.dotfiles) DoD proof notation across skills
 - [ ] 20260720-152508 (p75, nix.dotfiles) wire tatr check into the skills

@@ -19,6 +19,9 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   of its && chain - commit in a separate call gated on success. 20260720-152438
 - `tick-against-the-literal-step` (x1): re-read a step's exact text before
   ticking it; intent-from-memory ticked an undelivered clause. 20260720-152438
+- `edit-the-worktree-not-the-cwd` (x1): the shell cwd resets to the main
+  checkout between Bash calls, so Edit/Read on a sprout branch must use the
+  absolute worktree path, not the main-checkout one. 20260720-152451
 
 ## Pending promotions (3+ occurrences, user decides)
 
