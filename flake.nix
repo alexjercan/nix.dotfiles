@@ -26,6 +26,10 @@
       url = "github:alexjercan/tatr";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    today = {
+      url = "github:alexjercan/today";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     macros-nvim = {
       url = "github:alexjercan/macros.nvim";
       inputs.nixpkgs.follows = "nixpkgs";

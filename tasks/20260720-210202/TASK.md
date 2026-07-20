@@ -1,8 +1,8 @@
 # Swap den scripts to the packaged today CLI (add today, drop today/daily.nix, update skills)
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 40
-- TAGS: infra,nix,skills
+- TAGS: infra, nix, skills
 
 ## Goal
 
@@ -99,3 +99,24 @@ Behavior notes to carry into the skill docs:
   subcommands - keep the subcommand names stable.
 - Reference the today repo's own tasks/20260720-142205 (finalize-nix) which
   exported `flake.overlays.default` for exactly this consumption.
+
+## Done (this branch)
+
+- flake input `today` added + locked; `inputs.today.overlays.default` added to
+  the home overlays; `home.packages = [pkgs.today]` + `DEN_PATH` in
+  `home/modules/scripts/default.nix`.
+- Deleted `home/modules/scripts/{today,daily}.nix` and their enable config.
+- Skills consolidated: rewrote `skills/today/SKILL.md` to the full subcommand
+  surface (path/create/show + task/habit/weight/macros/note, `show --json`
+  shape, behavior notes) and DELETED `skills/daily/` (one binary now does both).
+- cmd proofs green: `nix flake check --no-build` passes; `nix build
+  github:alexjercan/today#today` builds; packaged binary smoke-tested end to end
+  (path/create/habit/weight/macros/note/show --json).
+
+## Deferred to the user (manual)
+
+- `home-manager switch` (or nixos rebuild) to activate: then confirm `which
+  today` resolves to the Nix store package, `which daily` is GONE, and `today
+  show --json` works against the real den. Batched as the manual-acceptance item.
+- Decision left open: the old `daily -w` weight PNG plot is not ported (`today
+  weight` gives a text trend only). Left dropped; reopen if the plot is wanted.

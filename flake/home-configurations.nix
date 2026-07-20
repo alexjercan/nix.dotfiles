@@ -17,7 +17,11 @@ in {
       value = inputs.home-manager.lib.homeManagerConfiguration {
         pkgs = import inputs.nixpkgs {
           system = "x86_64-linux";
-          overlays = [inputs.tatr.overlays.default inputs.macros-nvim.overlays.default];
+          overlays = [
+            inputs.tatr.overlays.default
+            inputs.today.overlays.default
+            inputs.macros-nvim.overlays.default
+          ];
         };
 
         extraSpecialArgs = {
