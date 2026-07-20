@@ -16,6 +16,9 @@ skill's directory; `sprout help` prints usage.
 cd "$(sprout new <feature>)"    # create worktree + branch <feature> off HEAD
 cd "$(sprout show <feature>)"   # print path of an existing worktree
 sprout ls                       # one line per worktree: <feature> <branch> <path>
+sprout land <feature> -m "<subject>" [-m "<body>"]
+                                # squash-merge <feature> into the main
+                                # checkout's branch as ONE commit, then rm it
 sprout rm <feature>             # remove worktree, force-delete branch, kill tmux session
 ```
 
@@ -33,6 +36,12 @@ sprout rm <feature>             # remove worktree, force-delete branch, kill tmu
 - `rm` uses `git branch -D` (no unmerged protection), so only remove a
   feature you are truly done with. It exits non-zero only when there was
   nothing at all to remove.
+- `land` lands the branch as ONE squash commit on whatever branch the main
+  checkout has checked out, then does `rm`'s cleanup. It refuses a dirty
+  main checkout (tracked changes; untracked are fine), a detached HEAD,
+  running from inside the worktree, and a branch that does not contain the
+  target's tip - merge the target into the feature and re-verify first. On
+  any failure it resets the main checkout so nothing staged is left behind.
 
 ## Worktree facts
 

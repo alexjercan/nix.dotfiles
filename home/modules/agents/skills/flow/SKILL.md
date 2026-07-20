@@ -69,30 +69,24 @@ the handoffs, and when to stop and ask the user.
          `git merge-base --is-ancestor <default> <branch>` must succeed - the
          default branch tip is an ancestor of the branch. Only an up-to-date
          branch may merge back.
-      4. Land from the main checkout - it has stayed on the default branch
-         the whole time, and you cannot remove a worktree while standing
-         inside it. Inspect the diff on the BRANCH before this point; once
-         the landing starts there is no pausing to look. The landing is ONE
-         atomic command with no `cd` in it:
+      4. Inspect the diff on the BRANCH now - once the landing starts there
+         is no pausing to look. Then land with ONE command:
 
          ```bash
-         pwd && git branch --show-current && git merge --squash <branch> && git commit -m "<subject>" -m "<body>"
+         sprout land <feature> -m "<subject>" -m "<body>"
          ```
 
-         Never split the squash and the commit across separate tool calls:
-         a parallel session's `git add -A`/`git commit -a` in the shared
-         checkout will sweep your staged-but-uncommitted squash into ITS
-         commit (this has happened even after the "own command" rule; only
-         atomicity closes it). The `pwd` + branch check prove where and on
-         what branch it runs - the squash keeps getting appended to commands
-         that cd'd into the worktree (where it no-ops or merges a branch into
-         itself), and parallel sessions can move the shared checkout's HEAD.
-         Write one clean summary of the finished task (Conventional-Commit
-         subject plus short body), not the concatenated branch messages. Do
-         not push. This leaves the default branch with one commit per task.
-      5. Finally `sprout rm <feature>` to remove the worktree, delete the
-         branch, and close its tmux session (`--squash` records no merge
-         parent, but `sprout rm` force-deletes the branch, so this is fine).
+         `sprout land` performs the whole landing atomically in a single
+         process: it refuses a dirty main checkout, a detached HEAD, running
+         from inside the worktree, or a branch that is not up to date with
+         the target; squash-merges and commits with the given message
+         (rolling the main checkout back to a clean tree on any failure, so
+         a parallel session can never sweep up staged leftovers); then
+         removes the worktree, deletes the branch and closes its tmux
+         session. Write one clean summary of the finished task
+         (Conventional-Commit subject plus short body), not the concatenated
+         branch messages. Do not push. This leaves the default branch with
+         one commit per task.
    6. Run the compound skill: write the retro for this task.
    7. Report one short progress line to the user (task, verdict, rounds,
       what is next), then continue with the next task.
@@ -189,5 +183,5 @@ tasks it seeded (flow's own `/plan` phase breaks those into steps). Every task
 in the cycle starts by sprouting a worktree and ends back on the default
 branch; the one thing flow does that the individual skills do not is land an
 APPROVEd branch PR-style - update it from the default branch first, then, once
-it is up to date, squash-merge it into the default branch as a single commit
-(and `sprout rm` its worktree) - because the next task needs to build on it.
+it is up to date, `sprout land` it (one squash commit on the default branch,
+worktree and branch removed) - because the next task needs to build on it.

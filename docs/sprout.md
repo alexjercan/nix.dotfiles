@@ -1,7 +1,7 @@
 # sprout - git worktrees for parallel agent work
 
-`sprout` is a small CLI (a Nix `writeShellApplication` in
-`home/modules/scripts/sprout.nix`) that manages git worktrees and branches so
+`sprout` is a small CLI (`home/modules/scripts/sprout.sh`, wrapped by a Nix
+`writeShellApplication` in `sprout.nix`) that manages git worktrees and branches so
 several agents can work the same repository in parallel without stepping on
 each other. Each feature gets its own worktree and branch, checked out in an
 isolated directory outside the repo.
@@ -12,6 +12,9 @@ isolated directory outside the repo.
 sprout [-i] new <feature>   Create a worktree + branch <feature> off HEAD
 sprout [-i] ls              List this project's worktrees
 sprout show <feature>       Print the path to <feature>'s worktree
+sprout land <feature> -m <subject> [-m <body>]
+                            Squash-merge <feature> into the main checkout's
+                            branch as one commit, then remove it
 sprout rm <feature>         Remove <feature>'s worktree, branch and session
 sprout help                 Show usage
 ```
@@ -41,6 +44,37 @@ Only worktrees under this project's sprouts root are listed; worktrees you
 created by hand elsewhere are omitted. In interactive mode (`sprout -i ls`) the
 `fzf` picker shows just the first two columns (`<feature>` and `<branch>`) while
 still resolving the selection back to its path.
+
+## Landing a branch (`sprout land`)
+
+`sprout land <feature> -m <subject> [-m <body>]` is the PR-style merge of a
+finished worktree, done as one guarded command. It exists because the manual
+sequence (squash in the shared checkout, then commit as a separate step) left
+a window where a parallel session's `git add -A`/`git commit -a` could sweep
+the staged squash into its own commit - which happened in practice even with
+prose warnings. A single process closes the window.
+
+The target is whatever branch the main checkout has checked out. Before
+touching anything, land refuses:
+
+- a missing worktree or branch for `<feature>`;
+- being run from inside the feature worktree (cleanup would fail after the
+  commit already landed);
+- a detached HEAD in the main checkout, or the feature itself checked out
+  there;
+- staged or modified tracked files in the main checkout (untracked files are
+  fine: they cannot enter the commit, and a path collision aborts the squash,
+  which rolls back);
+- a branch that does not contain the target's tip
+  (`git merge-base --is-ancestor`): syncing and conflict resolution happen on
+  the branch, per the work skill. This gate also means the squash itself can
+  never conflict.
+
+Then it squash-merges, commits with the given `-m` parts, and on any failure
+resets the main checkout back to a clean tree so nothing staged is left
+behind. On success it prints `landed <hash> <subject>` and runs `rm`'s
+cleanup (worktree, branch, tmux session). Integration tests cover all of the
+refusals and the rollback: `bash home/modules/scripts/sprout-test.sh`.
 
 ## Interactive (tmux) mode
 
@@ -97,10 +131,13 @@ simple until a real need appears.
 
 ## Design notes
 
-- Styled after `home/modules/tmux/tmux-sessionizer.nix`: `set +o
-  errexit/pipefail/nounset`, a plain `{pkgs, ...}` module with a single
-  `writeShellApplication`, and brace-free `$VAR` shell references to avoid
-  Nix indented-string antiquotation (literal `${...}` would need `''${...}`).
+- The implementation is a plain script, `sprout.sh`, pulled into a single
+  `writeShellApplication` with `builtins.readFile` (which still shellchecks
+  it at build time). Keeping it out of the Nix indented string removes the
+  `''${...}` escaping concern entirely and lets the integration tests
+  (`sprout-test.sh`, throwaway git repos under mktemp) run the script
+  directly. The relaxed `set +o errexit/pipefail/nounset` prologue mirrors
+  `home/modules/tmux/tmux-sessionizer.nix`.
 - `ls` parses `git worktree list --porcelain` and shows only worktrees under
   the sprouts root, so unrelated worktrees you created by hand are not listed.
 - `rm` uses `git worktree remove`, falling back to `--force` when the worktree

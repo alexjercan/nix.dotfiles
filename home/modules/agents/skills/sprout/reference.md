@@ -3,7 +3,8 @@
 Detail that agents rarely need. The everyday contract lives in `SKILL.md`;
 this file covers the interactive mode and background. See `docs/sprout.md` in
 the nix.dotfiles repo for the design rationale; the source is
-`home/modules/scripts/sprout.nix`.
+`home/modules/scripts/sprout.sh` (wrapped by `sprout.nix`, tested by
+`sprout-test.sh` next to it).
 
 ## Interactive (tmux) mode
 
@@ -39,5 +40,7 @@ parent directories under the cache root after removing a worktree.
    collides.
 3. `sprout ls` to see what is in flight; `sprout show <feature>` to get a
    path to `cd` into.
-4. When a branch is merged (or abandoned), `sprout rm <feature>` to remove
-   the worktree, delete the branch, and close its session.
+4. When a branch is ready, `sprout land <feature> -m "<subject>"` squash-
+   merges it into the main checkout's branch and cleans everything up; for
+   a merged-elsewhere or abandoned branch, `sprout rm <feature>` removes
+   the worktree, deletes the branch, and closes its session.
