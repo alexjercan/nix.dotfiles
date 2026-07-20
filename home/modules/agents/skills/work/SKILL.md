@@ -69,8 +69,10 @@ that appears to work.
    (interpolation opt-ins, sync configs); a clean trace on a non-faithful
    rig is not evidence.
 
-   When the change warrants written documentation (new component, changed
-   behavior, design decision worth explaining), write it as
+   Documentation is part of the change, not a follow-up: a change is not
+   done until every doc surface it invalidates is updated in the same task.
+   When the change warrants NEW written documentation (new component,
+   changed behavior, design decision worth explaining), write it as
    `tasks/<id>/NOTES.md` next to TASK.md, or update the relevant reference
    doc in `docs/`. Do not scatter README fragments around the tree.
 
@@ -101,6 +103,15 @@ that appears to work.
      assert on or `include_str!` the exact files touched - fixture pins live
      far from the diff. Pin durable intents, not frozen literals a sibling
      will legitimately move.
+   - Run the DOC-SURFACE SWEEP: for every command, flag, type, path or
+     behavior the diff renames, removes or changes, grep the repo's doc
+     surfaces - README, `docs/`, AGENTS.md (its module maps and version
+     claims especially), and skill files when the repo ships skills - and
+     fix every stale mention in the same task. Stale docs are not cosmetic:
+     an outdated AGENTS.md module map has made a session invent API names a
+     reviewer then had to catch (bevy-common-systems, 20260705-134942), and
+     `keep-docs-in-sync-with-code` reached x5 by 2026-07-20 in nova-protocol
+     before being enforced there.
 
 6. **Close the task.** In TASK.md set STATUS to `CLOSED` and append to the
    description:

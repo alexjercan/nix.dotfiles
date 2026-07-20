@@ -68,7 +68,10 @@ fixing.
    - Design: consistency with the repo's conventions, needless complexity,
      missed reuse.
    - Docs: behavior changes worth documenting are covered in the task's
-     `NOTES.md` or the relevant reference doc in `docs/`.
+     `NOTES.md` or the relevant reference doc in `docs/`, and the
+     doc-surface sweep ran (work skill, verify step): spot-check it by
+     picking one renamed or changed symbol/flag from the diff and grepping
+     README, `docs/`, AGENTS.md and the skill files for stale mentions.
    - Honesty: TASK.md notes match what the code actually does.
 
 4. **Write the findings.** Create or append to `tasks/<id>/REVIEW.md` (format
