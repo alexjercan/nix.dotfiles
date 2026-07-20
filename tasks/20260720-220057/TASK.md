@@ -1,6 +1,6 @@
 # review skill: constrain reviewer to BLOCKER|MAJOR|MINOR|NIT
 
-- STATUS: IN_PROGRESS
+- STATUS: CLOSED
 - PRIORITY: 85
 - TAGS: feature, flow
 
