@@ -42,7 +42,9 @@ the tatr suite green in ~/personal/tatr (cmd: nix develop -c ./checker.sh).
 
 Updated as tasks land (one line per land, like a spike's Fix record).
 
-- [ ] 20260720-152433 (p100, nix.dotfiles) sprout land command + skill/doc shrink
+- [x] 20260720-152433 (p100, nix.dotfiles) sprout land command + skill/doc shrink
+      landed acb0ecc; 2 review rounds (out-of-context R1 found an unfailable
+      test, MAJOR); 14 integration tests; landed via sprout land itself
 - [ ] 20260720-152438 (p95, nix.dotfiles) review skill: out-of-context round-1 default
 - [ ] 20260720-152451 (p90, nix.dotfiles) flow skill: umbrella task + GOAL.md
 - [ ] 20260720-152503 (p90, ~/personal/tatr) tatr check artifact linter
