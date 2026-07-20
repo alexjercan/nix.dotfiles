@@ -6,9 +6,10 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 
 ## Process lessons
 
-- `out-of-context-review-pass` (x2): a fresh-context round-1 reviewer found
-  what the implementing session could not see (an unfailable test; a
-  docs-only loophole in its own defining text). 20260720-152433, 20260720-152438
+- `out-of-context-review-pass` (x3, PROMOTED 2026-07-20 -> review skill
+  round-1 default): the fresh-context reviewer found what the implementing
+  session could not see (an unfailable test; a docs-only loophole; a
+  whitespace hole in a validator). 20260720-152433, 20260720-152438, 20260720-152503
 - `commit-before-every-sabotage` (x1): the A/B commit-first rule applies per
   sabotage, not per task - a restore reverted uncommitted review fixes. 20260720-152433
 - `scripted-replace-asserts-match` (x1): str.replace edits silently no-op on a
@@ -19,6 +20,10 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   of its && chain - commit in a separate call gated on success. 20260720-152438
 - `tick-against-the-literal-step` (x1): re-read a step's exact text before
   ticking it; intent-from-memory ticked an undelivered clause. 20260720-152438
+- `read-the-callee-not-the-name` (x1): find_current_tasks_dir returns project
+  dirs, not tasks dirs - a misleading name cost a silent no-op walk. 20260720-152503
+- `validate-the-exact-parsed-token` (x1): a trimmed re-validation of an
+  untrimmed parse is a hole; check the bytes the parser consumes. 20260720-152503
 - `edit-the-worktree-not-the-cwd` (x1): the shell cwd resets to the main
   checkout between Bash calls, so Edit/Read on a sprout branch must use the
   absolute worktree path, not the main-checkout one. 20260720-152451
