@@ -67,7 +67,9 @@ Updated as tasks land (one line per land, like a spike's Fix record).
       landed d356522; 1 round (out-of-context APPROVE, 6 discretionary
       findings taken); lifecycle annotations verified lint-exempt against
       the real binary
-- [ ] 20260720-152519 (p65, nix.dotfiles) work skill docs-sync rule
+- [x] 20260720-152519 (p65, nix.dotfiles) work skill docs-sync rule
+      landed 05f47a5; 1 round (out-of-context APPROVE, 3 discretionary
+      findings taken); dated citations per repo precedent
 
 ## Manual acceptance (batched for the user at Finish)
 

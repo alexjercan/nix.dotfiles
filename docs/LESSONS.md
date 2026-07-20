@@ -40,6 +40,9 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `land-from-the-main-checkout` (x2): sprout land is its own call from the
   main checkout, never the tail of a worktree chain - the guard refuses, but
   each refusal is a wasted retry. 20260720-152438, 20260720-152508
+- `proof-must-cover-its-conjunct` (x1): a DoD proof for a two-part criterion
+  must fail if either part is deleted; a case-sensitive grep survived its
+  target's removal. 20260720-152519
 
 ## Pending promotions (3+ occurrences, user decides)
 
