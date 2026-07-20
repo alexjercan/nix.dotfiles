@@ -1,6 +1,6 @@
 # lessons: resolve 3 pending promotions (dod-grep x5, edit-worktree, dry-run-scratch)
 
-- STATUS: IN_PROGRESS
+- STATUS: CLOSED
 - PRIORITY: 50
 - TAGS: chore
 

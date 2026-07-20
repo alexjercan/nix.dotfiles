@@ -40,7 +40,9 @@ Overall: `tatr check --ledger LESSONS.md` clean; `nix flake check --no-build` gr
 - [x] 20260720-220121 (p55) flow docs: cross-repo task-history immutability policy
       landed 7b9729b; 1 review round (APPROVE, no findings); policy in work +
       flow skills, reinforces 220044's tasks/-exclusion.
-- [ ] 20260720-220130 (p50) lessons: resolve 3 pending promotions
+- [x] 20260720-220130 (p50) lessons: resolve 3 pending promotions
+      landed 1a0f25d; 1 review round (APPROVE, no findings); dod-grep + edit-worktree
+      + dry-run promoted into plan/work skills; Pending promotions now empty.
 - [ ] 20260720-220137 (p30) retro-completeness: mark pre-flow tasks historical
 
 ## Manual acceptance (batched for the user at Finish)
