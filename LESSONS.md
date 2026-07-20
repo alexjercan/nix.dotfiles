@@ -35,6 +35,10 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `document-where-the-reader-reads` (x1): a convention that makes a mechanism
   reliable belongs in the doc its user loads, not the close-out that shipped
   it. 20260720-152508
+- `doc-a-cli-from-its-real-output` (x1): when a doc surface (skill/README)
+  documents a CLI, regenerate its examples by RUNNING the new binary, not by
+  editing the predecessor's doc - a replaced tool changes flag names, output
+  keys and scoping a memory-edit silently keeps wrong. 20260720-210202
 - `land-from-the-main-checkout` (x2): sprout land is its own call from the
   main checkout, never the tail of a worktree chain - the guard refuses, but
   each refusal is a wasted retry. 20260720-152438, 20260720-152508
