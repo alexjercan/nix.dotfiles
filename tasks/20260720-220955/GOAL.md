@@ -34,7 +34,9 @@ Overall: `tatr check --ledger LESSONS.md` clean; `nix flake check --no-build` gr
 - [x] 20260720-220057 (p85) review skill: constrain reviewer to canonical severities
       landed f6072ba; 1 review round (APPROVE, no findings); REVIEW.md committed
       on branch pre-land (lesson applied) - clean auto-removal.
-- [ ] 20260720-220111 (p60) flow skill: codify umbrella/GOAL lifecycle
+- [x] 20260720-220111 (p60) flow skill: codify umbrella/GOAL lifecycle
+      landed cfa41c2; 1 review round (APPROVE, no findings); DoD #2 amended
+      during work (the -S exemption belongs to tatr task 20260720-220046).
 - [ ] 20260720-220121 (p55) flow docs: cross-repo task-history immutability policy
 - [ ] 20260720-220130 (p50) lessons: resolve 3 pending promotions
 - [ ] 20260720-220137 (p30) retro-completeness: mark pre-flow tasks historical

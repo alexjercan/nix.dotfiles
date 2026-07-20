@@ -1,6 +1,6 @@
 # flow skill: codify umbrella/GOAL lifecycle (close, residue, no-RETRO)
 
-- STATUS: IN_PROGRESS
+- STATUS: CLOSED
 - PRIORITY: 60
 - TAGS: feature, flow
 
