@@ -99,7 +99,10 @@ the handoffs, and when to stop and ask the user.
 
 4. **Finish.** When no OPEN tasks remain: run the full check suite on the
    default branch one last time, verify the sum of the work actually delivers
-   the goal from step 1 (not just that every task is CLOSED), and give a
+   the goal from step 1 (not just that every task is CLOSED), then run the
+   **lessons skill** (`/lessons`) to fold any loose scratch the per-task
+   `/compound` retros did not capture into the lessons ledger and clear the
+   scratch drawer, so the goal leaves a clean, current ledger. Finally give a
    final report - what was built, task by task, key lessons from the retros,
    and anything deliberately left out. Pushing is the user's call.
 
@@ -177,7 +180,9 @@ instead of grinding when:
 Flow adds no new mechanics; it is the loop around them. tatr tracks, `/spike`
 explores when the goal is still fuzzy, `/plan` scopes, sprout isolates each
 task in its own worktree, `/work` implements, `/review` critiques, `/compound`
-distills - flow just keeps the wheel turning until the goal is done. Spike is
+distills the per-task retro, and `/lessons` (at Finish) folds any loose scratch
+into the ledger and clears the scratch drawer - flow just keeps the wheel
+turning until the goal is done. Spike is
 the optional pre-step: when the goal handed to flow is undefined, spike it
 first, then start the flow from its SPIKE.md and the direction-level
 tasks it seeded (flow's own `/plan` phase breaks those into steps). Every task
