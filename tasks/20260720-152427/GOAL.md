@@ -63,7 +63,10 @@ Updated as tasks land (one line per land, like a spike's Fix record).
       landed 56cb2c6; 2 rounds (R1 MAJOR: the lint's bare-counts convention
       was documented only in the close-out); conformance pass now in flow
       Finish, compound gate, lessons step 4, tatr skill
-- [ ] 20260720-152514 (p70, nix.dotfiles) ledger lifecycle rules
+- [x] 20260720-152514 (p70, nix.dotfiles) ledger lifecycle rules
+      landed d356522; 1 round (out-of-context APPROVE, 6 discretionary
+      findings taken); lifecycle annotations verified lint-exempt against
+      the real binary
 - [ ] 20260720-152519 (p65, nix.dotfiles) work skill docs-sync rule
 
 ## Manual acceptance (batched for the user at Finish)

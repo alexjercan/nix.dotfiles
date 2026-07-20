@@ -31,9 +31,9 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `edit-the-worktree-not-the-cwd` (x1): the shell cwd resets to the main
   checkout between Bash calls, so Edit/Read on a sprout branch must use the
   absolute worktree path, not the main-checkout one. 20260720-152451
-- `rule-and-example-must-agree` (x1): re-read a rule and its examples together
-  before committing - a spec said items end with `(manual: ...)` while every
-  example led with a bare `manual:`. 20260720-152457
+- `rule-and-example-must-agree` (x2): re-read a rule and its examples together
+  before committing - a format example has twice modeled the mistake its rule
+  forbids. 20260720-152457, 20260720-152514
 - `document-where-the-reader-reads` (x1): a convention that makes a mechanism
   reliable belongs in the doc its user loads, not the close-out that shipped
   it. 20260720-152508
