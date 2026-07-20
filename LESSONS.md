@@ -28,9 +28,7 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   literal to a string in a flake (interpolation or `builtins.readDir`) copies
   it to the store as a floating non-GC-root `<hash>-subdir` that GC orphans
   against the eval cache ("path is not valid"); use `${inputs.self}/subdir`. 20260720-153613
-- `edit-the-worktree-not-the-cwd` (x1): the shell cwd resets to the main
-  checkout between Bash calls, so Edit/Read on a sprout branch must use the
-  absolute worktree path, not the main-checkout one. 20260720-152451
+
 - `rule-and-example-must-agree` (x2): re-read a rule and its examples together
   before committing - a format example has twice modeled the mistake its rule
   forbids. 20260720-152457, 20260720-152514
@@ -43,6 +41,12 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `proof-must-cover-its-conjunct` (x1): a DoD proof for a two-part criterion
   must fail if either part is deleted; a case-sensitive grep survived its
   target's removal. 20260720-152519
+- `counts-come-from-the-diff` (x2): work reports and close records have
+  miscounted their own changes; cite the diff's numbers, not the
+  narrative's. 20260720-171843, 20260720-171836
+- `claim-only-verified-state` (x1): a REVIEW.md Response claimed a scripted
+  fix that had silently aborted; re-run the exposing check before writing
+  the claim. 20260720-171836
 - `sprout-inherits-committed-head` (x1): a new worktree contains only what is
   committed on HEAD - commit the plan before sprouting. 20260704-134842
 - `build-just-the-package` (x2): verify a script module by nix-building only
@@ -55,3 +59,11 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   their verify-first steps; confirm or fold the residue): load-bearing git/nix
   semantics were verified in throwaway repos before instructions were written
   on them. 20260703-104437, 20260704-105059, 20260704-134842
+- `edit-the-worktree-not-the-cwd` (x3) -> work skill (or a sprout/shell
+  guard): the shell cwd resets between Bash calls - use absolute worktree
+  paths, and never chain cross-repo git operations in one call; two GOAL
+  ticks committed from the wrong repo. 20260720-152451, 20260720-171902, 20260720-171843
+- `dod-grep-excludes-task-records` (x5) -> plan skill DoD guidance: a
+  blanket no-stale-references grep self-matches the task's own record;
+  write DoD greps with tasks/ excluded from the start. 20260720-171855,
+  20260720-171910, 20260720-171902, 20260720-171843, 20260720-171836
