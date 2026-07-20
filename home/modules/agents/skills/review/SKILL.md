@@ -77,6 +77,14 @@ fixing.
 4. **Write the findings.** Create or append to `tasks/<id>/REVIEW.md` (format
    below). Every finding gets a severity, a `file:line` reference, and a
    concrete suggested change - "rename X to Y", not "naming could be better".
+   Use ONLY the four canonical severities - `BLOCKER`, `MAJOR`, `MINOR`, `NIT`;
+   never invent `LOW`/`INFO`/`OBSERVATION` or similar. `tatr check` parses every
+   `- [ ] Rn.n (SEVERITY) ...` line in REVIEW.md as a finding and flags any
+   severity outside the four as `bad-severity`, so a non-canonical label fails
+   conformance after the task lands. Verification notes, observations and
+   "what I checked" prose are NOT findings: write them as plain prose (or a
+   plain `-` bullet without the `Rn.n (SEVERITY)` shape), reserving the
+   checkbox-finding form for the four severities alone.
 
 5. **Issue the verdict.** `REQUEST_CHANGES` if any BLOCKER or MAJOR finding
    is open; `APPROVE` otherwise (open MINOR/NIT findings may be left to the
@@ -124,10 +132,12 @@ fixing.
   (the default - a reviewer with no sight of the implementing session) or
   `in-session (<why>)` - a trivial diff, or the recorded exception on a
   substantive one.
-- Finding IDs are `R<round>.<n>`. Severities: `BLOCKER` (broken, unsafe, or
-  does not deliver the Goal), `MAJOR` (design flaw or missing test that
-  should not ship), `MINOR` (worth fixing, not blocking), `NIT` (take it or
-  leave it).
+- Finding IDs are `R<round>.<n>`. Severities are exactly these four and no
+  others (`tatr check` rejects any other token as `bad-severity`): `BLOCKER`
+  (broken, unsafe, or does not deliver the Goal), `MAJOR` (design flaw or
+  missing test that should not ship), `MINOR` (worth fixing, not blocking),
+  `NIT` (take it or leave it). A note that is not one of these is not a finding
+  - write it as plain prose, not a `- [ ] Rn.n (SEVERITY)` line.
 - The implementer fills the `Response:` line. Checkboxes belong to the
   review side: whoever the round's `REVIEWER:` line names verifies a fix
   before its checkbox is ticked (for an out-of-context round, the

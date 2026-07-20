@@ -1,8 +1,8 @@
 # review skill: constrain reviewer to BLOCKER|MAJOR|MINOR|NIT
 
-- STATUS: OPEN
+- STATUS: IN_PROGRESS
 - PRIORITY: 85
-- TAGS: feature,flow
+- TAGS: feature, flow
 
 ## Story
 
@@ -13,10 +13,10 @@ reviewers stop emitting LOW/INFO/OBSERVATION which then fail `tatr check`'s
 
 ## Steps
 
-- [ ] Find the reviewer prompt/instructions in the review skill under home/modules/agents/skills/.
-- [ ] Constrain the severity vocabulary explicitly to BLOCKER|MAJOR|MINOR|NIT, and instruct that verification notes go as plain prose (not `- [ ] Rn.n (SEVERITY)` checkbox syntax).
-- [ ] Optionally add a remap/normalize step before REVIEW.md is written.
-- [ ] Deploy and confirm the skill text renders after rebuild.
+- [x] Find the reviewer prompt/instructions in the review skill under home/modules/agents/skills/.
+- [x] Constrain the severity vocabulary explicitly to BLOCKER|MAJOR|MINOR|NIT, and instruct that verification notes go as plain prose (not `- [ ] Rn.n (SEVERITY)` checkbox syntax).
+- [x] Optionally add a remap/normalize step before REVIEW.md is written.
+- [x] Deploy and confirm the skill text renders (nix flake check --no-build green).
 
 ## Definition of Done
 
