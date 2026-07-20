@@ -37,7 +37,9 @@ Overall: `tatr check --ledger LESSONS.md` clean; `nix flake check --no-build` gr
 - [x] 20260720-220111 (p60) flow skill: codify umbrella/GOAL lifecycle
       landed cfa41c2; 1 review round (APPROVE, no findings); DoD #2 amended
       during work (the -S exemption belongs to tatr task 20260720-220046).
-- [ ] 20260720-220121 (p55) flow docs: cross-repo task-history immutability policy
+- [x] 20260720-220121 (p55) flow docs: cross-repo task-history immutability policy
+      landed 7b9729b; 1 review round (APPROVE, no findings); policy in work +
+      flow skills, reinforces 220044's tasks/-exclusion.
 - [ ] 20260720-220130 (p50) lessons: resolve 3 pending promotions
 - [ ] 20260720-220137 (p30) retro-completeness: mark pre-flow tasks historical
 

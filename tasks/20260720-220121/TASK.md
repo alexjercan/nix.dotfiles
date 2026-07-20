@@ -1,6 +1,6 @@
 # flow docs: write cross-repo task-history immutability policy
 
-- STATUS: IN_PROGRESS
+- STATUS: CLOSED
 - PRIORITY: 55
 - TAGS: docs, flow
 
