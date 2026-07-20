@@ -42,6 +42,12 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `land-from-the-main-checkout` (x2): sprout land is its own call from the
   main checkout, never the tail of a worktree chain - the guard refuses, but
   each refusal is a wasted retry. 20260720-152438, 20260720-152508
+- `commit-the-review-before-landing` (x1): the out-of-context reviewer's
+  REVIEW.md must be committed on the feature branch before `sprout land` -
+  squash-land only takes tracked files and then removes the worktree, so an
+  uncommitted REVIEW.md is lost with it (had to be reconstructed once). The
+  review skill's "in-session pass writes and commits the round" covers this
+  when followed. 20260720-220044
 - `proof-must-cover-its-conjunct` (x1): a DoD proof for a two-part criterion
   must fail if either part is deleted; a case-sensitive grep survived its
   target's removal. 20260720-152519

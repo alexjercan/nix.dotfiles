@@ -44,7 +44,27 @@ Overall: `tatr check --ledger LESSONS.md` clean; `nix flake check --no-build` gr
       landed 1a0f25d; 1 review round (APPROVE, no findings); dod-grep + edit-worktree
       + dry-run promoted into plan/work skills; Pending promotions now empty.
 - [ ] 20260720-220137 (p30) retro-completeness: mark pre-flow tasks historical
+      DEFERRED - blocked on tatr task 20260720-220046 (the historical/no-retro
+      marker in `tatr check`). Cannot be done by a nix.dotfiles change alone;
+      done-criterion 6 (`tatr check -S` clean) needs that mechanism first.
+      Left OPEN as a legitimately-queued task, not abandoned.
 
 ## Manual acceptance (batched for the user at Finish)
 
-Accumulates `manual:` DoD items as tasks land; presented at Finish.
+The five landed tasks were doc-surface edits to the flow-family skills; each
+`manual:` DoD item ("reviewer reads the section", "inspect the reviewer prompt",
+"confirm no repo-local paths") was checked by that task's out-of-context
+reviewer. Remaining user-facing acceptance:
+
+- (pending) 20260720-220044..220130: skim the five skill/ledger diffs on master
+  (c4ef5c5, f6072ba, cfa41c2, 7b9729b, 1a0f25d) and confirm the new guidance
+  reads the way you want the flow to behave going forward.
+- (pending) 20260720-220137: decide whether to keep this umbrella OPEN until
+  tatr task 20260720-220046 lands, or close it now with criterion 6 recorded
+  as deferred.
+
+## Deferred done-definition
+
+6. pre-flow Jul-3/4 tasks pass `tatr check -S` - DEFERRED to tatr task
+   20260720-220046 (external dependency). Criteria 1-5 met; overall green bar
+   (nix flake check, tatr check --ledger) holds.
