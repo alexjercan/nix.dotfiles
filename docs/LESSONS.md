@@ -18,8 +18,8 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   at plan time - nix flake check was already broken on master. 20260720-152433
 - `heredoc-splits-the-chain` (x1): commands after a heredoc block are not part
   of its && chain - commit in a separate call gated on success. 20260720-152438
-- `tick-against-the-literal-step` (x1): re-read a step's exact text before
-  ticking it; intent-from-memory ticked an undelivered clause. 20260720-152438
+- `tick-against-the-literal-step` (x2): re-read a step's exact text before
+  ticking it; intent-from-memory has ticked undelivered clauses twice. 20260720-152438, 20260720-152508
 - `read-the-callee-not-the-name` (x1): find_current_tasks_dir returns project
   dirs, not tasks dirs - a misleading name cost a silent no-op walk. 20260720-152503
 - `validate-the-exact-parsed-token` (x1): a trimmed re-validation of an
@@ -34,6 +34,12 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `rule-and-example-must-agree` (x1): re-read a rule and its examples together
   before committing - a spec said items end with `(manual: ...)` while every
   example led with a bare `manual:`. 20260720-152457
+- `document-where-the-reader-reads` (x1): a convention that makes a mechanism
+  reliable belongs in the doc its user loads, not the close-out that shipped
+  it. 20260720-152508
+- `land-from-the-main-checkout` (x2): sprout land is its own call from the
+  main checkout, never the tail of a worktree chain - the guard refuses, but
+  each refusal is a wasted retry. 20260720-152438, 20260720-152508
 
 ## Pending promotions (3+ occurrences, user decides)
 

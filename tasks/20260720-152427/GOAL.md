@@ -59,7 +59,10 @@ Updated as tasks land (one line per land, like a spike's Fix record).
       landed 98944e9; 1 review round (out-of-context APPROVE, 2 MINOR + 1 NIT,
       all fixed); test:/cmd:/manual: proofs across plan/work/review/flow/tatr;
       proofs backticked per user feedback; leading bare manual: blessed
-- [ ] 20260720-152508 (p75, nix.dotfiles) wire tatr check into the skills
+- [x] 20260720-152508 (p75, nix.dotfiles) wire tatr check into the skills
+      landed 56cb2c6; 2 rounds (R1 MAJOR: the lint's bare-counts convention
+      was documented only in the close-out); conformance pass now in flow
+      Finish, compound gate, lessons step 4, tatr skill
 - [ ] 20260720-152514 (p70, nix.dotfiles) ledger lifecycle rules
 - [ ] 20260720-152519 (p65, nix.dotfiles) work skill docs-sync rule
 
