@@ -36,7 +36,10 @@ and its skills.
       bad-severity mapped meaning-preservingly; residue: none; pre-existing
       checks.pytest sandbox bug filed as today 20260720-172833
 - [ ] 20260720-171902 (tatr, 0 findings; ledger to create)
-- [ ] 20260720-171910 (nix.dotfiles, 0 findings; root AGENTS.md to create)
+- [x] 20260720-171910 (nix.dotfiles, 0 findings; root AGENTS.md to create)
+      landed 862589e; 1 round out-of-context APPROVE (1 NIT taken); ledger
+      pure-renamed to root, flow/compound skill path mentions generalized,
+      repo AGENTS.md created; residue: none
 
 ## Manual acceptance (batched for the user at Finish)
 
