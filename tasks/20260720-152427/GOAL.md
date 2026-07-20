@@ -55,7 +55,10 @@ Updated as tasks land (one line per land, like a spike's Fix record).
       landed 5239772 (tatr 0.3.0); 2 rounds (R1: MAJOR whitespace hole in
       STATUS validation + 7 more, all reproduced); 60/60 tests, memcheck
       clean; tatr's own backlog normalized and lint-clean
-- [ ] 20260720-152457 (p85, nix.dotfiles) DoD proof notation across skills
+- [x] 20260720-152457 (p85, nix.dotfiles) DoD proof notation across skills
+      landed 98944e9; 1 review round (out-of-context APPROVE, 2 MINOR + 1 NIT,
+      all fixed); test:/cmd:/manual: proofs across plan/work/review/flow/tatr;
+      proofs backticked per user feedback; leading bare manual: blessed
 - [ ] 20260720-152508 (p75, nix.dotfiles) wire tatr check into the skills
 - [ ] 20260720-152514 (p70, nix.dotfiles) ledger lifecycle rules
 - [ ] 20260720-152519 (p65, nix.dotfiles) work skill docs-sync rule

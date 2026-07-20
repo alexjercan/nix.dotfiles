@@ -1,6 +1,6 @@
 # DoD items name their proof (test/cmd/manual) across plan, work, review, flow
 
-- STATUS: IN_PROGRESS
+- STATUS: CLOSED
 - PRIORITY: 85
 - TAGS: feature, skills
 
