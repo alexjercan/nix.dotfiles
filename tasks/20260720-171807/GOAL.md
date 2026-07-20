@@ -29,7 +29,10 @@ and its skills.
 ## Tasks
 
 - [ ] 20260720-171836 (nova-protocol, 89 findings at scout time)
-- [ ] 20260720-171843 (bevy-common-systems, 16 findings)
+- [x] 20260720-171843 (bevy-common-systems, 16 findings)
+      landed 0ae11b0; 1 round out-of-context APPROVE (1 NIT taken); 16
+      findings -> 3 residue tasks (9 boxes); 24 x3+ lessons parked in
+      Pending promotions byte-identically
 - [x] 20260720-171850 (scufris, 23 findings)
       landed 43e8a87; 1 round out-of-context APPROVE (every changed line
       read, 1 NIT taken); 23 findings -> 4 residue; pre-existing mypy red
@@ -65,3 +68,12 @@ leave as permanent record):
 - 20260720-002621 step 3: "tool events append live chips" shipped as the
   "ran <tool>" status line; chips came later in 122513 (ambiguous)
 - 20260720-002621 step 4: no "token cursor/typing affordance" CSS exists
+
+bevy-common-systems (3 findings, 9 boxes - rulings needed):
+- 20260704-102342 (5 boxes): task is SUPERSEDED by the 103544/103553/103517
+  split; nothing shipped under this id - candidate for an archive-stub
+  conversion rather than ticks
+- 20260705-140043 (1 box): "re-read the Examples section" has no evidence
+  (commit ace3138 touched only Module Map + versions)
+- 20260711-094942 (3 boxes): steps annotated "(dropped, premise falsified)"
+  in the task body - ticking would misrecord deliberate drops
