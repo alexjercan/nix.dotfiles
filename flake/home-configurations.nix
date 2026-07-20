@@ -3,7 +3,10 @@
   lib,
   ...
 }: let
-  homeDir = ../home;
+  # Subpath of the flake source (inputs.self), not a `../home` path literal:
+  # the literal coerces to a floating `<hash>-home` store root that GC reaps
+  # out from under the flake eval cache. See nixos-configurations.nix.
+  homeDir = "${inputs.self}/home";
   userDirs = builtins.attrNames (lib.filterAttrs
     (name: type: type == "directory" && name != "modules")
     (builtins.readDir homeDir));
