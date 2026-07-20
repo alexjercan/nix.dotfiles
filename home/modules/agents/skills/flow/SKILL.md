@@ -107,11 +107,13 @@ the handoffs, and when to stop and ask the user.
    6. Run the compound skill: write the retro for this task.
    7. Tick this task in the umbrella `GOAL.md` Tasks list: check its box and
       append a one-line status (landed commit, review rounds, anything
-      notable), the way a spike records a Fix. If the task's DoD had any
-      `manual:` items, move them into the GOAL.md Manual acceptance section so
-      they batch for the Finish checkpoint. Then report one short progress line
-      to the user (task, verdict, rounds, what is next), and continue with the
-      next task.
+      notable), the way a spike records a Fix. Open `manual:` DoD items do NOT
+      block landing - an APPROVEd branch with pending manual checks still
+      lands; move those items into the GOAL.md Manual acceptance section so
+      they batch for the Finish checkpoint (the single user-acceptance gate),
+      rather than stalling each task on a user round-trip. Then report one
+      short progress line to the user (task, verdict, rounds, what is next),
+      and continue with the next task.
 
 4. **Finish.** When no OPEN tasks remain (the umbrella aside): run the full
    check suite on the default branch one last time, then verify the sum of the
@@ -149,8 +151,9 @@ same notation the task DoDs use.
 
 ## Done means
 
-<numbered, observable acceptance criteria, each naming its proof>
-1. <criterion> (cmd: <command that proves it>)
+<numbered, observable acceptance criteria, each naming its proof
+(same test:/cmd:/manual: notation as a task DoD - see the plan skill)>
+1. <criterion> (cmd: `<command that proves it>`)
 2. <criterion> (manual: <what the user checks at Finish>)
 
 Overall: <the goal-level green bar, e.g. the full check suite passes>.

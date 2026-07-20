@@ -90,8 +90,12 @@ cannot starve the rest. Plus whatever context a cold session needs.
 
 ## Definition of Done
 
-- Requests over the limit get a 429 with a Retry-After header; the
-  integration test pins it; the config knob is documented.
+- Requests over the limit get a 429 with a Retry-After header
+  (test: `ratelimit_returns_429_when_over_limit`).
+- The limit is read from config and its default is documented
+  (cmd: `grep -n "req/min" docs/config.md`).
+- manual: under a real burst from one client, other clients' latency
+  stays flat.
 
 ## Notes
 
@@ -103,6 +107,30 @@ cannot starve the rest. Plus whatever context a cold session needs.
 A `## Goal` paragraph may stand in for Story on trivial tasks, but Steps plus
 a Definition of Done is the shape /work implements against and /review
 verifies against - the DoD is the review contract.
+
+**Every DoD item names its proof.** End each item with how it is checked, and
+put the test name or command in backticks so globs, quotes and stars render
+literally in markdown:
+
+- `(test: <name>)` - an automated test that fails without the change; write
+  it as `` (test: `the_test_name`) ``.
+- `(cmd: <command>)` - a command whose output shows the criterion holds
+  (a grep, a build, a script); write it as `` (cmd: `grep -n foo file`) `` so
+  brace-globs like `{a,b}` do not get mangled. /work and /review run it
+  verbatim.
+- `(manual: <what the user confirms>)` - a human judgement no test can make
+  (it reads well, it feels right, the burst does not degrade latency). When
+  the whole criterion IS the judgement, lead the item with a bare
+  `manual: <...>` instead of trailing it - the criterion and its proof are one
+  and the same, so there is nothing to state twice.
+
+An item with no nameable proof is a red flag: rephrase it into something
+observable, or demote it to a Notes bullet - do not ship acceptance criteria
+that nothing can check. `manual:` items are the honest escape hatch for
+genuinely human calls, not a dumping ground for "too hard to test"; they do
+not block landing but are batched to the user (see the flow skill's Finish
+gate). This makes unverifiable criteria visible at plan time instead of
+letting a green harness proxy-verify a dead feature.
 
 ## Guidelines for Good Steps
 

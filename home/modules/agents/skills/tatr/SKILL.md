@@ -70,7 +70,10 @@ session needs to start.
 
 ## Definition of Done
 
-- Observable outcomes; the review contract.
+- Observable outcomes; the review contract. Each item names its proof:
+  `(test: <name>)`, `(cmd: <command>)`, or `(manual: <what the user
+  confirms>)` - see the plan skill. An item with no nameable proof is
+  rephrased until observable or demoted to Notes.
 
 ## Notes
 

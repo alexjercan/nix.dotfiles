@@ -48,7 +48,11 @@ fixing.
    the implementer's summary; verify.
    - Correctness: bugs, edge cases, error handling, concurrency, security.
    - Spec: does the diff actually deliver the Goal? Is every ticked step
-     really done?
+     really done? Run each DoD item's named proof yourself - execute every
+     `test:` and `cmd:` proof and confirm it passes on the stated criterion;
+     do not take the implementer's word that it does. Each open `manual:`
+     proof is not yours to resolve: note it as a pending user check to list
+     with the verdict.
    - Tests: run the full check suite yourself. Are the tests meaningful (they
      assert behavior, not just execute code)? Were any existing tests
      weakened or deleted to get to green? Any "X stays zero / nothing
@@ -73,8 +77,12 @@ fixing.
 
 5. **Issue the verdict.** `REQUEST_CHANGES` if any BLOCKER or MAJOR finding
    is open; `APPROVE` otherwise (open MINOR/NIT findings may be left to the
-   implementer's discretion). Record the verdict in the round header and tell
-   the user. On APPROVE the cycle ends; merging is the user's call.
+   implementer's discretion). Alongside the verdict, list the task's open
+   `manual:` DoD items as pending user checks - APPROVE does not resolve them;
+   they are the human-acceptance gate the user clears later (batched at the
+   flow Finish), so an APPROVE with manual items still open is normal, not a
+   contradiction. Record the verdict in the round header and tell the user.
+   On APPROVE the cycle ends; merging is the user's call.
 
 6. **Re-review rounds.** When `/work` hands the branch back, verify each
    response against the new diff - tick the finding's checkbox only when you

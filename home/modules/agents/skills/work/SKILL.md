@@ -75,7 +75,13 @@ that appears to work.
    doc in `docs/`. Do not scatter README fragments around the tree.
 
 5. **Verify.** Run the project's full check suite: tests, linter, formatter,
-   type checker, build - whatever the project defines. Fix what breaks. Do
+   type checker, build - whatever the project defines. Then run each DoD
+   item's named proof explicitly: execute every `test:` and `cmd:` proof and
+   confirm it passes on the actual criterion (not a neighbouring one). A
+   `manual:` proof is NOT yours to tick - report it as pending user
+   confirmation and leave it for the reviewer to list and the user to accept;
+   self-ticking a manual item is exactly the proxy-verification the notation
+   exists to prevent. Fix what breaks. Do
    not report success on the strength of the diff alone; the tests must
    actually pass, and if some fail, say so with the output. Every
    verification must be able to fail: if a check would still pass with the
