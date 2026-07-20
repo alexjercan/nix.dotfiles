@@ -161,7 +161,10 @@ letting a green harness proxy-verify a dead feature.
   row on 2026-07-11). The same goes for engine/dependency behavior: read the
   dependency's source (or write a five-line probe) before designing around
   its ordering, observer semantics, or failure modes - a reasoned verdict
-  about a dependency is a hypothesis, not evidence.
+  about a dependency is a hypothesis, not evidence. For load-bearing git or nix
+  semantics a step will rely on (merge/rebase behavior, worktree or flake
+  path/GC rules), verify them in a THROWAWAY scratch repo first and write the
+  step from what you observed, not from memory of how the tool "should" behave.
 - When a task adds a new route into an existing state or mode (a new setter
   of a state machine, a new entry into "paused"), plan a step that greps for
   everything gated on that state and lists what newly runs in the new

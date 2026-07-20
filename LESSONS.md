@@ -56,18 +56,19 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `build-just-the-package` (x2): verify a script module by nix-building only
   its package via the flake's nixpkgs, not a full home-manager rebuild.
   20260703-104437, 20260720-152433
+- `dod-grep-excludes-task-records` (x5, PROMOTED 2026-07-20 -> plan skill DoD
+  guidance): a blanket no-stale-references grep self-matches the task's own
+  record; absence-proving DoD greps now exclude tasks/ from the start.
+  20260720-171855, 20260720-171910, 20260720-171902, 20260720-171843, 20260720-171836, 20260720-220044
+- `edit-the-worktree-not-the-cwd` (x3, PROMOTED 2026-07-20 -> work skill sprout
+  step): the shell cwd resets between Bash calls - drive edits/git by absolute
+  worktree path or `git -C`, never chain cross-repo git in one call (two GOAL
+  ticks committed from the wrong repo). 20260720-152451, 20260720-171902, 20260720-171843, 20260720-220130
+- `dry-run-in-a-scratch-repo` (x3, PROMOTED 2026-07-20 -> plan skill verify-first
+  guidance): verify load-bearing git/nix semantics in a throwaway scratch repo
+  before writing a step on them. 20260703-104437, 20260704-105059, 20260704-134842, 20260720-220130
 
 ## Pending promotions (3+ occurrences, user decides)
 
-- `dry-run-in-a-scratch-repo` (x3) -> plan/work skills (largely present as
-  their verify-first steps; confirm or fold the residue): load-bearing git/nix
-  semantics were verified in throwaway repos before instructions were written
-  on them. 20260703-104437, 20260704-105059, 20260704-134842
-- `edit-the-worktree-not-the-cwd` (x3) -> work skill (or a sprout/shell
-  guard): the shell cwd resets between Bash calls - use absolute worktree
-  paths, and never chain cross-repo git operations in one call; two GOAL
-  ticks committed from the wrong repo. 20260720-152451, 20260720-171902, 20260720-171843
-- `dod-grep-excludes-task-records` (x5) -> plan skill DoD guidance: a
-  blanket no-stale-references grep self-matches the task's own record;
-  write DoD greps with tasks/ excluded from the start. 20260720-171855,
-  20260720-171910, 20260720-171902, 20260720-171843, 20260720-171836
+None open - the three x3+ lessons were resolved and promoted into the plan and
+work skills on 2026-07-20 (task 20260720-220130).

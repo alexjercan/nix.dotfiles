@@ -1,6 +1,6 @@
 # lessons: resolve 3 pending promotions (dod-grep x5, edit-worktree, dry-run-scratch)
 
-- STATUS: OPEN
+- STATUS: IN_PROGRESS
 - PRIORITY: 50
 - TAGS: chore
 
@@ -13,9 +13,9 @@ plan-skill template fix (task #1) ships.
 
 ## Steps
 
-- [ ] Review the 3 pending lessons (dod-grep-excludes-task-records x5, edit-the-worktree-not-the-cwd x3, dry-run-in-a-scratch-repo x3).
-- [ ] For each: promote (AGENTS.md / skill / tool) or retire; annotate with the promotion marker.
-- [ ] Mark dod-grep-excludes-task-records promoted once task #1 lands the template fix.
+- [x] Review the 3 pending lessons (dod-grep-excludes-task-records x5, edit-the-worktree-not-the-cwd x3, dry-run-in-a-scratch-repo x3).
+- [x] For each: promote (AGENTS.md / skill / tool) or retire; annotate with the promotion marker.
+- [x] Mark dod-grep-excludes-task-records promoted once task #1 lands the template fix.
 
 ## Definition of Done
 

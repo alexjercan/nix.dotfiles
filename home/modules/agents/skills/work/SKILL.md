@@ -35,6 +35,11 @@ that appears to work.
    task's work inside that worktree. Only after you are in it, set STATUS to
    `IN_PROGRESS` in `tasks/<id>/TASK.md` (the tasks/ tree is present on the
    branch, so edits and commits travel with the work and merge back later).
+   The shell cwd does NOT persist between commands - a fresh call starts back
+   wherever the shell initializes, not in the worktree. Drive every file edit
+   and git command by ABSOLUTE worktree path (or `git -C <worktree>`) instead
+   of relying on a prior `cd`, and never chain operations across two repos in
+   one call: a GOAL tick has twice been committed from the wrong repo that way.
    Derive `<type>` from the task's tags (`feature`, `bug` -> `fix`,
    `refactor`, ...) and `<short-slug>` from the title, e.g.
    `feature/api-rate-limiting`. If sprout is unavailable, fall back to a plain
