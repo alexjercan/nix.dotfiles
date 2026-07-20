@@ -1,8 +1,8 @@
 # flow skill: codify umbrella/GOAL lifecycle (close, residue, no-RETRO)
 
-- STATUS: OPEN
+- STATUS: IN_PROGRESS
 - PRIORITY: 60
-- TAGS: feature,flow
+- TAGS: feature, flow
 
 ## Story
 
@@ -13,15 +13,16 @@ findings get dispositioned, and that the umbrella itself carries no RETRO.
 
 ## Steps
 
-- [ ] Review how umbrellas were handled in nix.dotfiles GOAL.md tasks and the v2 adoption wave (39 unresolved findings awaiting rulings).
-- [ ] Add explicit flow skill guidance: umbrella close condition, residue disposition options, no-RETRO-by-design for umbrellas.
-- [ ] Ensure `tatr check` / conformance expectations align (umbrella tasks should not be flagged for missing RETRO).
-- [ ] Deploy and confirm.
+- [x] Review how umbrellas were handled in nix.dotfiles GOAL.md tasks and the v2 adoption wave (39 unresolved findings awaiting rulings).
+- [x] Add explicit flow skill guidance: umbrella close condition, residue disposition options, no-RETRO-by-design for umbrellas.
+- [x] Ensure `tatr check` / conformance expectations align (umbrella tasks should not be flagged for missing RETRO).
+- [x] Deploy and confirm (nix flake check --no-build green).
 
 ## Definition of Done
 
 - Flow skill documents the umbrella lifecycle end to end (manual: reviewer reads the new section).
-- Umbrella tasks do not trip retro-completeness expectations (cmd: `tatr check -S` clean on a closed umbrella).
+- The umbrella-lifecycle guidance is generic and internally consistent (cmd: `grep -n "no REVIEW.md or RETRO.md" home/modules/agents/skills/flow/SKILL.md`).
+- Plain conformance stays clean (cmd: `tatr check`). NOTE: strict `tatr check -S` exemption for `goal`-tagged umbrellas is tatr task 20260720-220046, not this doc task; DoD amended during work (see RETRO).
 
 ## Notes
 

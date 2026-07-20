@@ -127,19 +127,37 @@ the handoffs, and when to stop and ask the user.
    before the ledger is compiled. Then run the **lessons skill**
    (`/lessons`) to fold any loose scratch the per-task `/compound` retros did
    not capture into the lessons ledger and clear the scratch drawer, so the
-   goal leaves a clean, current ledger. Close the umbrella task
+   goal leaves a clean, current ledger. Before closing, dispose of every
+   residue so the umbrella never closes with silent loose ends: each unmet or
+   deferred done-definition item, unresolved review finding, or dropped task is
+   either filed as its own prioritized tatr task or written into GOAL.md as
+   explicitly deferred with a reason (a `manual:` item the user rejects becomes
+   a new task, not a silent omission). Close the umbrella task
    (`tatr edit <umbrella> -s CLOSED`) once the done-definition is met, and
    commit. Finally give a final report - what was built, task by task, key
    lessons from the retros, and anything deliberately left out. Pushing is the
    user's call.
+
+   The umbrella carries NO REVIEW.md or RETRO.md of its own - it is a tracking
+   spine, not a worked task, and its GOAL.md IS its record: the Tasks list is
+   its history and the final report is its retrospective. The per-task
+   REVIEW/RETRO files hold the detail; duplicating them on the umbrella is
+   noise. Because of this, a CLOSED `goal` umbrella is exempt from strict
+   `tatr check -S`'s `closed-missing-review`/`closed-missing-retro` rules;
+   teaching `tatr check` to skip `goal`-tagged tasks is tracked in tatr task
+   20260720-220046. Until that lands, run plain `tatr check` (not `-S`) over a
+   run that includes an umbrella, or expect the two known umbrella findings.
 
 ## The Goal Artifact (GOAL.md)
 
 `GOAL.md` lives in the umbrella task's folder, next to its `TASK.md`, and is
 the one file that pins the whole run. It is created at step 1, its Tasks list
 grows at plan time and each land, its Manual acceptance section fills as tasks
-land, and it is the thing Finish verifies against. Keep the done-definition
-observable - each item names its proof (`cmd:`, `test:` or `manual:`), the
+land, and it is the thing Finish verifies against. It is also the umbrella's
+whole record - the umbrella has no REVIEW.md or RETRO.md of its own (see
+Finish), so GOAL.md's Tasks history and the final report stand in for them.
+Keep the done-definition observable - each item names its proof (`cmd:`,
+`test:` or `manual:`), the
 same notation the task DoDs use.
 
 ```markdown
