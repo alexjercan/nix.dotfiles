@@ -79,7 +79,7 @@ session needs to start.
 
 Trivial tasks may use a plain paragraph. Prefer `tatr edit` for the metadata fields and `tatr new -b` for the initial body; hand-edit the file only for later body updates.
 
-The task's folder is also the home for its sibling records: `SPIKE.md` (/spike), `REVIEW.md` (/review), `RETRO.md` (/compound), `NOTES.md` (design/fix record) - all next to TASK.md, never loose in docs/.
+The task's folder is also the home for its sibling records: `SPIKE.md` (/spike), `REVIEW.md` (/review), `RETRO.md` (/compound), `GOAL.md` (a /flow umbrella task's goal artifact - goal, done-definition, live task list), `NOTES.md` (design/fix record) - all next to TASK.md, never loose in docs/.
 
 ## Workflow
 

@@ -60,6 +60,11 @@ steps, citing the spike doc as the input it was scoped from.
    plus any assumptions the user should double-check. Offer to commit the new
    task files. Do not start implementing unless the user asks.
 
+   Under `/flow` there is an extra step: the run already created an umbrella
+   task with a `GOAL.md` (see the flow skill). Append the planned tasks to
+   that GOAL.md Tasks list - one unchecked line each, in intended order - so
+   the goal artifact carries the live queue that flow ticks as tasks land.
+
 ## Task File Format for a Plan
 
 Keep the tatr header exact, then use the description for the plan itself:

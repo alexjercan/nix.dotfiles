@@ -1,8 +1,8 @@
 # Flow skill: step 1 creates an umbrella task with GOAL.md
 
-- STATUS: OPEN
+- STATUS: IN_PROGRESS
 - PRIORITY: 90
-- TAGS: feature,skills
+- TAGS: feature, skills
 
 ## Story
 
@@ -14,18 +14,18 @@ nova-protocol improvised release-tracker tasks to hold exactly this.
 
 ## Steps
 
-- [ ] flow SKILL.md step 1: create an umbrella tatr task (tag `goal`,
+- [x] flow SKILL.md step 1: create an umbrella tatr task (tag `goal`,
       priority 0) whose folder holds GOAL.md with: goal statement,
       done-definition (observable), landing scope, a Tasks list (updated as
       tasks land) and a Manual acceptance section (fed by DoD `manual:`
       items). The umbrella stays OPEN for the whole run.
-- [ ] flow SKILL.md step 3.7: after each land, tick the task in GOAL.md's
+- [x] flow SKILL.md step 3.7: after each land, tick the task in GOAL.md's
       Tasks list with a one-line status (like a spike's Fix record).
-- [ ] flow Finish: verify the delivered work against GOAL.md's
+- [x] flow Finish: verify the delivered work against GOAL.md's
       done-definition, present the batched Manual acceptance list to the
       user, close the umbrella task, commit.
-- [ ] Add a short GOAL.md format block to the flow skill.
-- [ ] tatr SKILL.md sibling-records line gains GOAL.md; plan SKILL.md notes
+- [x] Add a short GOAL.md format block to the flow skill.
+- [x] tatr SKILL.md sibling-records line gains GOAL.md; plan SKILL.md notes
       that under /flow the plan appends its tasks to the umbrella's Tasks
       list.
 

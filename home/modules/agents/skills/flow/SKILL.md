@@ -15,20 +15,35 @@ the handoffs, and when to stop and ask the user.
 
 ## Workflow
 
-1. **Take the goal.** Restate it in one or two sentences and pin down what
-   "done" means - observable behavior, not vibes. If the goal is genuinely
-   ambiguous (a real fork that changes what gets built), ask now; this is the
-   cheapest moment to be corrected. Also pin the LANDING SCOPE now: when the
-   user's ask mentions a branch or sprout, confirm whether flow lands each
-   task to the default branch as usual or stops at the branch - discovering
-   this at the land step wastes the whole cycle's momentum.
+1. **Take the goal, pin it on disk.** Restate it in one or two sentences and
+   pin down what "done" means - observable behavior, not vibes. If the goal is
+   genuinely ambiguous (a real fork that changes what gets built), ask now;
+   this is the cheapest moment to be corrected. Also pin the LANDING SCOPE now:
+   when the user's ask mentions a branch or sprout, confirm whether flow lands
+   each task to the default branch as usual or stops at the branch -
+   discovering this at the land step wastes the whole cycle's momentum.
+
+   Then create the **umbrella task**: `tatr new "Goal: <one-line>" -p 0 -t goal`,
+   and write `GOAL.md` in its folder following the format block below - the
+   goal statement, the observable done-definition, the landing scope, an empty
+   Tasks list and an empty Manual acceptance section. GOAL.md is a free-form
+   sibling file, not tatr-managed, so its DATE / UMBRELLA TASK / LANDING SCOPE
+   header lines are hand-written (tatr only fills STATUS/PRIORITY/TAGS in
+   TASK.md). This is the goal
+   artifact: it makes an interrupted flow resumable from the files alone and
+   gives Finish something concrete to verify against. The umbrella task stays
+   OPEN for the whole run and is closed only at Finish. Commit it before
+   planning so the pin survives a crash.
 
 2. **Plan.** Run the plan skill: read the code, break the goal into tatr
-   tasks with Steps checklists, priorities and dependencies. Report the task
-   list to the user before starting to build, as a checkpoint.
+   tasks with Steps checklists, priorities and dependencies. Append the
+   planned tasks to the umbrella's `GOAL.md` Tasks list (one unchecked line
+   each, in intended order), so the goal artifact holds the live queue. Report
+   the task list to the user before starting to build, as a checkpoint.
 
 3. **Cycle per task.** Pick the highest-priority OPEN task whose dependencies
-   are CLOSED, then:
+   are CLOSED (the priority-0 `goal` umbrella is not a work task - skip it
+   here; it is closed at Finish), then:
 
    1. Read `docs/LESSONS.md` (the lessons ledger), and the last few
       `tasks/*/RETRO.md` when more context helps - apply the lessons; this
@@ -90,17 +105,70 @@ the handoffs, and when to stop and ask the user.
          branch messages. Do not push. This leaves the default branch with
          one commit per task.
    6. Run the compound skill: write the retro for this task.
-   7. Report one short progress line to the user (task, verdict, rounds,
-      what is next), then continue with the next task.
+   7. Tick this task in the umbrella `GOAL.md` Tasks list: check its box and
+      append a one-line status (landed commit, review rounds, anything
+      notable), the way a spike records a Fix. If the task's DoD had any
+      `manual:` items, move them into the GOAL.md Manual acceptance section so
+      they batch for the Finish checkpoint. Then report one short progress line
+      to the user (task, verdict, rounds, what is next), and continue with the
+      next task.
 
-4. **Finish.** When no OPEN tasks remain: run the full check suite on the
-   default branch one last time, verify the sum of the work actually delivers
-   the goal from step 1 (not just that every task is CLOSED), then run the
-   **lessons skill** (`/lessons`) to fold any loose scratch the per-task
-   `/compound` retros did not capture into the lessons ledger and clear the
-   scratch drawer, so the goal leaves a clean, current ledger. Finally give a
-   final report - what was built, task by task, key lessons from the retros,
-   and anything deliberately left out. Pushing is the user's call.
+4. **Finish.** When no OPEN tasks remain (the umbrella aside): run the full
+   check suite on the default branch one last time, then verify the sum of the
+   work against the umbrella `GOAL.md` done-definition item by item - the sum
+   of the work actually delivers the goal, not just that every task is CLOSED.
+   Present the batched Manual acceptance list from GOAL.md to the user as a
+   checkpoint and collect their verdicts. Then run the **lessons skill**
+   (`/lessons`) to fold any loose scratch the per-task `/compound` retros did
+   not capture into the lessons ledger and clear the scratch drawer, so the
+   goal leaves a clean, current ledger. Close the umbrella task
+   (`tatr edit <umbrella> -s CLOSED`) once the done-definition is met, and
+   commit. Finally give a final report - what was built, task by task, key
+   lessons from the retros, and anything deliberately left out. Pushing is the
+   user's call.
+
+## The Goal Artifact (GOAL.md)
+
+`GOAL.md` lives in the umbrella task's folder, next to its `TASK.md`, and is
+the one file that pins the whole run. It is created at step 1, its Tasks list
+grows at plan time and each land, its Manual acceptance section fills as tasks
+land, and it is the thing Finish verifies against. Keep the done-definition
+observable - each item names its proof (`cmd:`, `test:` or `manual:`), the
+same notation the task DoDs use.
+
+```markdown
+# Goal: <one-line goal>
+
+- DATE: <YYYYMMDD>
+- UMBRELLA TASK: <umbrella-task-id>
+- LANDING SCOPE: <squash-merge to <branch>, push or not, any per-repo notes>
+
+## Goal
+
+<a paragraph or two: what this run delivers and why.>
+
+## Done means
+
+<numbered, observable acceptance criteria, each naming its proof>
+1. <criterion> (cmd: <command that proves it>)
+2. <criterion> (manual: <what the user checks at Finish>)
+
+Overall: <the goal-level green bar, e.g. the full check suite passes>.
+
+## Tasks
+
+Updated as tasks land (one line per land, like a spike's Fix record).
+
+- [ ] <task-id> (p<priority>, <repo>) <short title>
+- [x] <task-id> (p<priority>, <repo>) <short title>
+      landed <commit>; <n> review rounds; <anything notable>
+
+## Manual acceptance (batched for the user at Finish)
+
+Accumulates `manual:` DoD items as tasks land; presented at Finish.
+
+- (pending) <task-id>: <what the user should confirm>
+```
 
 ## Task Playbooks
 
@@ -167,9 +235,11 @@ instead of grinding when:
   Such a cycle still goes through review and retro - do not force a code
   change where the evidence says none is warranted.
 - One flow, one goal. A second goal gets its own `/flow` run.
-- Keep the trail on disk: tasks, reviews and retros must be committed as the
-  skills prescribe, so a flow interrupted at any point can be resumed by a
-  fresh session from the files alone.
+- Keep the trail on disk: the umbrella `GOAL.md`, tasks, reviews and retros
+  must be committed as the skills prescribe, so a flow interrupted at any
+  point can be resumed by a fresh session from the files alone - GOAL.md holds
+  the goal, done-definition and live task queue; the rest holds the per-task
+  state.
 
 ## Relationship to the Other Skills
 
