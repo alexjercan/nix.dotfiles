@@ -43,9 +43,10 @@ differently.
    and REVIEW.md (format below).
 
 5. **Update the lessons ledger.** Append or bump each generalizable lesson
-   in `docs/LESSONS.md` (create it from the format below if missing): one
-   or two lines per lesson with a slug, one sentence, an occurrence count,
-   and task ids. Keep entries SHORT - two lines is the cap; if your addition
+   in the ledger - `LESSONS.md` at the repo root, or wherever the lessons
+   skill's search order finds it (create it at the root from the format
+   below if missing): one or two lines per lesson with a slug, one
+   sentence, an occurrence count, and task ids. Keep entries SHORT - two lines is the cap; if your addition
    needs more, you are writing a variant, so sharpen the one sentence
    instead of appending a paragraph. When a lesson is really a rule for one
    of the skills, say so in the entry (`-> work skill`) at any count - the

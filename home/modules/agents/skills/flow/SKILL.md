@@ -45,7 +45,8 @@ the handoffs, and when to stop and ask the user.
    are CLOSED (the priority-0 `goal` umbrella is not a work task - skip it
    here; it is closed at Finish), then:
 
-   1. Read `docs/LESSONS.md` (the lessons ledger), and the last few
+   1. Read the lessons ledger - `LESSONS.md` at the repo root, or wherever
+      the lessons skill's search order finds it - and the last few
       `tasks/*/RETRO.md` when more context helps - apply the lessons; this
       is where the compounding pays off. When the ledger is long, read its
       header, the Pending promotions section and any domain-specific section
@@ -121,7 +122,7 @@ the handoffs, and when to stop and ask the user.
    of the work actually delivers the goal, not just that every task is CLOSED.
    Present the batched Manual acceptance list from GOAL.md to the user as a
    checkpoint and collect their verdicts. Run the conformance pass -
-   `tatr check --ledger <ledger path>` (usually `docs/LESSONS.md`) - and
+   `tatr check --ledger <ledger path>` (usually the repo-root `LESSONS.md`) - and
    turn any findings into fixes or new tasks; the artifacts must lint clean
    before the ledger is compiled. Then run the **lessons skill**
    (`/lessons`) to fold any loose scratch the per-task `/compound` retros did
