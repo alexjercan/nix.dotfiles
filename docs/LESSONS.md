@@ -43,7 +43,15 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `proof-must-cover-its-conjunct` (x1): a DoD proof for a two-part criterion
   must fail if either part is deleted; a case-sensitive grep survived its
   target's removal. 20260720-152519
+- `sprout-inherits-committed-head` (x1): a new worktree contains only what is
+  committed on HEAD - commit the plan before sprouting. 20260704-134842
+- `build-just-the-package` (x2): verify a script module by nix-building only
+  its package via the flake's nixpkgs, not a full home-manager rebuild.
+  20260703-104437, 20260720-152433
 
 ## Pending promotions (3+ occurrences, user decides)
 
-(none yet)
+- `dry-run-in-a-scratch-repo` (x3) -> plan/work skills (largely present as
+  their verify-first steps; confirm or fold the residue): load-bearing git/nix
+  semantics were verified in throwaway repos before instructions were written
+  on them. 20260703-104437, 20260704-105059, 20260704-134842

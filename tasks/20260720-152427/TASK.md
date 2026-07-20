@@ -1,6 +1,6 @@
 # Goal: flow-suite v2 - reviews, goal artifact, landing tool, DoD proofs, artifact linting
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 0
 - TAGS: goal
 
