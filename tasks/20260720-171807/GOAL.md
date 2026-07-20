@@ -30,7 +30,10 @@ and its skills.
 
 - [ ] 20260720-171836 (nova-protocol, 89 findings at scout time)
 - [ ] 20260720-171843 (bevy-common-systems, 16 findings)
-- [ ] 20260720-171850 (scufris, 23 findings)
+- [x] 20260720-171850 (scufris, 23 findings)
+      landed 43e8a87; 1 round out-of-context APPROVE (every changed line
+      read, 1 NIT taken); 23 findings -> 4 residue; pre-existing mypy red
+      filed as scufris 20260720-174021
 - [x] 20260720-171855 (today, 1 finding)
       landed 3e9836a; 1 round out-of-context APPROVE, zero findings; the one
       bad-severity mapped meaning-preservingly; residue: none; pre-existing
@@ -51,4 +54,14 @@ and its skills.
 
 ## Unresolved checks (residue for intervention)
 
-(filled per repo as tasks land)
+scufris (4 findings, 5 boxes - rulings needed: tick, amend the step, or
+leave as permanent record):
+- 20260719-223102 step 5: serve smoke/copy-button eyeball never recorded
+  (npm ci green is recorded)
+- 20260719-223103 step 6: review says a real codex turn was NOT run
+  (fake-codex only)
+- 20260719-235505 step 3: read_context/read_transcript/read_usage have no
+  log calls (only list+delete log)
+- 20260720-002621 step 3: "tool events append live chips" shipped as the
+  "ran <tool>" status line; chips came later in 122513 (ambiguous)
+- 20260720-002621 step 4: no "token cursor/typing affordance" CSS exists
