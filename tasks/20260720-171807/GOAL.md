@@ -28,7 +28,11 @@ and its skills.
 
 ## Tasks
 
-- [ ] 20260720-171836 (nova-protocol, 89 findings at scout time)
+- [x] 20260720-171836 (nova-protocol, 89 findings at scout time)
+      landed ae7ef799 + repair 7264013f; 1 round out-of-context APPROVE
+      (1 MINOR + 1 NIT taken; the amendment-drop incident repaired and
+      documented); 89 findings -> 31 residue (63 boxes from one
+      wontdo-superseded family); all executable surfaces verified
 - [x] 20260720-171843 (bevy-common-systems, 16 findings)
       landed 0ae11b0; 1 round out-of-context APPROVE (1 NIT taken); 16
       findings -> 3 residue tasks (9 boxes); 24 x3+ lessons parked in
@@ -77,3 +81,20 @@ bevy-common-systems (3 findings, 9 boxes - rulings needed):
   (commit ace3138 touched only Module Map + versions)
 - 20260711-094942 (3 boxes): steps annotated "(dropped, premise falsified)"
   in the task body - ticking would misrecord deliberate drops
+
+nova-protocol (31 findings, 111 boxes - rulings needed; full per-task list
+in tasks/20260720-171836/TASK.md close record):
+- the 20260712 targeting-lock family, 8 tasks, 63 boxes: wontdo-closed en
+  masse by spike 20260713-082207 - candidate for archive-stub conversion
+  or a SUPERSEDED convention rather than ticks
+- 4 more superseded/nothing-shipped tasks (224303, 231341, 221106, 221110)
+- 6 explicit deferral/needs-human-playtest single boxes
+- 12 tasks with unevidenced or contradicted clauses (1-4 boxes each),
+  including 20260708-194524's unrecorded cargo test run (review R1.1)
+
+Cross-repo policy question (from nova's review): nova rewrote docs/LESSONS
+path mentions inside historical task records (its DoD swept tasks/; all
+121 lines verified pure substitutions) while nix.dotfiles left history
+verbatim (its DoD excluded tasks/). Both matched their specs; pick ONE
+convention for the future (suggest: history stays verbatim, DoD greps
+exclude tasks/).
