@@ -24,6 +24,10 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   dirs, not tasks dirs - a misleading name cost a silent no-op walk. 20260720-152503
 - `validate-the-exact-parsed-token` (x1): a trimmed re-validation of an
   untrimmed parse is a hole; check the bytes the parser consumes. 20260720-152503
+- `flake-path-literal-string-coercion` (x1): coercing a `../subdir` path
+  literal to a string in a flake (interpolation or `builtins.readDir`) copies
+  it to the store as a floating non-GC-root `<hash>-subdir` that GC orphans
+  against the eval cache ("path is not valid"); use `${inputs.self}/subdir`. 20260720-153613
 - `edit-the-worktree-not-the-cwd` (x1): the shell cwd resets to the main
   checkout between Bash calls, so Edit/Read on a sprout branch must use the
   absolute worktree path, not the main-checkout one. 20260720-152451
