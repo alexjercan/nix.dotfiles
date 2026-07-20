@@ -45,8 +45,10 @@ the handoffs, and when to stop and ask the user.
       on the work having happened in a separate worktree.
    3. Run the work skill: implement the Steps, tests and full check suite on
       the branch sprouted in the previous step.
-   4. Run the review skill: critique into REVIEW.md, then alternate work and
-      review rounds until the verdict is APPROVE.
+   4. Run the review skill: round 1 from an out-of-context reviewer by
+      default (the review skill defines the mechanism and the trivial-diff
+      carve-out), findings into REVIEW.md, then alternate work and review
+      rounds until the verdict is APPROVE.
    5. On APPROVE, first bring the branch up to date with the default branch,
       then squash-merge it back so the whole task lands as a single commit.
       This mirrors landing a PR: update the branch from its base, re-verify,

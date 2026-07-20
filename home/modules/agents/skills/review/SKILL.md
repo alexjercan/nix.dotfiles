@@ -26,7 +26,26 @@ fixing.
    Read TASK.md fully - Goal, Steps and Notes are the spec the diff is judged
    against.
 
-2. **Review with fresh eyes.** Do not trust the implementer's summary; verify.
+2. **Round 1 comes from out of context by default.** For any substantive
+   branch, the round-1 findings are produced by a reviewer that has NOT
+   seen the implementing session: a fresh subagent, a /code-review pass in
+   a mode that spawns fresh agents (not in-conversation analysis), or a
+   separate session. Substantive is judged by consequence, not file type: a
+   docs-only diff that defines process or behavior (a skill file, a spec)
+   is substantive; only typo-level or cosmetic-wording fixes are trivial.
+   The reviewer's prompt contains only the task id, the branch and worktree
+   path, the REVIEW.md format and the review dimensions below - never the
+   implementing conversation or its summaries (they carry the implementer's
+   assumptions, which are exactly what must not leak). The out-of-context
+   reviewer RETURNS findings; the in-session pass writes and commits the
+   merged round, runs the check suite itself, and re-verifies at least one
+   load-bearing claim of the findings before adopting them. For a trivial
+   diff an in-session-only round is fine; on a substantive branch it is an
+   exception (e.g. no out-of-context mechanism available) - either way the
+   round header records it and why.
+
+3. **Review dimensions** - for whichever reviewer runs them. Do not trust
+   the implementer's summary; verify.
    - Correctness: bugs, edge cases, error handling, concurrency, security.
    - Spec: does the diff actually deliver the Goal? Is every ticked step
      really done?
@@ -48,21 +67,24 @@ fixing.
      `NOTES.md` or the relevant reference doc in `docs/`.
    - Honesty: TASK.md notes match what the code actually does.
 
-3. **Write the findings.** Create or append to `tasks/<id>/REVIEW.md` (format
+4. **Write the findings.** Create or append to `tasks/<id>/REVIEW.md` (format
    below). Every finding gets a severity, a `file:line` reference, and a
    concrete suggested change - "rename X to Y", not "naming could be better".
 
-4. **Issue the verdict.** `REQUEST_CHANGES` if any BLOCKER or MAJOR finding
+5. **Issue the verdict.** `REQUEST_CHANGES` if any BLOCKER or MAJOR finding
    is open; `APPROVE` otherwise (open MINOR/NIT findings may be left to the
    implementer's discretion). Record the verdict in the round header and tell
    the user. On APPROVE the cycle ends; merging is the user's call.
 
-5. **Re-review rounds.** When `/work` hands the branch back, verify each
+6. **Re-review rounds.** When `/work` hands the branch back, verify each
    response against the new diff - tick the finding's checkbox only when you
-   confirmed it is resolved. Accept reasoned pushback when it is convincing;
-   do not relitigate settled findings. Add new findings only for problems the
-   new changes introduced. If the same finding is still disputed after three
-   rounds, stop and surface the disagreement to the user.
+   confirmed it is resolved. Re-review rounds keep the same reviewer
+   default: resume the out-of-context reviewer against the new diff (the
+   in-session pass supplements), and record `REVIEWER:` per round. Accept
+   reasoned pushback when it is convincing; do not relitigate settled
+   findings. Add new findings only for problems the new changes introduced.
+   If the same finding is still disputed after three rounds, stop and
+   surface the disagreement to the user.
 
 ## REVIEW.md Format
 
@@ -75,6 +97,7 @@ fixing.
 ## Round 1
 
 - VERDICT: REQUEST_CHANGES
+- REVIEWER: out-of-context
 
 - [ ] R1.1 (BLOCKER) src/server.rs:88 - the limiter is constructed per
   request, so the bucket never accumulates; hoist it into shared app state.
@@ -86,12 +109,19 @@ fixing.
 
 - Rounds are appended (`## Round 2`, ...), never rewritten; the file is the
   review history.
+- `REVIEWER:` records who produced the round's findings: `out-of-context`
+  (the default - a reviewer with no sight of the implementing session) or
+  `in-session (<why>)` - a trivial diff, or the recorded exception on a
+  substantive one.
 - Finding IDs are `R<round>.<n>`. Severities: `BLOCKER` (broken, unsafe, or
   does not deliver the Goal), `MAJOR` (design flaw or missing test that
   should not ship), `MINOR` (worth fixing, not blocking), `NIT` (take it or
   leave it).
-- The implementer fills the `Response:` line; the reviewer owns the
-  checkboxes and ticks them only after verifying the fix.
+- The implementer fills the `Response:` line. Checkboxes belong to the
+  review side: whoever the round's `REVIEWER:` line names verifies a fix
+  before its checkbox is ticked (for an out-of-context round, the
+  in-session pass records the tick on that reviewer's confirmation - the
+  out-of-context reviewer itself never writes or commits on the branch).
 
 ## Guidelines
 
@@ -99,11 +129,15 @@ fixing.
   noise.
 - Do not invent nits to look thorough. A clean diff deserves a short round
   and an APPROVE.
-- When implementer and reviewer share one session, the review has a
-  structural blind spot. For any substantial branch, independently
-  re-derive or re-verify at least one load-bearing claim (a formula, an
-  ordering, a hierarchy assumption) instead of reading the diff alone;
-  for large changes consider an out-of-context pass (/code-review).
+- The out-of-context default exists because a shared session has a
+  structural blind spot: the reviewer inherits the implementer's assumptions
+  along with the context, and prompt-level "review skeptically" nudges do
+  not remove them (nova-protocol's ledger had logged the out-of-context
+  lesson 31 times by 2026-07-20 without it ever becoming the default; the
+  default's first use here caught an unfailable test the implementing
+  session had sabotage-tested around, 20260720-152433). The blind spot
+  applies to the supplement too: re-derive at least one load-bearing claim
+  yourself rather than adopting the out-of-context round wholesale.
 - Review the diff, not the repo. Pre-existing problems you notice become new
   tatr tasks, not blockers on this branch.
 - Severity reflects impact, not effort to fix.
