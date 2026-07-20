@@ -43,11 +43,11 @@ Overall: `tatr check --ledger LESSONS.md` clean; `nix flake check --no-build` gr
 - [x] 20260720-220130 (p50) lessons: resolve 3 pending promotions
       landed 1a0f25d; 1 review round (APPROVE, no findings); dod-grep + edit-worktree
       + dry-run promoted into plan/work skills; Pending promotions now empty.
-- [ ] 20260720-220137 (p30) retro-completeness: mark pre-flow tasks historical
-      DEFERRED - blocked on tatr task 20260720-220046 (the historical/no-retro
-      marker in `tatr check`). Cannot be done by a nix.dotfiles change alone;
-      done-criterion 6 (`tatr check -S` clean) needs that mechanism first.
-      Left OPEN as a legitimately-queued task, not abandoned.
+- [x] 20260720-220137 (p30) retro-completeness: mark pre-flow tasks historical
+      landed 4115a7a; 1 review round (APPROVE, no findings). Unblocked by first
+      building tatr task 20260720-220046 (the historical/goal exemption, landed
+      in the tatr repo as 807f7bc). 10 pre-flow tasks tagged historical; no
+      fabricated retros; `tatr check -S` clean with the new tatr binary.
 
 ## Manual acceptance (batched for the user at Finish)
 
@@ -63,8 +63,14 @@ reviewer. Remaining user-facing acceptance:
   tatr task 20260720-220046 lands, or close it now with criterion 6 recorded
   as deferred.
 
-## Deferred done-definition
+## Done-definition status
 
-6. pre-flow Jul-3/4 tasks pass `tatr check -S` - DEFERRED to tatr task
-   20260720-220046 (external dependency). Criteria 1-5 met; overall green bar
-   (nix flake check, tatr check --ledger) holds.
+All 6 criteria met. Criterion 6 (pre-flow tasks pass `tatr check -S`) was
+initially deferred to tatr task 20260720-220046; that task was then built and
+landed (tatr 807f7bc), unblocking 220137. Overall green bar holds: nix flake
+check --no-build passes, plain `tatr check` and `tatr check --ledger LESSONS.md`
+are clean, and `tatr check -S` is clean with the exemption-carrying binary.
+
+Follow-up (not blocking this goal): the home-manager-installed `tatr` still
+predates the exemption until a profile rebuild; until then plain `tatr check -S`
+needs the freshly-built binary at /home/alex/personal/tatr/tatr.

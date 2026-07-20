@@ -1,6 +1,6 @@
 # retro-completeness: mark pre-flow (Jul 3/4) tasks historical
 
-- STATUS: IN_PROGRESS
+- STATUS: CLOSED
 - PRIORITY: 30
 - TAGS: chore
 
