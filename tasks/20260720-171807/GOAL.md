@@ -35,7 +35,10 @@ and its skills.
       landed 3e9836a; 1 round out-of-context APPROVE, zero findings; the one
       bad-severity mapped meaning-preservingly; residue: none; pre-existing
       checks.pytest sandbox bug filed as today 20260720-172833
-- [ ] 20260720-171902 (tatr, 0 findings; ledger to create)
+- [x] 20260720-171902 (tatr, 0 findings; ledger to create)
+      landed b2455e0; 2 rounds out-of-context APPROVE (R2 covered the
+      user-directed docs/ wipe after distillation was verified faithful);
+      12-lesson ledger seeded from the seven pre-flow retros; residue: none
 - [x] 20260720-171910 (nix.dotfiles, 0 findings; root AGENTS.md to create)
       landed 862589e; 1 round out-of-context APPROVE (1 NIT taken); ledger
       pure-renamed to root, flow/compound skill path mentions generalized,
