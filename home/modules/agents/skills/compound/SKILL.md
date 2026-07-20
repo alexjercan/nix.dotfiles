@@ -53,7 +53,8 @@ differently.
    makes recurrence detection mechanical: "is this the third time?" must be
    answerable by grepping one file. A lesson reaching three occurrences
    moves to the ledger's "Pending promotions" section for the user to fold
-   into AGENTS.md or a skill.
+   into a tool guard, a template, AGENTS.md or a skill (step 6 has the
+   order).
 
    ```markdown
    # Lessons ledger
@@ -69,15 +70,15 @@ differently.
    ```
 
 6. **Turn lessons into action.** A retro that changes nothing is shelf-ware:
-   - a lesson that should apply to every future session belongs in AGENTS.md
-     or the relevant skill - propose the edit (and park it under the
-     ledger's Pending promotions so it cannot scroll away inside one
-     retro file);
-   - a lesson that keeps recurring because a TOOL permits the mistake is a
-     bug in the tool: propose fixing the tool so the mistake becomes
-     impossible, instead of adding a third warning about it (the tatr
-     same-second overwrite recurred seven times under prompt warnings and
-     died with a four-line CLI guard);
+   - a recurring lesson promotes in ORDER: tool > template/format > skill
+     text. Ask first whether a CLI guard or a template change can make the
+     mistake impossible (the tatr same-second overwrite recurred seven
+     times under prompt warnings and died with a four-line CLI guard);
+     only when no tool or template can hold the rule does it become
+     AGENTS.md/skill prose - prose warns, tools prevent. Park the proposal
+     under the ledger's Pending promotions so it cannot scroll away inside
+     one retro file; the lessons skill owns the rest of the lifecycle
+     (shrink-on-absorb, RETIRED entries);
    - follow-up code work becomes a new tatr task;
    - one-off observations just stay in the retro.
 
@@ -123,7 +124,8 @@ differently.
 - Short beats complete. Three sharp observations are worth more than a page
   of filler; a smooth cycle deserves a short retro that says so.
 - Look for patterns in the ledger: a lesson appearing for the third time is
-  a rule waiting to be added to AGENTS.md or a skill.
+  a rule waiting for a home - a tool guard first, then a template, then
+  AGENTS.md or a skill (step 6 has the order).
 - Do not restate the diff or duplicate TASK.md's close-out notes; link to
   them instead. The same goes for a spike's fix-record entry: the
   division is TASK.md = what/why/evidence rig (complete), spike fix

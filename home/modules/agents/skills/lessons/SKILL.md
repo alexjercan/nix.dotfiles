@@ -72,6 +72,27 @@ that says so.
    (`(x3, PROMOTED <date> -> <target>)`), and an annotated count is
    invisible to the lint by design.
 
+   Promotion follows an ORDER: **tool > template/format > skill text**.
+   The promotion proposal starts by asking whether a CLI guard or a
+   template change can make the mistake impossible; only when no tool or
+   template can hold the rule does it become AGENTS.md/skill prose - prose
+   warns, tools prevent. And promotion has a debt attached,
+   **shrink-on-absorb**: when a tool or template absorbs a lesson, the
+   skill prose the lesson had accumulated is DELETED in the same change -
+   or in a paired change landed alongside it when the tool lives in
+   another repo; the absorption is not done until both land - and the
+   ledger entry's annotation becomes
+   `(xN, absorbed by <tool or template>, <date>)` - skills must shrink as
+   tools harden, or every promotion makes every future session's context
+   bigger.
+
+   A lesson whose referent is GONE (the code, tool or workflow it guarded
+   was deleted or replaced) is not bumped and not silently dropped: mark it
+   `(xN, RETIRED <date>: <one-line reason>)`, keeping the lesson's own
+   sentence intact as history. On a release-level pass (the
+   before-a-release/tag run from "When to run"), prune the entries whose
+   RETIRED date precedes this pass, and report each pruning (step 6).
+
 5. **Clear the scratch.** Run the project's wipe mechanism if it has one
    (e.g. `scripts/wipe-docs.sh`, which clears the scratch to the durable files
    idempotently); otherwise remove the distilled scratch files by hand. Leave
@@ -79,8 +100,8 @@ that says so.
    one). Never delete the ledger or a reference doc.
 
 6. **Report** what was folded in (the new/bumped slugs), what was migrated to the
-   wiki, what was cleared, and any lesson that hit three occurrences and now
-   awaits the user's promotion decision.
+   wiki, what was cleared, any pruned RETIRED entries, and any lesson that hit
+   three occurrences and now awaits the user's promotion decision.
 
 ## Ledger format
 
@@ -90,14 +111,21 @@ that says so.
 One or two lines per lesson: slug, one sentence, an occurrence count, and a
 task id or two. /compound and /lessons append new lessons or bump counts; two
 lines is the cap. At three occurrences a lesson moves to Pending promotions.
-Counts stay bare - (xN) - until the user promotes; a promoted lesson carries
-the annotation (xN, PROMOTED <date> -> <target>), which also exempts it from
-the promotion-stalled lint (tatr check --ledger).
+Counts stay bare - (xN) - until a lifecycle event annotates them; the
+annotation is the lifecycle marker and exempts the entry from the
+promotion-stalled lint (tatr check --ledger): (xN, PROMOTED <date> -> <target>),
+(xN, absorbed by <tool or template>, <date>), or (xN, RETIRED <date>: <reason>).
+Retired entries are pruned at the first release-level pass after retirement.
 
 ## Process lessons
 
 - `diagnostic-first` (x4): trace the exact reported scenario before theorizing
   a mechanism. 20260709-125640, 20260711-103527, ...
+- `same-second-ids` (x7, absorbed by tatr new collision guard, 2026-07-18):
+  chained tatr new calls overwrote tasks; the CLI now fails instead. ...
+- `stale-harness` (x2, RETIRED 2026-07-16: env-gated harness replaced by the
+  dev/harness plugin): rebuild before trusting env-gated behavior; the flag
+  lied after a rebuild. ...
 
 ## Domain lessons (project-specific)
 
@@ -122,6 +150,9 @@ the promotion-stalled lint (tatr check --ledger).
 - Wipe is not destructive of durable records: it clears SCRATCH only, never the
   ledger, the model README, or reference docs. When in doubt about a file's
   durability, distil/migrate first, ask if still unsure, then clear.
+- Retirement is honest bookkeeping, not deletion-by-neglect: a lesson stops
+  being bumped only through an explicit RETIRED annotation with its reason,
+  and the release pass that prunes it reports the pruning.
 
 ## Relationship to /compound and /flow
 
