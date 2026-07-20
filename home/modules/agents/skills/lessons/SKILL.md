@@ -64,7 +64,13 @@ that says so.
    vs domain lessons). A lesson reaching **three** occurrences moves to the
    ledger's "Pending promotions" section for the user to fold into a global
    guideline (AGENTS.md, a skill, or the tool itself) - flag it, do not
-   self-promote.
+   self-promote. Detection is mechanical, not vigilance: after updating the
+   ledger, run `tatr check --ledger <this file>` - it reports any `(x3)`+
+   lesson still outside that section as `promotion-stalled`. For that to
+   work, counts stay BARE until promotion - `(x3)`, never `(x3, note)`:
+   the parenthesized annotation is the promotion marker
+   (`(x3, PROMOTED <date> -> <target>)`), and an annotated count is
+   invisible to the lint by design.
 
 5. **Clear the scratch.** Run the project's wipe mechanism if it has one
    (e.g. `scripts/wipe-docs.sh`, which clears the scratch to the durable files
@@ -84,6 +90,9 @@ that says so.
 One or two lines per lesson: slug, one sentence, an occurrence count, and a
 task id or two. /compound and /lessons append new lessons or bump counts; two
 lines is the cap. At three occurrences a lesson moves to Pending promotions.
+Counts stay bare - (xN) - until the user promotes; a promoted lesson carries
+the annotation (xN, PROMOTED <date> -> <target>), which also exempts it from
+the promotion-stalled lint (tatr check --ledger).
 
 ## Process lessons
 

@@ -120,7 +120,10 @@ the handoffs, and when to stop and ask the user.
    work against the umbrella `GOAL.md` done-definition item by item - the sum
    of the work actually delivers the goal, not just that every task is CLOSED.
    Present the batched Manual acceptance list from GOAL.md to the user as a
-   checkpoint and collect their verdicts. Then run the **lessons skill**
+   checkpoint and collect their verdicts. Run the conformance pass -
+   `tatr check --ledger <ledger path>` (usually `docs/LESSONS.md`) - and
+   turn any findings into fixes or new tasks; the artifacts must lint clean
+   before the ledger is compiled. Then run the **lessons skill**
    (`/lessons`) to fold any loose scratch the per-task `/compound` retros did
    not capture into the lessons ledger and clear the scratch drawer, so the
    goal leaves a clean, current ledger. Close the umbrella task

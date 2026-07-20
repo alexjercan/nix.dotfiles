@@ -17,8 +17,11 @@ differently.
 ## Workflow
 
 1. **Check the cycle is done.** The task's STATUS is `CLOSED` and the latest
-   REVIEW.md round says `APPROVE`. If not, say so and stop, unless the user
-   explicitly wants a retro on unfinished work.
+   REVIEW.md round says `APPROVE` - and `tatr check <id>` is the mechanical
+   half of this gate: run it and resolve its findings (unchecked Steps,
+   non-APPROVE verdict, malformed header) before reflecting. If the cycle is
+   not done, say so and stop, unless the user explicitly wants a retro on
+   unfinished work.
 
 2. **Gather the evidence.** Do not reflect from memory alone; re-read:
    - `tasks/<id>/TASK.md` - the plan as executed and the close-out notes;

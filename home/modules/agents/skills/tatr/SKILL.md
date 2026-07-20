@@ -17,6 +17,7 @@ tatr ls [-s created|priority|title] [-R] [-f '<query>']
 tatr show <id>
 tatr edit <id> [-T "New title"] [-p <priority>] [-t tag1,tag2] [-s <status>]
 tatr rm <id>
+tatr check [<id>] [-S|--strict] [-L|--ledger <file>]
 ```
 
 - `tatr new` creates the task directory and TASK.md, and prints the task ID. Default status is OPEN, default priority 0. `-b/--body-file <file>` seeds the description body from a file (`-` reads stdin) - prefer it over creating an empty task and editing the file afterwards. If the generated ID already exists (two `new` calls in the same second), tatr FAILS instead of overwriting; just retry for a fresh ID.
@@ -24,8 +25,9 @@ tatr rm <id>
 - `tatr show <id>` prints a single task's full details: title, status, priority, tags, and the whole description body, with a clickable file path.
 - `tatr edit <id>` updates fields in place without opening an editor. Only the flags you pass change; everything else, including the description body, is preserved. `-t` replaces the tag set (it does not merge). An invalid status is rejected and the file is left untouched. This is how automation moves a task OPEN -> IN_PROGRESS -> CLOSED.
 - `tatr rm <id>` deletes the task's directory (its TASK.md and anything else inside it). It only ever touches the validated `tasks/<id>/` path.
+- `tatr check` lints task artifacts for process drift: findings print one per line as `<id>: <rule>: <detail>`, exit 1 on any finding, exit 0 and silent when clean. Default rules: `closed-unchecked` (CLOSED task with unchecked `- [ ]` items under `## Steps`), `closed-not-approved` (latest `- VERDICT:` token in REVIEW.md is not APPROVE, or no verdict at all), `bad-severity` (a REVIEW.md finding severity outside BLOCKER|MAJOR|MINOR|NIT), `malformed-header` (missing/unparseable TASK.md, or a STATUS token that is not exactly OPEN/IN_PROGRESS/CLOSED - whitespace and line endings count). `-S/--strict` adds `closed-missing-review`/`closed-missing-retro` for CLOSED tasks lacking those files; `-L/--ledger <file>` adds `promotion-stalled` for a lesson at `(x3)` or more outside the ledger's "## Pending promotions" section (bare counts only: an annotated `(x3, ...)` is the promotion marker and is exempt); ledger findings print a literal `ledger` in the id slot, and an unreadable ledger path is itself a finding. With `<id>` it checks that one task.
 
-All of `show`, `edit` and `rm` take the task ID (the `YYYYMMDD-HHMMSS` directory name) and exit non-zero with a clear message if the ID is malformed or the task does not exist.
+All of `show`, `edit`, `rm` and per-ID `check` take the task ID (the `YYYYMMDD-HHMMSS` directory name) and exit non-zero with a clear message if the ID is malformed or the task does not exist.
 
 ## Filtering
 
