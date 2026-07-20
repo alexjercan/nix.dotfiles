@@ -264,7 +264,11 @@ instead of grinding when:
   must be committed as the skills prescribe, so a flow interrupted at any
   point can be resumed by a fresh session from the files alone - GOAL.md holds
   the goal, done-definition and live task queue; the rest holds the per-task
-  state.
+  state. That trail is append-only history: once written, a task record is not
+  rewritten to match a later rename or refactor - the doc-surface sweep and
+  absence-proving DoD greps EXCLUDE the `tasks/` tree and fix only the live doc
+  surfaces (work skill, sweep step; plan skill, DoD greps). History stays
+  verbatim.
 
 ## Relationship to the Other Skills
 

@@ -111,7 +111,16 @@ that appears to work.
      an outdated AGENTS.md module map has made a session invent API names a
      reviewer then had to catch (bevy-common-systems, 20260705-134942), and
      `keep-docs-in-sync-with-code` reached x5 by 2026-07-20 in nova-protocol
-     before being enforced there.
+     before being enforced there. TASK-HISTORY IS IMMUTABLE: the `tasks/` tree
+     is the append-only record of what was true when each task ran, not a doc
+     surface to correct - EXCLUDE it from the sweep (`--exclude-dir=tasks`, or
+     scope the grep to code/doc paths) and never rewrite an old TASK/REVIEW/
+     RETRO/NOTES to match a later rename. This is why absence-proving DoD greps
+     also exclude `tasks/` (plan skill): the record legitimately still quotes
+     the old name. Fix the live doc surfaces; leave the history verbatim. (Two
+     repos diverged here during the v2 wave - nova rewrote path mentions inside
+     historical records while nix.dotfiles left them verbatim; verbatim is the
+     policy.)
 
 6. **Close the task.** In TASK.md set STATUS to `CLOSED` and append to the
    description:
