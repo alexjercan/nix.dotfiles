@@ -1,6 +1,6 @@
 # plan skill: DoD-grep proof template excludes tasks/ by default
 
-- STATUS: IN_PROGRESS
+- STATUS: CLOSED
 - PRIORITY: 90
 - TAGS: feature, flow
 

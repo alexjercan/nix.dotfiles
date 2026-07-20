@@ -28,7 +28,9 @@ Overall: `tatr check --ledger LESSONS.md` clean; `nix flake check --no-build` gr
 
 ## Tasks
 
-- [ ] 20260720-220044 (p90) plan skill: DoD-grep proof template excludes tasks/
+- [x] 20260720-220044 (p90) plan skill: DoD-grep proof template excludes tasks/
+      landed c4ef5c5; 1 review round (APPROVE, no findings); REVIEW.md was lost
+      with the worktree and reconstructed - fix applied forward (commit REVIEW on branch).
 - [ ] 20260720-220057 (p85) review skill: constrain reviewer to canonical severities
 - [ ] 20260720-220111 (p60) flow skill: codify umbrella/GOAL lifecycle
 - [ ] 20260720-220121 (p55) flow docs: cross-repo task-history immutability policy
