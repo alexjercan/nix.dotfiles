@@ -2,7 +2,7 @@
 
 - STATUS: CLOSED
 - PRIORITY: 50
-- TAGS: bug
+- TAGS: bug,historical
 
 ## Goal
 

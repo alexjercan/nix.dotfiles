@@ -1,6 +1,6 @@
 # retro-completeness: mark pre-flow (Jul 3/4) tasks historical
 
-- STATUS: OPEN
+- STATUS: IN_PROGRESS
 - PRIORITY: 30
 - TAGS: chore
 
@@ -13,9 +13,9 @@ whose context is long gone.
 
 ## Steps
 
-- [ ] Identify the CLOSED tasks lacking RETRO.md (predate compound-skill adoption).
-- [ ] Apply the historical marker (per tatr task #5's mechanism) to each.
-- [ ] Confirm `tatr check -S` is clean afterward.
+- [x] Identify the CLOSED tasks lacking RETRO.md (predate compound-skill adoption).
+- [x] Apply the historical marker (tag) - 10 pre-flow tasks tagged, existing tags preserved (per tatr task #5's mechanism) to each.
+- [x] Confirm `tatr check -S` is clean afterward (new tatr binary with the exemption).
 
 ## Definition of Done
 

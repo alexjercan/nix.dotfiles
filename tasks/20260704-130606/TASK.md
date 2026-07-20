@@ -2,7 +2,7 @@
 
 - STATUS: CLOSED
 - PRIORITY: 50
-- TAGS: docs, skills
+- TAGS: docs,skills,historical
 
 ## Goal
 

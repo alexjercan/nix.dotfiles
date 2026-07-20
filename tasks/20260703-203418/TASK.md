@@ -2,7 +2,7 @@
 
 - STATUS: CLOSED
 - PRIORITY: 80
-- TAGS: feature
+- TAGS: feature,historical
 
 ## Goal
 

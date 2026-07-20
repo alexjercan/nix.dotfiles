@@ -2,7 +2,7 @@
 
 - STATUS: CLOSED
 - PRIORITY: 100
-- TAGS: feature,docs,skills
+- TAGS: feature,docs,skills,historical
 
 ## Context
 
