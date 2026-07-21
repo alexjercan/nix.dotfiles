@@ -31,5 +31,15 @@
       source = ./skills;
       recursive = true;
     };
+
+    # The SAME skills, linked into ~/.agents/skills for the codex CLI, which
+    # discovers user-scope skills from there using the identical SKILL.md format
+    # (name/description frontmatter, implicit description-matched invocation) -
+    # so one source of truth feeds both Claude Code and codex. `recursive = true`
+    # again, so codex (or you) can drop extra skills alongside the managed ones.
+    ".agents/skills" = {
+      source = ./skills;
+      recursive = true;
+    };
   };
 }

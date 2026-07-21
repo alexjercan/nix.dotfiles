@@ -1,6 +1,6 @@
 # deploy the agents skills to codex too (~/.agents/skills)
 
-- STATUS: OPEN
+- STATUS: IN_PROGRESS
 - PRIORITY: 60
 - TAGS: feature
 
@@ -20,9 +20,9 @@ both locations.
 
 ## Steps
 
-- [ ] In home/modules/agents/default.nix, add a `home.file.".agents/skills"` entry linking `./skills` (recursive = true), mirroring the existing `~/.claude/skills` link so both Claude and Codex read the same skill sources.
-- [ ] Update the module comment + skills/README.md + the module AGENTS.md to say skills deploy to BOTH `~/.claude/skills` (Claude) and `~/.agents/skills` (Codex) (docs-sync rule).
-- [ ] Verify: nix flake check --no-build green; build the home config / activate and confirm ~/.agents/skills is populated; `codex debug prompt-input` lists a flow skill (e.g. `plan`).
+- [x] In home/modules/agents/default.nix, add a `home.file.".agents/skills"` entry linking `./skills` (recursive = true), mirroring the existing `~/.claude/skills` link so both Claude and Codex read the same skill sources.
+- [x] Updated the module comment + skills/README.md + the module AGENTS.md to say skills deploy to BOTH `~/.claude/skills` (Claude) and `~/.agents/skills` (Codex) (docs-sync rule).
+- [x] Verified: nix flake check --no-build green; built the home activationPackage (no activate) - ~/.agents/skills/ is populated with all flow skills and plan/SKILL.md resolves; both ~/.agents/skills and ~/.claude/skills point at the SAME store source. Codex reading ~/.agents/skills was proven empirically earlier (probe skill appeared in `codex debug prompt-input`).
 
 ## Definition of Done
 

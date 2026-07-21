@@ -9,7 +9,8 @@ My NixOS and home-manager configuration (flake at the root, hosts under
 `hosts/`, home modules under `home/modules/`). It is also the SOURCE of the
 agent tooling: the flow-family skills live in `home/modules/agents/skills/`
 and the sprout/daily/today CLIs live in `home/modules/scripts/`; the
-home-manager module deploys them (skills to `~/.claude/skills`, the global
+home-manager module deploys them (the same skills to both `~/.claude/skills`
+for Claude Code and `~/.agents/skills` for the codex CLI, and the global
 `home/modules/agents/AGENTS.md` to `~/AGENTS.md`).
 
 ## Development flow
