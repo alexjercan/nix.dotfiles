@@ -439,14 +439,17 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1784632820,
-        "narHash": "sha256-SA5HP8cZD1J3zAPfuBo+5ObPNHhIeseMY0ZlD7tWj2I=",
-        "path": "/home/alex/personal/scufris",
-        "type": "path"
+        "lastModified": 1784633142,
+        "narHash": "sha256-/2p66P8DZ8UZeSsiPufIH3Ypkuh3VIs7shAwBev6T0g=",
+        "owner": "alexjercan",
+        "repo": "scufris",
+        "rev": "1729a1d53664220339413ffb36719b4b6afabff6",
+        "type": "github"
       },
       "original": {
-        "path": "/home/alex/personal/scufris",
-        "type": "path"
+        "owner": "alexjercan",
+        "repo": "scufris",
+        "type": "github"
       }
     },
     "systems": {

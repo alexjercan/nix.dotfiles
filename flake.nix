@@ -34,12 +34,10 @@
       url = "github:alexjercan/macros.nvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # Interim: the local scufris checkout is the source of truth (replaces the
-    # old github:alexjercan/scufris-bot). Swap for the real remote URL once the
-    # repo is pushed/renamed. path: reads the working tree so local edits apply
-    # without a commit.
+    # The local scufris is now the source of truth (replaces the old
+    # github:alexjercan/scufris-bot); published at github:alexjercan/scufris.
     scufris = {
-      url = "path:/home/alex/personal/scufris";
+      url = "github:alexjercan/scufris";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
