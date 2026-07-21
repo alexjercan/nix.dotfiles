@@ -1,4 +1,9 @@
-{pkgs, ...}: {
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}: {
   # Coding agent tooling and its shared configuration.
   home.packages = with pkgs; [
     agent-browser
@@ -32,24 +37,41 @@
       recursive = true;
     };
 
-    # The SAME skills, linked into ~/.agents/skills for the codex CLI, which
-    # discovers user-scope skills from there using the identical SKILL.md format
-    # (name/description frontmatter, implicit description-matched invocation) -
-    # so one source of truth feeds both Claude Code and codex. `recursive = true`
-    # again, so codex (or you) can drop extra skills alongside the managed ones.
+    # The SAME skills, linked into ~/.agents/skills for AGENTS.md-ecosystem
+    # tools that read that shared location. NOTE: codex does NOT read here - it
+    # discovers skills from ~/.codex/skills and, unlike Claude Code, ignores
+    # symlinked SKILL.md, so codex is fed real-file copies by the activation
+    # script below, not this symlink tree.
     ".agents/skills" = {
       source = ./skills;
       recursive = true;
     };
 
-    # Codex also reads a personal global AGENTS.md and user-scope skills from its
-    # own home (~/.codex). Mirror the same source of truth there. `recursive =
-    # true` links each file individually so codex's own ~/.codex contents
-    # (auth.json, config.toml, sessions) are untouched.
+    # Codex reads a personal global AGENTS.md from its own home. A symlink is
+    # fine here - codex resolves AGENTS.md by path and follows the link
+    # (verified: the content lands in `codex debug prompt-input`).
     ".codex/AGENTS.md".source = ./AGENTS.md;
-    ".codex/skills" = {
-      source = ./skills;
-      recursive = true;
-    };
   };
+
+  # Codex discovers user skills from ~/.codex/skills/<name>/SKILL.md, but its
+  # scanner IGNORES a symlinked SKILL.md (verified with `codex debug
+  # prompt-input`: a real-file skill is discovered, an identical symlinked one
+  # is not) - and home.file only ever symlinks into the nix store, which is why
+  # skills there stayed invisible to codex. So materialize the managed skills as
+  # REAL, writable files, leaving codex's own `.system/` skills and any
+  # user-installed skills untouched. (Claude Code and the AGENTS.md ecosystem
+  # follow symlinks fine, so ~/.claude/skills and ~/.agents/skills stay as
+  # home.file symlinks above.)
+  home.activation.codexSkills = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    codexSkills="${config.home.homeDirectory}/.codex/skills"
+    run mkdir -p "$codexSkills"
+    for src in ${./skills}/*/; do
+      name="$(basename "$src")"
+      run rm -rf "$codexSkills/$name"
+      run cp -rL "$src" "$codexSkills/$name"
+      run chmod -R u+w "$codexSkills/$name"
+    done
+    run cp -fL ${./skills}/README.md "$codexSkills/README.md"
+    run chmod u+w "$codexSkills/README.md"
+  '';
 }
