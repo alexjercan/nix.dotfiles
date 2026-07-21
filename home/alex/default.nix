@@ -173,7 +173,7 @@ in {
 
     settings = {
       host = "127.0.0.1";
-      port = 8001;
+      port = 8000;
       log_level = "INFO";
 
       # Agent: the orchestrator chat. Codex app-server backend by default,
@@ -184,11 +184,9 @@ in {
       agent_auth_mode = "chatgpt";
     };
 
-    # Separate state dir from the dev instance (which uses the default
-    # ~/.local/state/scufris on port 8000), so the always-on service and a
-    # local `scufris serve` never stomp each other's settings/agents/projects.
-    stateDir = "${config.home.homeDirectory}/.local/state/scufris-service";
-
+    # State is shared with local dev (default ~/.local/state/scufris); dev runs
+    # on a different port (SCUFRIS_PORT=7000 in the repo .env) so only the port
+    # differs, not the state.
     # Secrets (e.g. SCUFRIS_OPENAI_API_KEY for api_key auth) load from here at
     # service start, kept out of the nix store.
     environmentFile = "${config.home.homeDirectory}/.config/scufris/env";
