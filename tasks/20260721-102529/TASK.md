@@ -1,6 +1,6 @@
 # deploy the agents skills to codex too (~/.agents/skills)
 
-- STATUS: IN_PROGRESS
+- STATUS: CLOSED
 - PRIORITY: 60
 - TAGS: feature
 
