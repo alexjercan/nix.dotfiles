@@ -17,6 +17,10 @@ in {
       value = inputs.home-manager.lib.homeManagerConfiguration {
         pkgs = import inputs.nixpkgs {
           system = "x86_64-linux";
+          # pkgs is passed to home-manager explicitly, so the in-module
+          # `nixpkgs.config.allowUnfree` is ignored - set it here. Needed for the
+          # scufris agent binaries (codex, claude-code) on the service PATH.
+          config.allowUnfree = true;
           overlays = [
             inputs.tatr.overlays.default
             inputs.today.overlays.default

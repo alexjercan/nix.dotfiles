@@ -164,38 +164,33 @@ in {
     ];
   };
 
+  # scufris is now the local web-dashboard server (replaces the old bot). Config
+  # is a flat attrset mapping to SCUFRIS_ env vars (scufris/config.py). The built
+  # dashboard is served from the packaged web derivation via SCUFRIS_WEB_DIST
+  # (wired automatically by the module).
   programs.scufris = {
     enable = true;
 
     settings = {
-      user.username = "alex";
-      user.timezone = "Europe/Bucharest";
-      user.identity.telegram = "8231376426";
-      user.identity.cli = "alex";
-      user.journal.den_path = "~/personal/the-den/";
+      host = "127.0.0.1";
+      port = 8000;
+      log_level = "INFO";
 
-      telegram.allowed_user_ids = [8231376426];
-
-      ollama.model = "qwen3:latest";
-      ollama.base_url = "http://localhost:11434";
-      ollama.temperature = 0.7;
-      ollama.reasoning = true;
-
-      history.max_per_user = 20;
-
-      server.bind = "127.0.0.1";
-      server.port = 8765;
-      server.log_level = "INFO";
-      server.shutdown_grace = 5;
-
-      client.server_url = "http://127.0.0.1:8765";
-      client.full_thinking = true;
+      # Agent: the orchestrator chat. Codex app-server backend by default,
+      # authenticated with a ChatGPT subscription (`scufris login` / `codex login`).
+      agent_enabled = true;
+      agent_backend = "app_server";
+      agent_model = "gpt-5.5";
+      agent_auth_mode = "chatgpt";
     };
 
-    server.enable = true;
-    bot.enable = true;
-
+    # Secrets (e.g. SCUFRIS_OPENAI_API_KEY for api_key auth) load from here at
+    # service start, kept out of the nix store.
     environmentFile = "${config.home.homeDirectory}/.config/scufris/env";
+
+    # Agent backends are operator-installed binaries the server shells out to
+    # (never Python deps); git is needed for codex/claude in a project cwd.
+    path = [pkgs.codex pkgs.claude-code pkgs.git];
   };
 
   home.pointerCursor = {

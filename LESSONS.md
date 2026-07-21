@@ -73,6 +73,19 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `dry-run-in-a-scratch-repo` (x3, PROMOTED 2026-07-20 -> plan skill verify-first
   guidance): verify load-bearing git/nix semantics in a throwaway scratch repo
   before writing a step on them. 20260703-104437, 20260704-105059, 20260704-134842, 20260720-220130
+- `hm-external-pkgs-ignores-nixpkgs-config` (x1): when a home config is built
+  with an EXTERNALLY-imported `pkgs` (the flake-parts pattern here:
+  `homeManagerConfiguration { pkgs = import nixpkgs {...}; }`), the in-module
+  `nixpkgs.config.allowUnfree`/overlays are IGNORED - set them on that external
+  `import nixpkgs {...}` (flake/home-configurations.nix). Symptom: an unfree pkg
+  (codex, claude-code) errors despite `nixpkgs.config.allowUnfree = true` in the
+  user module. 20260721-140158.
+- `path-input-copies-untracked-tree` (x1): a `path:/abs/dir` flake input copies
+  the ENTIRE directory (no gitignore filter) - node_modules/.venv/.git all land
+  in the store (231M for scufris) and re-copy on every content change. Use
+  `git+file://<dir>?ref=<branch>` for a git-filtered reproducible input when copy
+  cost matters; `path:` only when reading the live working tree is the point.
+  20260721-140158.
 
 ## Pending promotions (3+ occurrences, user decides)
 
