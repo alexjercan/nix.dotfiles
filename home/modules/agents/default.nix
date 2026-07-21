@@ -41,5 +41,15 @@
       source = ./skills;
       recursive = true;
     };
+
+    # Codex also reads a personal global AGENTS.md and user-scope skills from its
+    # own home (~/.codex). Mirror the same source of truth there. `recursive =
+    # true` links each file individually so codex's own ~/.codex contents
+    # (auth.json, config.toml, sessions) are untouched.
+    ".codex/AGENTS.md".source = ./AGENTS.md;
+    ".codex/skills" = {
+      source = ./skills;
+      recursive = true;
+    };
   };
 }
