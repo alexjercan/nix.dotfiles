@@ -51,12 +51,19 @@ Updated as tasks land (one line per land).
       landed 47dfb9b; 1 review round (out-of-context, APPROVE); recommends
       sops-nix + dedicated passwordless age key per machine (agenix a fair
       runner-up). No runtime change; flake check green.
-- [ ] 20260722-214112 (p40, nix.dotfiles) PoC: migrate scufris env to sops-nix (dummy secret)
-      user opted in at the PoC gate (2026-07-22); sops-nix chosen, dummy value only
+- [x] 20260722-214112 (p40, nix.dotfiles) PoC: migrate scufris env to sops-nix (dummy secret)
+      user opted in at the PoC gate (2026-07-22); sops-nix chosen, dummy value only.
+      landed 2004344; 1 review round (out-of-context, APPROVE). Wiring proven at
+      eval/build level (flake check, HM build, sops decrypt, After ordering);
+      live switch is the user's adoption step.
 
 ## Manual acceptance (batched for the user at Finish)
 
 - (pending) 20260722-113105: confirm the recommendation is sound and the
   tradeoff writeup covers the standalone-HM-on-Ubuntu constraint.
-- (pending) PoC gate: decide whether to migrate the scufris secret now as a
-  proof of concept, or defer.
+- (resolved) PoC gate: user opted IN (2026-07-22) - sops-nix PoC done with a
+  dummy value, landed 2004344.
+- (pending) 20260722-214112 adoption: run `home-manager switch`, swap the dummy
+  for the real value via `sops secrets/scufris.env`, and confirm scufris starts
+  and authenticates from the decrypted env file. (Live-system + secret step,
+  left to the user by design.)

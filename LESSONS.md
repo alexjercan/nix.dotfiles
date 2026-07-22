@@ -63,6 +63,10 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   the claim. 20260720-171836
 - `sprout-inherits-committed-head` (x1): a new worktree contains only what is
   committed on HEAD - commit the plan before sprouting. 20260704-134842
+- `inputs-self-needs-tracked-file` (x1): a `${inputs.self}/<path>` reference
+  resolves against the git tree, so a newly-created file is invisible to
+  `nix flake check`/build until `git add`ed - stage new referenced files before
+  the first eval. 20260722-214112
 - `build-just-the-package` (x2): verify a script module by nix-building only
   its package via the flake's nixpkgs, not a full home-manager rebuild.
   20260703-104437, 20260720-152433
