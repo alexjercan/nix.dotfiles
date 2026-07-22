@@ -1,8 +1,8 @@
 # Add secrets/README.md multi-machine key runbook
 
-- STATUS: OPEN
+- STATUS: IN_PROGRESS
 - PRIORITY: 40
-- TAGS: docs,nix,security
+- TAGS: docs, nix, security
 
 ## Story
 
@@ -16,10 +16,10 @@ could mislead someone into an unrecoverable state).
 
 ## Steps
 
-- [ ] Dry-run the full "add a machine" flow in a scratch dir: generate two age
+- [x] Dry-run the full "add a machine" flow in a scratch dir: generate two age
       keys, encrypt a dummy dotenv to key A, `sops updatekeys` to add key B, and
       confirm key B alone can decrypt. Capture the exact working commands.
-- [ ] Write `secrets/README.md`: per-machine-key model, onboarding a new machine
+- [x] Write `secrets/README.md`: per-machine-key model, onboarding a new machine
       (generate key, add recipient, `sops updatekeys`, pull + switch), the
       chicken-and-egg (a new key cannot self-bootstrap), key-loss / backup
       recipient advice, and revoking a machine. Use the verified commands and
