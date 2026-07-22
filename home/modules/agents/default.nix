@@ -71,7 +71,12 @@
       run cp -rL "$src" "$codexSkills/$name"
       run chmod -R u+w "$codexSkills/$name"
     done
-    run cp -fL ${./skills}/README.md "$codexSkills/README.md"
+    # rm before cp (as in the loop above): a leftover symlink from an earlier
+    # generation can point at the same store inode as the source (nix.optimise
+    # hardlinks identical files), and `cp` aborts with "are the same file"
+    # rather than overwriting. Removing first makes this idempotent.
+    run rm -f "$codexSkills/README.md"
+    run cp -L ${./skills}/README.md "$codexSkills/README.md"
     run chmod u+w "$codexSkills/README.md"
   '';
 }
