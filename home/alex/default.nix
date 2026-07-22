@@ -108,15 +108,15 @@ in {
 
     # Reference the secret as a subpath of the flake source (inputs.self), NOT a
     # `../../secrets` path literal - see LESSONS.md flake-path-literal-string-coercion.
-    secrets."SCUFRIS_OPENAI_API_KEY" = {
+    secrets."TELEGRAM_BOT_TOKEN" = {
       sopsFile = "${inputs.self}/secrets/scufris.env";
       format = "dotenv";
     };
 
     # Render the env file scufris reads via environmentFile. Extend this
-    # template as more SCUFRIS_ secrets are added.
+    # template as more secrets are added.
     templates."scufris.env".content = ''
-      SCUFRIS_OPENAI_API_KEY=${config.sops.placeholder."SCUFRIS_OPENAI_API_KEY"}
+      TELEGRAM_BOT_TOKEN=${config.sops.placeholder."TELEGRAM_BOT_TOKEN"}
     '';
   };
 
@@ -149,12 +149,11 @@ in {
     # State is shared with local dev (default ~/.local/state/scufris); dev runs
     # on a different port (SCUFRIS_PORT=7000 in the repo .env) so only the port
     # differs, not the state.
-    # Secrets load from the sops-rendered env template above, decrypted at
-    # activation into $XDG_RUNTIME_DIR (never in the nix store). PoC: the value
-    # is a DUMMY placeholder - swap in the real key with
-    # `sops secrets/scufris.env` and `home-manager switch`.
-    # Fallback until switched: the old plaintext file was
-    # "${config.home.homeDirectory}/.config/scufris/env".
+    # Secrets load from the sops-rendered env template above (TELEGRAM_BOT_TOKEN),
+    # decrypted at activation into $XDG_RUNTIME_DIR (never in the nix store).
+    # Edit the real value with `sops secrets/scufris.env`; see secrets/README.md.
+    # Fallback until the first `home-manager switch` onto this wiring: the old
+    # plaintext file "${config.home.homeDirectory}/.config/scufris/env".
     environmentFile = config.sops.templates."scufris.env".path;
 
     # Agent backends are operator-installed binaries the server shells out to

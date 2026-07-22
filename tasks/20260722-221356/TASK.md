@@ -1,8 +1,8 @@
 # Replace PoC dummy with real TELEGRAM_BOT_TOKEN sops secret
 
-- STATUS: OPEN
+- STATUS: IN_PROGRESS
 - PRIORITY: 45
-- TAGS: nix,security
+- TAGS: nix, security
 
 ## Story
 
@@ -16,10 +16,10 @@ secret entering (encrypted) git history (2026-07-22).
 
 ## Steps
 
-- [ ] Re-encrypt `secrets/scufris.env` from the real `~/.config/scufris/env`
+- [x] Re-encrypt `secrets/scufris.env` from the real `~/.config/scufris/env`
       (single var `TELEGRAM_BOT_TOKEN`) as a sops dotenv; never print the
       plaintext token; confirm the committed file is ENC[...] before staging.
-- [ ] Update `home/alex/default.nix`: rename the sops secret and template
+- [x] Update `home/alex/default.nix`: rename the sops secret and template
       variable from `SCUFRIS_OPENAI_API_KEY` to `TELEGRAM_BOT_TOKEN` (secret
       name, `sops.placeholder`, and the template line).
 
