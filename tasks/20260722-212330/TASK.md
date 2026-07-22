@@ -1,6 +1,6 @@
 # Goal: choose and document an encrypted-in-repo secrets mechanism
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 0
 - TAGS: goal
 

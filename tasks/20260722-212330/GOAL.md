@@ -63,8 +63,8 @@ Updated as tasks land (one line per land).
 
 ## Manual acceptance (batched for the user at Finish)
 
-- (pending) 20260722-113105: confirm the recommendation is sound and the
-  tradeoff writeup covers the standalone-HM-on-Ubuntu constraint.
+- (accepted 2026-07-22) 20260722-113105: user confirmed the sops-nix
+  recommendation is sound and the tradeoff writeup is sufficient.
 - (resolved) PoC gate: user opted IN (2026-07-22) - sops-nix PoC done with a
   dummy value, landed 2004344.
 - (pending) 20260722-214112 adoption: run `home-manager switch`, swap the dummy
