@@ -47,7 +47,10 @@ committed on master.
 
 Updated as tasks land (one line per land).
 
-- [ ] 20260722-113105 (p40, nix.dotfiles) Investigate sops-nix vs agenix, write recommendation
+- [x] 20260722-113105 (p40, nix.dotfiles) Investigate sops-nix vs agenix, write recommendation
+      landed 47dfb9b; 1 review round (out-of-context, APPROVE); recommends
+      sops-nix + dedicated passwordless age key per machine (agenix a fair
+      runner-up). No runtime change; flake check green.
 - [ ] (conditional) PoC: migrate scufris env to the chosen tool - created only if the user opts in at the PoC gate
 
 ## Manual acceptance (batched for the user at Finish)

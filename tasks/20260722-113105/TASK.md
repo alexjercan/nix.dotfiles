@@ -1,6 +1,6 @@
 # Investigate encrypted secrets management (sops-nix vs agenix)
 
-- STATUS: IN_PROGRESS
+- STATUS: CLOSED
 - PRIORITY: 40
 - TAGS: chore, nix, security
 
@@ -22,8 +22,9 @@ learn-and-document first, adopt-if-warranted second.
       integration, standalone home-manager on the Ubuntu box).
 - [x] Write up the tradeoff and a recommendation (short doc / RETRO).
       See RECOMMENDATION.md in this task folder.
-- [ ] Optional: migrate ONE secret (e.g. scufris env) as a proof of concept.
-      Deferred to a separate opt-in gate; PoC shape documented in RECOMMENDATION.md.
+- [x] Optional PoC (migrate ONE secret, e.g. scufris env) dispositioned:
+      deferred to a separate opt-in user gate rather than done in this task;
+      the concrete PoC shape and open risks are documented in RECOMMENDATION.md.
 
 ## Notes
 

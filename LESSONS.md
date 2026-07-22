@@ -20,6 +20,10 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   of its && chain - commit in a separate call gated on success. 20260720-152438
 - `tick-against-the-literal-step` (x2): re-read a step's exact text before
   ticking it; intent-from-memory has ticked undelivered clauses twice. 20260720-152438, 20260720-152508
+- `optional-step-as-decision` (x1) -> plan skill: phrase a conditional step as a
+  checkable DECISION ("decide X: do / defer with reason"), not "Optional: do X" -
+  a deferred "Optional: do X" leaves a CLOSED task with an unchecked Step
+  (`closed-unchecked`) and no honest tick. 20260722-113105
 - `read-the-callee-not-the-name` (x1): find_current_tasks_dir returns project
   dirs, not tasks dirs - a misleading name cost a silent no-op walk. 20260720-152503
 - `validate-the-exact-parsed-token` (x1): a trimmed re-validation of an
