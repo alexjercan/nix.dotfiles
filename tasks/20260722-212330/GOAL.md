@@ -51,7 +51,8 @@ Updated as tasks land (one line per land).
       landed 47dfb9b; 1 review round (out-of-context, APPROVE); recommends
       sops-nix + dedicated passwordless age key per machine (agenix a fair
       runner-up). No runtime change; flake check green.
-- [ ] (conditional) PoC: migrate scufris env to the chosen tool - created only if the user opts in at the PoC gate
+- [ ] 20260722-214112 (p40, nix.dotfiles) PoC: migrate scufris env to sops-nix (dummy secret)
+      user opted in at the PoC gate (2026-07-22); sops-nix chosen, dummy value only
 
 ## Manual acceptance (batched for the user at Finish)
 
