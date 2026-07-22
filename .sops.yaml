@@ -1,0 +1,13 @@
+# sops recipient policy. Each machine has its OWN dedicated passwordless age
+# key (~/.config/sops/age/keys.txt, generated with `age-keygen`, kept out of
+# the repo and the Nix store). Add a machine by generating its key, adding its
+# public key as an anchor below, listing it in the relevant creation rule, and
+# running `sops updatekeys secrets/<file>`.
+keys:
+  # alex@nixos (dedicated PoC age key, 2026-07-22)
+  - &alex_nixos age1mlm56pcyksalqcgdp7gja5wzs28fp2jz8cdp8z4d3zdj2dfv2cqsca4u2g
+creation_rules:
+  - path_regex: secrets/[^/]+\.env$
+    key_groups:
+      - age:
+          - *alex_nixos

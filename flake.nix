@@ -27,6 +27,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     tatr = {
       url = "github:alexjercan/tatr";
       inputs.nixpkgs.follows = "nixpkgs";

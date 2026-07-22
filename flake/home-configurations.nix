@@ -36,6 +36,7 @@ in {
         modules = [
           "${homeDir}/${userName}"
           inputs.nix-index-database.homeModules.default
+          inputs.sops-nix.homeManagerModules.sops
         ];
       };
     })

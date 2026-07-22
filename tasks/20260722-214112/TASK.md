@@ -1,8 +1,8 @@
 # PoC: migrate scufris env to sops-nix (dummy secret)
 
-- STATUS: OPEN
+- STATUS: IN_PROGRESS
 - PRIORITY: 40
-- TAGS: chore,nix,security
+- TAGS: chore, nix, security
 
 ## Story
 
@@ -17,18 +17,18 @@ here.
 
 ## Steps
 
-- [ ] Add the `sops-nix` flake input (inputs.nixpkgs.follows) to `flake.nix`
+- [x] Add the `sops-nix` flake input (inputs.nixpkgs.follows) to `flake.nix`
       and its home-manager module to the modules list in
       `flake/home-configurations.nix`.
-- [ ] Generate a dedicated passwordless age key on this machine at
+- [x] Generate a dedicated passwordless age key on this machine at
       `~/.config/sops/age/keys.txt` (out of the repo and the store), reusing it
       if it already exists; record its age PUBLIC key.
-- [ ] Add `.sops.yaml` at the repo root with a creation rule for
+- [x] Add `.sops.yaml` at the repo root with a creation rule for
       `secrets/scufris.env` listing that age public key as the recipient.
-- [ ] Encrypt `secrets/scufris.env` as a sops DOTENV file whose only value is a
+- [x] Encrypt `secrets/scufris.env` as a sops DOTENV file whose only value is a
       DUMMY `SCUFRIS_OPENAI_API_KEY=sops-poc-placeholder`; commit the ciphertext
       (values encrypted, keys/structure readable).
-- [ ] Wire `home/alex/default.nix`: set `sops.age.keyFile`, declare the dotenv
+- [x] Wire `home/alex/default.nix`: set `sops.age.keyFile`, declare the dotenv
       secret, order the scufris systemd USER service
       `Unit.After = [ "sops-nix.service" ]` (determine its exact unit name), and
       repoint `programs.scufris.environmentFile` at the decrypted secret path.
