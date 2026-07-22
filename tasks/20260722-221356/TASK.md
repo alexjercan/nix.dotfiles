@@ -1,6 +1,6 @@
 # Replace PoC dummy with real TELEGRAM_BOT_TOKEN sops secret
 
-- STATUS: IN_PROGRESS
+- STATUS: CLOSED
 - PRIORITY: 45
 - TAGS: nix, security
 

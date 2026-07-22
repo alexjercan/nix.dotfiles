@@ -63,6 +63,10 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   the claim. 20260720-171836
 - `sprout-inherits-committed-head` (x1): a new worktree contains only what is
   committed on HEAD - commit the plan before sprouting. 20260704-134842
+- `read-secret-keys-not-assume` (x1): derive a secret's variable NAMES from the
+  actual secret file's keys (names only), not from a nearby code comment/config -
+  a dummy PoC used `SCUFRIS_OPENAI_API_KEY` from a comment when the real env held
+  only `TELEGRAM_BOT_TOKEN`. 20260722-221356
 - `inputs-self-needs-tracked-file` (x1): a `${inputs.self}/<path>` reference
   resolves against the git tree, so a newly-created file is invisible to
   `nix flake check`/build until `git add`ed - stage new referenced files before
