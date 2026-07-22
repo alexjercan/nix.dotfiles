@@ -1,8 +1,8 @@
 # Investigate encrypted secrets management (sops-nix vs agenix)
 
-- STATUS: OPEN
+- STATUS: IN_PROGRESS
 - PRIORITY: 40
-- TAGS: chore,nix,security
+- TAGS: chore, nix, security
 
 ## Story
 
@@ -18,10 +18,12 @@ learn-and-document first, adopt-if-warranted second.
 
 ## Steps
 
-- [ ] Compare sops-nix vs agenix for this repo (age keys, host keys, home-manager
+- [x] Compare sops-nix vs agenix for this repo (age keys, host keys, home-manager
       integration, standalone home-manager on the Ubuntu box).
-- [ ] Write up the tradeoff and a recommendation (short doc / RETRO).
+- [x] Write up the tradeoff and a recommendation (short doc / RETRO).
+      See RECOMMENDATION.md in this task folder.
 - [ ] Optional: migrate ONE secret (e.g. scufris env) as a proof of concept.
+      Deferred to a separate opt-in gate; PoC shape documented in RECOMMENDATION.md.
 
 ## Notes
 
