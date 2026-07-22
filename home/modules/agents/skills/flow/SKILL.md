@@ -35,11 +35,22 @@ the handoffs, and when to stop and ask the user.
    OPEN for the whole run and is closed only at Finish. Commit it before
    planning so the pin survives a crash.
 
-2. **Plan.** Run the plan skill: read the code, break the goal into tatr
-   tasks with Steps checklists, priorities and dependencies. Append the
+2. **Plan, then GATE.** Run the plan skill: read the code, break the goal into
+   tatr tasks with Steps checklists, priorities and dependencies. Append the
    planned tasks to the umbrella's `GOAL.md` Tasks list (one unchecked line
-   each, in intended order), so the goal artifact holds the live queue. Report
-   the task list to the user before starting to build, as a checkpoint.
+   each, in intended order), so the goal artifact holds the live queue.
+
+   Then STOP at the gate. Present the assembled package - the `GOAL.md`
+   done-definition and the ordered task list, plus any DECISION.md records the
+   planning made (see the plan skill) - and get an explicit "yes, build this"
+   from the user before any worktree is cut. This is a HARD gate, not a
+   report-and-continue checkpoint: no sprout, no branch, no code exists until
+   the user confirms, because the plan is the cheapest place to catch a goal
+   that was misunderstood - a whole cycle spent building the wrong thing is the
+   expensive one. If the user wants changes, loop back into planning and
+   re-present the package. The only carve-out is the same one every skill has:
+   a genuinely trivial, single-task goal the user already spelled out in full
+   may proceed on their original go-ahead - when in doubt, gate.
 
 3. **Cycle per task.** Pick the highest-priority OPEN task whose dependencies
    are CLOSED (the priority-0 `goal` umbrella is not a work task - skip it
@@ -188,6 +199,16 @@ Updated as tasks land (one line per land, like a spike's Fix record).
 - [x] <task-id> (p<priority>, <repo>) <short title>
       landed <commit>; <n> review rounds; <anything notable>
 
+## Decisions (load-bearing, architectural)
+
+Index of the DECISION.md records this goal produced (see the plan skill); each
+line points at the task folder holding the full record. A superseded decision
+keeps its line and gains the pointer to what replaced it - the index is a map,
+not a rewrite of history.
+
+- <task-id> DECISION.md: <one-line decision> (ACCEPTED)
+- <task-id> DECISION.md: <one-line decision> (SUPERSEDED by <task-id>)
+
 ## Manual acceptance (batched for the user at Finish)
 
 Accumulates `manual:` DoD items as tasks land; presented at Finish.
@@ -212,13 +233,19 @@ regression pin. A reproduction that CANNOT be made to fail is a result too:
 it falsifies the report - convert the rig into a pin of the non-behavior and
 close with the evidence.
 
-**Features: spike when fuzzy, then plan, build, verify end to end.** If the
-direction is undefined, `/spike` first; then `/plan` into tasks with Steps
-and a Definition of Done; then `/work` each task with tests written
-alongside - including at least one harness-level test that exercises the
-feature the way a user would, not only unit tests of its parts; then
-`/review` until APPROVE and `/compound`. A feature without a harness test
-has only proven its pieces, not itself.
+**Features: spike when fuzzy, then plan, build test-first, verify end to end.**
+If the direction is undefined, `/spike` first; then `/plan` into tasks with
+Steps and a Definition of Done; then `/work` each task test-FIRST - for every
+DoD item with a `test:` or `cmd:` proof, write that check and watch it fail for
+the right reason before the implementation, then make it pass (red -> green ->
+refactor). Prefer the example/integration altitude for that first test - a
+small runnable example or harness-level test that drives the feature the way a
+user would, isolated to the one system under test (in a game, the small visual
+example that exercises just this mechanism) - dropping to a unit test only when
+the seam is genuinely unit-shaped. Then `/review` until APPROVE and
+`/compound`. A feature without a harness/example test has only proven its
+pieces, not itself; a test written after the code that never failed has proven
+nothing.
 
 ## When to Stop and Ask
 
@@ -280,9 +307,13 @@ into the ledger and clears the scratch drawer - flow just keeps the wheel
 turning until the goal is done. Spike is
 the optional pre-step: when the goal handed to flow is undefined, spike it
 first, then start the flow from its SPIKE.md and the direction-level
-tasks it seeded (flow's own `/plan` phase breaks those into steps). Every task
-in the cycle starts by sprouting a worktree and ends back on the default
-branch; the one thing flow does that the individual skills do not is land an
-APPROVEd branch PR-style - update it from the default branch first, then, once
-it is up to date, `sprout land` it (one squash commit on the default branch,
-worktree and branch removed) - because the next task needs to build on it.
+tasks it seeded (flow's own `/plan` phase breaks those into steps). Two things
+flow does that the individual skills do not: it holds a HARD gate after
+planning - the whole task list plus GOAL.md done-definition go to the user for
+an explicit "build this" before any worktree is cut (step 2), so a
+misunderstood goal is caught while only the plan exists; and every task in the
+cycle starts by sprouting a worktree and ends back on the default branch, with
+flow landing the APPROVEd branch PR-style - update it from the default branch
+first, then, once it is up to date, `sprout land` it (one squash commit on the
+default branch, worktree and branch removed) - because the next task needs to
+build on it.

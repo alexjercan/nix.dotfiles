@@ -52,12 +52,26 @@ that appears to work.
    actually looks like, update the Steps to match reality first.
 
 4. **Implement step by step.** Work through the Steps top to bottom, ticking
-   each checkbox (`- [x]`) as it lands. Write tests alongside the code, not
-   as an afterthought:
-   - unit tests for new logic with meaningful branches or edge cases;
-   - integration or end-to-end tests that exercise the feature the way a user
-     would (preferred over isolated unit tests where practical);
-   - a small runnable example when the component warrants one.
+   each checkbox (`- [x]`) as it lands.
+
+   Write the test FIRST, not alongside and not after. For every DoD item whose
+   proof is a `test:` or `cmd:` check, encode that criterion as the test, run
+   it, and watch it fail for the right reason BEFORE writing the
+   implementation - a test that passes before the code exists is testing
+   nothing. Then write the minimal code to make it pass, and refactor with it
+   green (red -> green -> refactor). Prefer the example/integration altitude for
+   that first test:
+   - a small runnable example or harness-level test that drives the feature the
+     way a user would, isolated to the one system under test - in a game, the
+     small visual example that exercises just this mechanism in isolation;
+   - integration or end-to-end tests over isolated unit tests where practical;
+   - drop to a unit test only when the seam is genuinely unit-shaped (a pure
+     function, a tricky branch), and add unit tests for edge cases the
+     example does not reach.
+
+   A `manual:` proof cannot be written test-first and does not pretend to be:
+   it stays a human check, reported as pending for the reviewer to list and the
+   user to accept (step 5).
 
    For a BUG FIX, reproduce before you fix: the first artifact is a failing
    test that replicates the reported behavior, at the highest fidelity the
@@ -77,9 +91,16 @@ that appears to work.
    Documentation is part of the change, not a follow-up: a change is not
    done until every doc surface it invalidates is updated in the same task.
    When the change warrants NEW written documentation (new component,
-   changed behavior, design decision worth explaining), write it as
-   `tasks/<id>/NOTES.md` next to TASK.md, or update the relevant reference
-   doc in `docs/`. Do not scatter README fragments around the tree.
+   changed behavior), write it as `tasks/<id>/NOTES.md` next to TASK.md, or
+   update the relevant reference doc in `docs/`. Do not scatter README
+   fragments around the tree. When implementation forces a load-bearing
+   architectural choice the plan did not already record - a mechanism, a
+   layering, a dependency a cold reader would need the *why* of - write a
+   `tasks/<id>/DECISION.md` for it (plan skill format, supersede-by-link if it
+   changes an earlier one) and, under `/flow`, index it in the goal's
+   `GOAL.md`. DECISION.md is the durable decision record; NOTES.md is design
+   and fix notes - keep the load-bearing choice in the former so it stays
+   findable.
 
 5. **Verify.** Run the project's full check suite: tests, linter, formatter,
    type checker, build - whatever the project defines. Then run each DoD

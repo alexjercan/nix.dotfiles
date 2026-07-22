@@ -132,6 +132,14 @@ the detail.
   spike.
 - Do not pad. A small question gets a short doc. The value is in the decision
   and its reasons, not in length.
+- A spike is not a decision record. `SPIKE.md` reduces uncertainty about *what
+  to build* and only fires when there is something to explore; a `DECISION.md`
+  (plan skill) records *a load-bearing choice that was made* and its rationale,
+  and is written whether or not a spike happened. When a spike concludes a
+  load-bearing architectural choice, the seeded task's `DECISION.md` cites this
+  `SPIKE.md` as its context rather than repeating it - do not force a spike
+  just to justify a decision, and do not skip the decision record just because a
+  spike exists.
 
 ## Relationship to the Other Skills
 

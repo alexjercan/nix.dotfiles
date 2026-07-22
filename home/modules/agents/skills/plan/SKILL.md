@@ -138,6 +138,74 @@ not block landing but are batched to the user (see the flow skill's Finish
 gate). This makes unverifiable criteria visible at plan time instead of
 letting a green harness proxy-verify a dead feature.
 
+Each DoD item's proof is ALSO the test-first target for `/work`: the `test:`
+and `cmd:` proofs are written before the implementation and watched to fail
+(see the work skill), so phrase them so the implementer can encode them as the
+first artifact, not reverse-engineer them from finished code.
+
+## Recording a Decision (DECISION.md)
+
+Planning is where a load-bearing architectural choice usually gets made -
+which mechanism, which layering, which dependency. When that choice is
+non-trivial and a cold reader would need to know *why* (not just *what*),
+record it as a `DECISION.md`, so the reasoning survives past the chat and the
+next session does not re-litigate it. This is a decision RECORD, and it is
+distinct from a spike:
+
+- A `/spike` reduces uncertainty about *what to build* when the direction is
+  fuzzy; its output is a chosen direction (`SPIKE.md`). A spike is optional and
+  only fires when there is something genuinely to explore.
+- A `DECISION.md` records *a choice that was made* and its rationale, whether or
+  not a spike happened. A dead-obvious choice with no alternatives worth
+  weighing still gets a record if it is load-bearing; a choice reached by a
+  spike can cite that `SPIKE.md` as its context rather than repeat it.
+
+Do NOT force a spike just to justify a decision - that is exploration theater
+for a choice you never actually explored. Write the record directly.
+
+**Where it lives.** In the folder of the task that owns the decision:
+`tasks/<id>/DECISION.md`. For a choice that spans the whole goal rather than one
+task, put it in the umbrella task's folder next to `GOAL.md`. Under `/flow`,
+add a one-line pointer to the goal's `GOAL.md` Decisions index (see the flow
+skill) so the decision is findable without grepping every task folder.
+
+**Supersede, do not rewrite.** The `tasks/` tree is append-only history (see
+the flow and work skills), so a decision that later changes is NOT edited in
+place. Write a NEW `DECISION.md` in the task that changes it, with a
+`Supersedes: tasks/<id>/DECISION.md` header pointing back; and add the matching
+`SUPERSEDED by tasks/<id>/DECISION.md` line to the old record's STATUS - that
+one-line lifecycle annotation is the only edit the old file takes, the same way
+the lessons ledger annotates a RETIRED entry rather than deleting it. A reader
+landing on either record can then walk to the current one.
+
+```markdown
+# Decision: Rate-limit with a token bucket, not a sliding window
+
+- DATE: 20260704-131500
+- STATUS: ACCEPTED   # ACCEPTED | SUPERSEDED by tasks/<id>/DECISION.md
+- TASK: 20260704-131500
+- TAGS: decision, api, ratelimit
+- Supersedes: tasks/<id>/DECISION.md   # omit unless this replaces one
+
+## Context
+
+The forces that make this a real choice - constraints, requirements, what
+already exists. One paragraph; cite a `SPIKE.md` here if a spike fed it.
+
+## Decision
+
+The choice, in active voice.
+
+## Alternatives considered
+
+- **Sliding window** - how it would work here; why rejected.
+- **Do nothing** - what deferring costs.
+
+## Consequences
+
+What gets easier AND what gets harder as a result - the honest downsides too.
+```
+
 ## Guidelines for Good Steps
 
 - Each step is a concrete, verifiable action, ideally naming the file(s) it

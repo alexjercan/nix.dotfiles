@@ -66,7 +66,11 @@ fixing.
      invariant is enforced, the invariant gets re-pinned on the new
      mechanism, not the old assertion massaged until it passes.
    - Design: consistency with the repo's conventions, needless complexity,
-     missed reuse.
+     missed reuse. If the diff makes a load-bearing architectural choice a cold
+     reader would need the *why* of, check it has a `DECISION.md` (plan skill)
+     - and if it changes an earlier decision, that the supersede link is
+     present on both records. A missing record for a genuinely load-bearing
+     choice is a MINOR finding, not a BLOCKER.
    - Docs: behavior changes worth documenting are covered in the task's
      `NOTES.md` or the relevant reference doc in `docs/`, and the
      doc-surface sweep ran (work skill, verify step): spot-check it by
