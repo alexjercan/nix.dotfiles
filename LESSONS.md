@@ -80,7 +80,7 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   ticks committed from the wrong repo). 20260720-152451, 20260720-171902, 20260720-171843, 20260720-220130
 - `dry-run-in-a-scratch-repo` (x3, PROMOTED 2026-07-20 -> plan skill verify-first
   guidance): verify load-bearing git/nix semantics in a throwaway scratch repo
-  before writing a step on them. 20260703-104437, 20260704-105059, 20260704-134842, 20260720-220130
+  before writing a step on them. 20260703-104437, 20260704-105059, 20260704-134842, 20260720-220130, 20260722-220536
 - `hm-external-pkgs-ignores-nixpkgs-config` (x1): when a home config is built
   with an EXTERNALLY-imported `pkgs` (the flake-parts pattern here:
   `homeManagerConfiguration { pkgs = import nixpkgs {...}; }`), the in-module

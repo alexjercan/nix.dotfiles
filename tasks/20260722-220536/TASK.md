@@ -1,6 +1,6 @@
 # Add secrets/README.md multi-machine key runbook
 
-- STATUS: IN_PROGRESS
+- STATUS: CLOSED
 - PRIORITY: 40
 - TAGS: docs, nix, security
 

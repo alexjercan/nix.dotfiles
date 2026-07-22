@@ -56,8 +56,10 @@ Updated as tasks land (one line per land).
       landed 2004344; 1 review round (out-of-context, APPROVE). Wiring proven at
       eval/build level (flake check, HM build, sops decrypt, After ordering);
       live switch is the user's adoption step.
-- [ ] 20260722-220536 (p40, nix.dotfiles) Add secrets/README.md multi-machine key runbook
+- [x] 20260722-220536 (p40, nix.dotfiles) Add secrets/README.md multi-machine key runbook
       user request mid-flow (2026-07-22): document how to decrypt on a new machine.
+      landed 4d0a9b5; 1 review round (out-of-context, APPROVE). Rekey flow
+      dry-run-verified in a scratch dir before documenting.
 
 ## Manual acceptance (batched for the user at Finish)
 
