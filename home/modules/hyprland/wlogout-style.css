@@ -27,25 +27,25 @@ button:hover {
 }
 
 #lock {
-  background-image: image(url("~/.local/share/wlogout-icons/lock.png"));
+  background-image: image(url("@icondir@/lock.png"));
 }
 
 #logout {
-  background-image: image(url("~/.local/share/wlogout-icons/logout.png"));
+  background-image: image(url("@icondir@/logout.png"));
 }
 
 #suspend {
-  background-image: image(url("~/.local/share/wlogout-icons/suspend.png"));
+  background-image: image(url("@icondir@/suspend.png"));
 }
 
 #hibernate {
-  background-image: image(url("~/.local/share/wlogout-icons/hibernate.png"));
+  background-image: image(url("@icondir@/hibernate.png"));
 }
 
 #shutdown {
-  background-image: image(url("~/.local/share/wlogout-icons/shutdown.png"));
+  background-image: image(url("@icondir@/shutdown.png"));
 }
 
 #reboot {
-  background-image: image(url("~/.local/share/wlogout-icons/reboot.png"));
+  background-image: image(url("@icondir@/reboot.png"));
 }

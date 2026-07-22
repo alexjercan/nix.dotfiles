@@ -16,7 +16,9 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "nixos"; # Define your hostname.
+  # networking.hostName is set by the flake from the host directory name
+  # (see flake/nixos-configurations.nix), so it is not defined here.
+  # networking.hostName = "nixos"; # Define your hostname.
   networking.nameservers = ["1.1.1.1" "9.9.9.9"];
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 

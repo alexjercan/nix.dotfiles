@@ -11,8 +11,13 @@ in {
   home.username = "alex";
   home.homeDirectory = "/home/alex";
 
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
+  # NOTE: allowUnfree is intentionally NOT set here. This home config is built
+  # with an externally-imported pkgs (flake/home-configurations.nix does
+  # `import nixpkgs { config.allowUnfree = true; ... }`), so an in-module
+  # `nixpkgs.config` is ignored. The effective setting lives on that import;
+  # setting it here would be inert. See LESSONS.md
+  # `hm-external-pkgs-ignores-nixpkgs-config`.
+  # nixpkgs.config.allowUnfree = true;
 
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release

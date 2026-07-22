@@ -55,8 +55,15 @@
       }
     ];
 
-    # FIXME: currently the images are not working
-    # style = ./wlogout-style.css;
+    # GTK CSS (what wlogout parses) does NOT expand `~` in url(), so the old
+    # `url("~/.local/share/...")` icon paths never resolved (the "images not
+    # working" FIXME). Generate the stylesheet with the icons' absolute nix
+    # store path substituted for the `@icondir@` sentinel instead - always
+    # valid and independent of the ~/.local/share deployment.
+    style = pkgs.writeText "wlogout-style.css" (
+      builtins.replaceStrings ["@icondir@"] ["${./wlogout-icons}"]
+      (builtins.readFile ./wlogout-style.css)
+    );
   };
 
   wayland.windowManager.hyprland = {
@@ -104,9 +111,6 @@
           passes = 2;
           new_optimizations = true;
         };
-
-        shadow = {
-        };
       };
 
       animations = {
@@ -136,10 +140,6 @@
       bindm = [
         "$mod, mouse:272, movewindow"
         "$mod, mouse:273, resizewindow"
-      ];
-
-      bindn = [
-        "CAPS, less, pass, ^discord$"
       ];
 
       bind =
@@ -178,7 +178,19 @@
           ", PRINT, exec, hyprshot -m output --output-folder ~/Pictures/Screenshots"
           "$mod SHIFT, S, exec, hyprshot -m region --output-folder ~/Pictures/Screenshots"
 
-          ",Caps_Lock,pass,class:^(discord)$"
+          # Push-to-talk: relay Caps_Lock to Discord's window so its in-app PTT
+          # keybind fires (Wayland blocks the global keygrab Discord would
+          # normally use). This has never been confirmed working; when testing,
+          # check in order:
+          #   1. Discord's real window class matches `class:^(discord)$`
+          #      (`hyprctl clients | grep -i class`; may be `Discord` or an
+          #      XWayland class - the regex is case-sensitive).
+          #   2. Discord's own PTT keybind is set to this same key.
+          #   3. Caps_Lock is a LOCKING key, so it delivers unclean
+          #      press/release - neutralize it first via
+          #      `input { kb_options = "caps:none"; }` OR (more reliable) bind a
+          #      spare non-lock key instead of Caps_Lock.
+          ", Caps_Lock, pass, class:^(discord)$"
         ]
         ++ (
           builtins.concatLists (builtins.genList (

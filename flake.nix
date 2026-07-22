@@ -13,6 +13,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Deliberately NOT `follows`-ing nixpkgs: nixvim is tested against its own
+    # pinned nixpkgs revision, and upstream explicitly recommends against
+    # `inputs.nixpkgs.follows` ("you opt out of guarantees provided by these
+    # tests"). Leaving it un-followed pulls a second nixpkgs into the eval but
+    # keeps nixvim on the revision it was validated against.
     nixvim = {
       url = "github:nix-community/nixvim";
     };
@@ -34,8 +39,6 @@
       url = "github:alexjercan/macros.nvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # The local scufris is now the source of truth (replaces the old
-    # github:alexjercan/scufris-bot); published at github:alexjercan/scufris.
     scufris = {
       url = "github:alexjercan/scufris";
       inputs.nixpkgs.follows = "nixpkgs";
