@@ -10,8 +10,6 @@
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
-    # Optional PostgreSQL + Keycloak testing stack, toggled below.
-    ./keycloak-testing.nix
   ];
 
   # Bootloader.
@@ -253,7 +251,8 @@
 
   # Open ports in the firewall.
   networking.firewall.allowedUDPPorts = [8080];
-  networking.firewall.allowedTCPPorts = [8080];
+  # 8000: scufris web dashboard, exposed to the LAN (host bound to 0.0.0.0).
+  networking.firewall.allowedTCPPorts = [8080 8000 7000];
   # networking.firewall.allowedUDPPortRanges = [];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
@@ -356,10 +355,6 @@
         });
     };
   };
-
-  # PostgreSQL + Keycloak testing stack. Defined in ./keycloak-testing.nix and
-  # off by default; flip this to true when you need to test against it.
-  local.keycloak.enable = true;
 
   services.logmein-hamachi.enable = true;
   documentation.man.cache.enable = false;

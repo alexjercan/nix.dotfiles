@@ -172,7 +172,9 @@ in {
     enable = true;
 
     settings = {
-      host = "127.0.0.1";
+      # Bind all interfaces so the dashboard is reachable from the LAN, not
+      # just loopback.
+      host = "0.0.0.0";
       port = 8000;
       log_level = "INFO";
 
