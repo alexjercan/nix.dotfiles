@@ -68,7 +68,7 @@ the handoffs, and when to stop and ask the user.
       `cd "$(sprout new <type>/<short-slug>)"`, so implementation, tests,
       reviews and the TASK.md updates all live on that branch and never touch
       the main checkout. This is the opening move of every task; `/work`
-      performs it, but flow names it explicitly because step 5's merge depends
+      performs it, but flow names it explicitly because step 6's merge depends
       on the work having happened in a separate worktree.
    3. Run the work skill: implement the Steps, tests and full check suite on
       the branch sprouted in the previous step.
@@ -76,10 +76,19 @@ the handoffs, and when to stop and ask the user.
       default (the review skill defines the mechanism and the trivial-diff
       carve-out), findings into REVIEW.md, then alternate work and review
       rounds until the verdict is APPROVE.
-   5. On APPROVE, first bring the branch up to date with the default branch,
-      then squash-merge it back so the whole task lands as a single commit.
-      This mirrors landing a PR: update the branch from its base, re-verify,
-      and only then merge.
+   5. On APPROVE, run the compound skill to write the retro for this task NOW,
+      before the land, and commit it on the feature branch. Compound already
+      commits on the branch when the work is not yet merged, and its done-gate
+      is satisfied here: `/work` has set the task CLOSED and `/review` has
+      returned APPROVE. Writing the retro before the land is what keeps the
+      task to ONE commit: the squash-merge in the next step folds the retro
+      into the same commit as the feature, instead of leaving it as a separate
+      retro commit on the default branch afterwards.
+   6. Bring the branch up to date with the default branch, then squash-merge it
+      back so the whole task - implementation, tests, TASK.md close-out and the
+      RETRO.md from the previous step - lands as a single commit. This mirrors
+      landing a PR: update the branch from its base, re-verify, and only then
+      merge.
       1. In the worktree, merge the current default branch into the feature
          branch (`git merge <default>`, where `<default>` is the local default
          branch - flow does not push, so this is not `origin/*`). Resolve any
@@ -98,8 +107,9 @@ the handoffs, and when to stop and ask the user.
          `git merge-base --is-ancestor <default> <branch>` must succeed - the
          default branch tip is an ancestor of the branch. Only an up-to-date
          branch may merge back.
-      4. Inspect the diff on the BRANCH now - once the landing starts there
-         is no pausing to look. Then land with ONE command:
+      4. Inspect the diff on the BRANCH now - including the committed RETRO.md -
+         once the landing starts there is no pausing to look. Then land with
+         ONE command:
 
          ```bash
          sprout land <feature> -m "<subject>" -m "<body>"
@@ -116,7 +126,6 @@ the handoffs, and when to stop and ask the user.
          (Conventional-Commit subject plus short body), not the concatenated
          branch messages. Do not push. This leaves the default branch with
          one commit per task.
-   6. Run the compound skill: write the retro for this task.
    7. Tick this task in the umbrella `GOAL.md` Tasks list: check its box and
       append a one-line status (landed commit, review rounds, anything
       notable), the way a spike records a Fix. Open `manual:` DoD items do NOT
