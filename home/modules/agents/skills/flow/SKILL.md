@@ -269,6 +269,18 @@ instead of grinding when:
 - a review dispute survives three rounds (per the review skill);
 - the same task fails work-review twice in a row with no clear path forward;
 - the goal itself turns out to mean something different than assumed;
+- a request underspecifies WHAT to build, not just how - it fixes the
+  placement or the LOOK of a thing but not the concrete artifact/mechanism,
+  and the plausible shapes are not interchangeable because a constraint makes
+  them mutually exclusive. Do not infer a shape and build it. This session's
+  miss: "put the objective hint in the top bar" fixed the placement but not
+  whether it was a bcs status ITEM - and a bcs status item cannot carry the
+  bordered pill the hint had, so "status item" and "keep the pill" could not
+  both hold. That incompatibility WAS the decision, and it had to go to the
+  user (and into a DECISION.md) before building, not get silently resolved by
+  guessing. Even an `AskUserQuestion` does not cover this if it offers options
+  without naming the constraint that makes them exclusive - the user then
+  picks blind and you build a fourth thing anyway;
 - anything destructive or outward-facing comes up (push, deploy, data).
 
 ## Guidelines
@@ -276,6 +288,19 @@ instead of grinding when:
 - Honest phases beat fast phases. Do not soften reviews or skip retros to
   make the loop converge; the cycle only compounds if each phase does its
   real job.
+- Confirm the concrete ARTIFACT before you build it, then record the choice in
+  a DECISION.md - both are mandatory for any load-bearing build-shape fork,
+  whether it surfaces at the plan gate or mid-flow. Confirming the goal, the
+  placement, or the desired look is NOT enough: name the actual type/mechanism
+  you will produce (a bcs status item? a bespoke child node? a new widget?) and
+  surface the constraints that make the candidates mutually exclusive, so the
+  user decides the real fork instead of you inferring a shape and hitting the
+  conflict while coding. When you find mid-build that the confirmed choice
+  cannot satisfy every stated want at once (this session: a status item cannot
+  have the pill), STOP and re-confirm - do not quietly ship a compromise. The
+  confirmed choice is then the DECISION.md; a load-bearing choice built without
+  that confirm-then-record step is the exact miss this guideline exists to
+  prevent (see the plan skill's DECISION.md section for the record format).
 - New work discovered mid-flow becomes a new tatr task and joins the queue in
   priority order; it does not widen the current worktree/branch. Create such
   tasks inside the current worktree (or carry-and-clean a main-checkout stub

@@ -26,8 +26,15 @@ steps, citing the spike doc as the input it was scoped from.
    against assumptions. Check the existing backlog with `tatr ls` so the plan
    extends it instead of duplicating tasks. If the scope is ambiguous or there
    is a real fork in the approach that changes what gets built, ask the user
-   before writing the plan. Do not ask about things you can decide from the
-   code or sensible defaults.
+   before writing the plan. Confirm the concrete ARTIFACT, not just the goal:
+   when the request fixes only where a thing goes or how it should look but not
+   WHICH thing it is - which type, which mechanism - pin that down before
+   planning against a guessed shape, and put the constraints that make the
+   candidates mutually exclusive in front of the user (e.g. "a bcs status item
+   cannot carry a border, so it is a status item OR it keeps the pill, not
+   both"). That incompatibility is usually the real decision; surfacing it is
+   what turns a blind pick into an informed one. Do not ask about things you
+   can decide from the code or sensible defaults.
 
 2. **Decide the task breakdown.** Split the work along natural boundaries
    (components, layers, independent features). Prefer several small tasks over
@@ -149,8 +156,19 @@ Planning is where a load-bearing architectural choice usually gets made -
 which mechanism, which layering, which dependency. When that choice is
 non-trivial and a cold reader would need to know *why* (not just *what*),
 record it as a `DECISION.md`, so the reasoning survives past the chat and the
-next session does not re-litigate it. This is a decision RECORD, and it is
-distinct from a spike:
+next session does not re-litigate it.
+
+Writing the record is MANDATORY, not optional, for any load-bearing build-shape
+fork - the kind you confirmed with the user in step 1 (which artifact, which
+mechanism, and the constraint that forced the choice). The confirm and the
+record are one move: confirm the concrete artifact, then capture the confirmed
+choice AND the rejected alternative AND the constraint that separated them in
+the DECISION.md, before the build. A choice made by inferring a shape, or
+confirmed in chat but never recorded, is exactly the failure this section
+guards against - the reasoning evaporates and the next session (or a mid-build
+surprise, like "a status item cannot carry the pill") re-opens it from zero.
+
+This is a decision RECORD, and it is distinct from a spike:
 
 - A `/spike` reduces uncertainty about *what to build* when the direction is
   fuzzy; its output is a chosen direction (`SPIKE.md`). A spike is optional and
