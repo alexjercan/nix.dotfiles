@@ -50,7 +50,9 @@ the handoffs, and when to stop and ask the user.
    expensive one. If the user wants changes, loop back into planning and
    re-present the package. The only carve-out is the same one every skill has:
    a genuinely trivial, single-task goal the user already spelled out in full
-   may proceed on their original go-ahead - when in doubt, gate.
+   may proceed on their original go-ahead - when in doubt, gate. End the gate
+   presentation with a `PLANNED <umbrella-id>` status line (see Guidelines) so
+   the user sees the phase name at a glance.
 
 3. **Cycle per task.** Pick the highest-priority OPEN task whose dependencies
    are CLOSED (the priority-0 `goal` umbrella is not a work task - skip it
@@ -134,7 +136,8 @@ the handoffs, and when to stop and ask the user.
       they batch for the Finish checkpoint (the single user-acceptance gate),
       rather than stalling each task on a user round-trip. Then report one
       short progress line to the user (task, verdict, rounds, what is next),
-      and continue with the next task.
+      ending with a `DONE <id>` status line for the task that just landed (see
+      Guidelines), and continue with the next task.
 
 4. **Finish.** When no OPEN tasks remain (the umbrella aside): run the full
    check suite on the default branch one last time, then verify the sum of the
@@ -155,7 +158,8 @@ the handoffs, and when to stop and ask the user.
    a new task, not a silent omission). Close the umbrella task
    (`tatr edit <umbrella> -s CLOSED`) once the done-definition is met, and
    commit. Finally give a final report - what was built, task by task, key
-   lessons from the retros, and anything deliberately left out. Pushing is the
+   lessons from the retros, and anything deliberately left out - ending with a
+   `GOAL DONE <umbrella-id>` status line (see Guidelines). Pushing is the
    user's call.
 
    The umbrella carries NO REVIEW.md or RETRO.md of its own - it is a tracking
@@ -285,6 +289,15 @@ instead of grinding when:
 
 ## Guidelines
 
+- Signal each stage's completion with a terminal STATUS LINE the user (and any
+  tooling watching the stream) can grep at a glance: the stage name in caps
+  followed by the task id, as the LAST line of that phase's report. The
+  vocabulary tracks the skills - `SPIKED <id>` (spike done), `PLANNED <id>`
+  (plan gate presented), `DONE <id>` (a task lands CLOSED), `GOAL DONE
+  <umbrella-id>` (the whole run finishes at Finish). One id per line. Emit the
+  marker only when the stage is GENUINELY complete: a task is `DONE` only after
+  it lands on the default branch, never at APPROVE or at CLOSED-but-unlanded -
+  the marker means "this phase is behind us", so it must not fire early.
 - Honest phases beat fast phases. Do not soften reviews or skip retros to
   make the loop converge; the cycle only compounds if each phase does its
   real job.
