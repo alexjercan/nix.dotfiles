@@ -13,20 +13,24 @@ the code. See the tatr skill for the CLI commands and file format.
 The goal is not to write code. The goal is to leave behind a clear, ordered
 list of steps so implementation is mechanical.
 
-Planning assumes the *what* is already decided and only the *how* needs
-breaking down. If the request is still genuinely undefined - the open question
-is what to build, not how - run `/spike` first. A spike researches the
-direction and leaves a `SPIKE.md` (in the spike's own task folder) plus
-coarse, direction-level tasks; planning then expands each of those tasks into
-steps, citing the spike doc as the input it was scoped from.
+Planning begins with problem understanding: check that the *what* is really
+decided. Existing task text is context, not proof: it may be stale,
+incomplete, manually checklisted, or wrong. If the request is still genuinely
+undefined - the open question is what to build, not how - ask the user or run
+`/spike` first. A spike researches the direction and leaves a `SPIKE.md` (in
+the spike's own task folder) plus coarse, direction-level tasks; planning then
+expands each of those tasks into steps, citing the spike doc as the input it
+was scoped from.
 
 ## Workflow
 
-1. **Understand the request.** Read the relevant code first; do not plan
+1. **Understand the request.** Read the user request, any named `TASK.md`, its
+   sibling artifacts, and the relevant code before planning; do not plan
    against assumptions. Check the existing backlog with `tatr ls` so the plan
-   extends it instead of duplicating tasks. If the scope is ambiguous or there
-   is a real fork in the approach that changes what gets built, ask the user
-   before writing the plan. Confirm the concrete ARTIFACT, not just the goal:
+   extends it instead of duplicating tasks. If the scope is ambiguous, the task
+   text conflicts with the user request, or there is a real fork in the
+   approach that changes what gets built, ask the user before writing the plan.
+   Confirm the concrete ARTIFACT, not just the goal:
    when the request fixes only where a thing goes or how it should look but not
    WHICH thing it is - which type, which mechanism - pin that down before
    planning against a guessed shape, and put the constraints that make the
@@ -36,12 +40,14 @@ steps, citing the spike doc as the input it was scoped from.
    what turns a blind pick into an informed one. Do not ask about things you
    can decide from the code or sensible defaults.
 
-2. **Decide the task breakdown.** Split the work along natural boundaries
-   (components, layers, independent features). Prefer several small tasks over
-   one giant task when the pieces can be implemented and committed
-   independently. Keep a single task when the work is one cohesive change.
+2. **Decide the task breakdown.** Keep a single task when the work is one
+   cohesive change. Split the work along natural boundaries (components,
+   layers, independent features) only when the pieces can be implemented and
+   committed independently, or when the user explicitly asked for an epic,
+   sprint, version, release, or multi-feature container. Do not create an
+   umbrella task for one requested thing.
 
-3. **Create the tasks.** Make sure `tasks/` exists at the project root
+3. **Create or update the tasks.** Make sure `tasks/` exists at the project root
    (`mkdir -p tasks`), then for each task run:
 
    ```bash
@@ -57,20 +63,21 @@ steps, citing the spike doc as the input it was scoped from.
    follow the project's scheduling-tag convention from its AGENTS.md if it
    has one. When one task cannot start before another finishes, also record
    that in its Notes section (`Depends on: <task-id>`); priority alone is only
-   a soft ordering.
+   a soft ordering. If the user named an existing task, update that task's
+   `TASK.md` instead of creating a duplicate task.
 
 4. **Fill in the plan.** Edit each `tasks/<id>/TASK.md` so the description
    contains the implementation steps as a checkbox list (see format below).
    This is the heart of the plan.
 
-5. **Report back.** List the created task IDs and titles in intended order,
-   plus any assumptions the user should double-check. Offer to commit the new
-   task files. Do not start implementing unless the user asks.
+5. **Report back.** List the planned task IDs and titles in intended order,
+   plus any assumptions the user should double-check. Offer to commit the task
+   files. Do not start implementing unless the user asks.
 
-   Under `/flow` there is an extra step: the run already created an umbrella
-   task with a `GOAL.md` (see the flow skill). Append the planned tasks to
-   that GOAL.md Tasks list - one unchecked line each, in intended order - so
-   the goal artifact carries the live queue that flow ticks as tasks land.
+   Under `/flow`, report the active task plan and stop for the hard build gate.
+   `PLAN STATUS: APPROVED` is written only after the user explicitly accepts
+   the plan. In single-task flow, the plan lives in the active `TASK.md`; in
+   explicit epic flow, append child tasks to the container `GOAL.md`.
 
 ## Task File Format for a Plan
 
@@ -182,10 +189,11 @@ Do NOT force a spike just to justify a decision - that is exploration theater
 for a choice you never actually explored. Write the record directly.
 
 **Where it lives.** In the folder of the task that owns the decision:
-`tasks/<id>/DECISION.md`. For a choice that spans the whole goal rather than one
-task, put it in the umbrella task's folder next to `GOAL.md`. Under `/flow`,
-add a one-line pointer to the goal's `GOAL.md` Decisions index (see the flow
-skill) so the decision is findable without grepping every task folder.
+`tasks/<id>/DECISION.md`. For a choice that spans an explicit epic rather than
+one child task, put it in the epic container's folder next to `GOAL.md`. Under
+single-task `/flow`, the active task owns the decision directly; under explicit
+epic `/flow`, add a one-line pointer to the container `GOAL.md` Decisions index
+so the decision is findable without grepping every task folder.
 
 **Supersede, do not rewrite.** The `tasks/` tree is append-only history (see
 the flow and work skills), so a decision that later changes is NOT edited in
@@ -264,4 +272,7 @@ workflow: set STATUS to `IN_PROGRESS`, tick the checkboxes as steps land, and
 finally set STATUS to `CLOSED` with a record of what changed and any lessons.
 If the plan turns out to be wrong mid-implementation, update the Steps in
 TASK.md to match reality instead of silently diverging; the file should always
-reflect the actual plan.
+reflect the actual plan. Under `/flow`, do not begin this handoff unless the
+task has `## Flow State` with `- PLAN STATUS: APPROVED`, or a legacy
+task-local planning package such as `GOAL.md` plus `DECISION.md` that
+explicitly records approval.

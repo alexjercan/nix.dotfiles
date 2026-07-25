@@ -98,6 +98,10 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   `git+file://<dir>?ref=<branch>` for a git-filtered reproducible input when copy
   cost matters; `path:` only when reading the live working tree is the point.
   20260721-140158.
+- `one-request-one-task` (x1) -> flow skill: default /flow planning updates the
+  active task instead of creating an umbrella/child pair, unless the user asks
+  for an epic, sprint, version, release, or multi-feature container.
+  20260725-110435
 
 ## Pending promotions (3+ occurrences, user decides)
 

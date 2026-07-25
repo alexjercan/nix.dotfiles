@@ -25,7 +25,7 @@ tatr check [<id>] [-S|--strict] [-L|--ledger <file>]
 - `tatr show <id>` prints a single task's full details: title, status, priority, tags, and the whole description body, with a clickable file path.
 - `tatr edit <id>` updates fields in place without opening an editor. Only the flags you pass change; everything else, including the description body, is preserved. `-t` replaces the tag set (it does not merge). An invalid status is rejected and the file is left untouched. This is how automation moves a task OPEN -> IN_PROGRESS -> CLOSED.
 - `tatr rm <id>` deletes the task's directory (its TASK.md and anything else inside it). It only ever touches the validated `tasks/<id>/` path.
-- `tatr check` lints task artifacts for process drift: findings print one per line as `<id>: <rule>: <detail>`, exit 1 on any finding, exit 0 and silent when clean. Default rules: `closed-unchecked` (CLOSED task with unchecked `- [ ]` items under `## Steps`), `closed-not-approved` (latest `- VERDICT:` token in REVIEW.md is not APPROVE, or no verdict at all), `bad-severity` (a REVIEW.md finding severity outside BLOCKER|MAJOR|MINOR|NIT), `malformed-header` (missing/unparseable TASK.md, or a STATUS token that is not exactly OPEN/IN_PROGRESS/CLOSED - whitespace and line endings count), `bad-decision-status` (a task's `DECISION.md`, when present, has a `- STATUS:` value that is not `ACCEPTED` nor `SUPERSEDED by <ref>`, or no STATUS line), `dangling-supersede` (a `DECISION.md` supersede reference - in a `SUPERSEDED by <ref>` status or a `- Supersedes: <ref>` line - does not resolve to an existing `tasks/<id>/DECISION.md`). The two `DECISION.md` rules are presence-gated - a task with no `DECISION.md` is never flagged, so they need no migration of existing tasks. `-S/--strict` adds `closed-missing-review`/`closed-missing-retro` for CLOSED tasks lacking those files; `-L/--ledger <file>` adds `promotion-stalled` for a lesson at `(x3)` or more outside the ledger's "## Pending promotions" section (bare counts only: an annotated `(x3, ...)` is the promotion marker and is exempt); ledger findings print a literal `ledger` in the id slot, and an unreadable ledger path is itself a finding. With `<id>` it checks that one task.
+- `tatr check` lints task artifacts for process drift: findings print one per line as `<id>: <rule>: <detail>`, exit 1 on any finding, exit 0 and silent when clean. Default rules: `closed-unchecked` (CLOSED task with unchecked `- [ ]` items under `## Steps`), `closed-not-approved` (latest `- VERDICT:` token in REVIEW.md is not APPROVE, or no verdict at all), `bad-severity` (a REVIEW.md finding severity outside BLOCKER|MAJOR|MINOR|NIT), `malformed-header` (missing/unparseable TASK.md, or a STATUS token that is not exactly OPEN/IN_PROGRESS/CLOSED - whitespace and line endings count), `bad-flow-state` (invalid exact `## Flow State` marker values), `unplanned-in-progress` (a non-historical, non-goal IN_PROGRESS task lacks `PLAN STATUS: APPROVED`), `bad-decision-status` (a task's `DECISION.md`, when present, has a `- STATUS:` value that is not `ACCEPTED` nor `SUPERSEDED by <ref>`, or no STATUS line), `dangling-supersede` (a `DECISION.md` supersede reference - in a `SUPERSEDED by <ref>` status or a `- Supersedes: <ref>` line - does not resolve to an existing `tasks/<id>/DECISION.md`). The `DECISION.md` rules are presence-gated - a task with no `DECISION.md` is never flagged, so they need no migration of existing tasks. The approved-plan marker is required only for IN_PROGRESS tasks, so old CLOSED tasks and ordinary OPEN backlog items need no migration. `-S/--strict` adds `closed-missing-review`/`closed-missing-retro` for CLOSED tasks lacking those files; `-L/--ledger <file>` adds `promotion-stalled` for a lesson at `(x3)` or more outside the ledger's "## Pending promotions" section (bare counts only: an annotated `(x3, ...)` is the promotion marker and is exempt); ledger findings print a literal `ledger` in the id slot, and an unreadable ledger path is itself a finding. With `<id>` it checks that one task.
 
 All of `show`, `edit`, `rm` and per-ID `check` take the task ID (the `YYYYMMDD-HHMMSS` directory name) and exit non-zero with a clear message if the ID is malformed or the task does not exist.
 
@@ -84,13 +84,27 @@ session needs to start.
 
 Trivial tasks may use a plain paragraph. Prefer `tatr edit` for the metadata fields and `tatr new -b` for the initial body; hand-edit the file only for later body updates.
 
-The task's folder is also the home for its sibling records: `SPIKE.md` (/spike), `REVIEW.md` (/review), `RETRO.md` (/compound), `GOAL.md` (a /flow umbrella task's goal artifact - goal, done-definition, live task list), `NOTES.md` (design/fix record) - all next to TASK.md, never loose in docs/.
+Flow-managed work may also include this body section:
+
+```markdown
+## Flow State
+
+- FLOW STEP: UNDERSTANDING|PLANNING|PLANNED|WORKING|REVIEWING|COMPOUNDING|DONE
+- PLAN STATUS: APPROVED
+```
+
+`FLOW STEP` is the current phase. `PLAN STATUS: APPROVED` is written only after
+the user accepts the plan gate and is required before a normal task becomes
+IN_PROGRESS. Do not treat `## Steps` checkboxes as proof that planning was
+approved.
+
+The task's folder is also the home for its sibling records: `SPIKE.md` (/spike), `REVIEW.md` (/review), `RETRO.md` (/compound), `GOAL.md` (only for an explicit /flow epic, sprint, version, release, or multi-feature container), `NOTES.md` (design/fix record) - all next to TASK.md, never loose in docs/.
 
 ## Workflow
 
 **Picking up work:**
 1. `tatr ls --sort priority` (or with `-f '(:status eq OPEN)'`) to see the backlog.
-2. `tatr show <id>` to read the full task, then `tatr edit <id> -s IN_PROGRESS` to claim it.
+2. `tatr show <id>` to read the full task. If this is flow-managed work, confirm it has `PLAN STATUS: APPROVED` before `tatr edit <id> -s IN_PROGRESS`; otherwise plan it first.
 3. Append implementation notes to the description as you go.
 
 **Finishing work:**
@@ -99,7 +113,7 @@ The task's folder is also the home for its sibling records: `SPIKE.md` (/spike),
 3. Commit the TASK.md change together with the code changes.
 
 **Planning a feature:**
-- Break it into multiple tasks with `tatr new`, one per component, with priorities that encode the intended order.
+- Keep one cohesive requested thing in one task. Break it into multiple tasks with `tatr new`, one per component, only when the pieces are independently implementable or the user explicitly asked for an epic/sprint/version/release container; use priorities that encode the intended order.
 - Use consistent tags within the project (`feature`, `bug`, `refactor`, `testing`, `docs`, `security`, `performance`), plus the project's scheduling tags if it defines them.
 - Create tasks for any non-trivial follow-up work discovered mid-session instead of leaving TODO comments in code.
 
@@ -120,12 +134,12 @@ the full plan-work-review-compound cycle, not just editing TASK.md:
 4. Retro with `/compound` once the task is CLOSED.
 
 `/flow` runs this whole loop end to end for you; reach for the individual
-skills to step through it by hand. If a task has no Steps yet (created ad hoc),
-plan it first with `/plan`; and when even planning is premature because the
-direction itself is unknown, `/spike` explores it first and seeds the coarse
-tasks that plan then breaks into steps - so the fullest cycle is spike, plan,
-work, review, compound. Tatr itself only owns the file: creating it, and
-reading or updating its STATUS, Steps and notes.
+skills to step through it by hand. If a task has no Steps yet, or has Steps but
+no `PLAN STATUS: APPROVED`, plan it first with `/plan`; and when even planning
+is premature because the direction itself is unknown, `/spike` explores it
+first and seeds the coarse tasks that plan then breaks into steps - so the
+fullest cycle is spike, plan, work, review, compound. Tatr itself only owns the
+file: creating it, and reading or updating its STATUS, Steps and notes.
 
 ## Gotchas
 
