@@ -4,3 +4,6 @@
 - PRIORITY: 0
 - TAGS: goal
 
+## Flow State
+
+- FLOW STEP: PLANNING

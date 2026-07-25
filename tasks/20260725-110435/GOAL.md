@@ -46,11 +46,15 @@ verified against master and recorded with a follow-up task.
 
 ## Tasks
 
-Updated as tasks land (one line per land, like a spike's Fix record).
+- 20260725-111031: Add flow-state lint for planned work
+  (/home/alex/personal/tatr). Lands first.
+- 20260725-111207: Update flow skills for planned-state gates
+  (nix.dotfiles). Depends on the tatr checker task.
 
 ## Decisions (load-bearing, architectural)
 
-Index of the DECISION.md records this goal produced.
+- tasks/20260725-110435/DECISION.md: durable `## Flow State` marker and
+  `PLAN STATUS: APPROVED` gate.
 
 ## Manual acceptance (batched for the user at Finish)
 
