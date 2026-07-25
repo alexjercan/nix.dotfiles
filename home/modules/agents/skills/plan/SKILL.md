@@ -44,8 +44,8 @@ was scoped from.
    cohesive change. Split the work along natural boundaries (components,
    layers, independent features) only when the pieces can be implemented and
    committed independently, or when the user explicitly asked for an epic,
-   sprint, version, release, or multi-feature container. Do not create an
-   umbrella task for one requested thing.
+   sprint, version, release, or multi-feature container. Do not create a
+   container task for one requested thing.
 
 3. **Create or update the tasks.** Make sure `tasks/` exists at the project root
    (`mkdir -p tasks`), then for each task run:
@@ -77,7 +77,8 @@ was scoped from.
    Under `/flow`, report the active task plan and stop for the hard build gate.
    `PLAN STATUS: APPROVED` is written only after the user explicitly accepts
    the plan. In single-task flow, the plan lives in the active `TASK.md`; in
-   explicit epic flow, append child tasks to the container `GOAL.md`.
+   explicit epic flow, append child tasks to the container `TASK.md` Child
+   Tasks section.
 
 ## Task File Format for a Plan
 
@@ -190,10 +191,10 @@ for a choice you never actually explored. Write the record directly.
 
 **Where it lives.** In the folder of the task that owns the decision:
 `tasks/<id>/DECISION.md`. For a choice that spans an explicit epic rather than
-one child task, put it in the epic container's folder next to `GOAL.md`. Under
-single-task `/flow`, the active task owns the decision directly; under explicit
-epic `/flow`, add a one-line pointer to the container `GOAL.md` Decisions index
-so the decision is findable without grepping every task folder.
+one child task, put it in the epic container's folder. Under single-task
+`/flow`, the active task owns the decision directly; under explicit epic
+`/flow`, add a one-line pointer to the container `TASK.md` Decisions section so
+the decision is findable without grepping every task folder.
 
 **Supersede, do not rewrite.** The `tasks/` tree is append-only history (see
 the flow and work skills), so a decision that later changes is NOT edited in
@@ -273,6 +274,4 @@ finally set STATUS to `CLOSED` with a record of what changed and any lessons.
 If the plan turns out to be wrong mid-implementation, update the Steps in
 TASK.md to match reality instead of silently diverging; the file should always
 reflect the actual plan. Under `/flow`, do not begin this handoff unless the
-task has `## Flow State` with `- PLAN STATUS: APPROVED`, or a legacy
-task-local planning package such as `GOAL.md` plus `DECISION.md` that
-explicitly records approval.
+task has `## Flow State` with `- PLAN STATUS: APPROVED`.

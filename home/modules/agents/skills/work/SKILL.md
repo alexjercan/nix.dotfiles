@@ -22,13 +22,11 @@ that appears to work.
    CLOSED, stop and tell the user instead of building on missing work.
 
    Refuse to implement an unplanned task. A task is planned only when its
-   `TASK.md` has `## Flow State` with `- PLAN STATUS: APPROVED`, or when it has
-   a legacy task-local planning package such as `GOAL.md` plus `DECISION.md`
-   that explicitly records approval. A `## Steps` section by itself is not
-   enough: the user may have written
-   checkboxes before the problem was understood. If the marker is missing,
-   send the task back through `/flow` or `/plan`; do not sprout, set
-   `IN_PROGRESS`, or start writing code.
+   `TASK.md` has `## Flow State` with `- PLAN STATUS: APPROVED`. A `## Steps`
+   section by itself is not enough: the user may have written checkboxes before
+   the problem was understood. If the marker is missing, send the task back
+   through `/flow` or `/plan`; do not sprout, set `IN_PROGRESS`, or start
+   writing code.
 
 2. **Start the task.** Prefer an isolated worktree over a bare branch, so this
    task never collides with other work in flight. With `HEAD` on the intended
@@ -49,7 +47,8 @@ that appears to work.
    wherever the shell initializes, not in the worktree. Drive every file edit
    and git command by ABSOLUTE worktree path (or `git -C <worktree>`) instead
    of relying on a prior `cd`, and never chain operations across two repos in
-   one call: a GOAL tick has twice been committed from the wrong repo that way.
+   one call: a container tick has twice been committed from the wrong repo that
+   way.
    Derive `<type>` from the task's tags (`feature`, `bug` -> `fix`,
    `refactor`, ...) and `<short-slug>` from the title, e.g.
    `feature/api-rate-limiting`. If sprout is unavailable, fall back to a plain
@@ -109,9 +108,9 @@ that appears to work.
    `tasks/<id>/DECISION.md` for it (plan skill format, supersede-by-link if it
    changes an earlier one). Under single-task `/flow`, the active task owns
    that record directly; under explicit epic `/flow`, also index it in the
-   container `GOAL.md`. DECISION.md is the durable decision record; NOTES.md is
-   design and fix notes - keep the load-bearing choice in the former so it
-   stays findable.
+   container `TASK.md` Decisions section. DECISION.md is the durable decision
+   record; NOTES.md is design and fix notes - keep the load-bearing choice in
+   the former so it stays findable.
 
 5. **Verify.** Run the project's full check suite: tests, linter, formatter,
    type checker, build - whatever the project defines. Then run each DoD
@@ -250,8 +249,7 @@ owns, whether or not flow is driving.
 ## Relationship to Planning and Review
 
 `/plan` produces the task with its Steps checklist; `/work` consumes it. If a
-task has no Steps section, or has Steps but no `PLAN STATUS: APPROVED` or
-legacy task-local planning package such as `GOAL.md` plus `DECISION.md`, refuse
+task has no Steps section, or has Steps but no `PLAN STATUS: APPROVED`, refuse
 the implementation and plan it first. Planning and working in the same session
 is fine only when the plan gate is explicit and `TASK.md` is updated before
 work starts; the TASK.md is still the source of truth, not the conversation.

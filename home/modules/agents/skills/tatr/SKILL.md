@@ -98,7 +98,12 @@ the user accepts the plan gate and is required before a normal task becomes
 IN_PROGRESS. Do not treat `## Steps` checkboxes as proof that planning was
 approved.
 
-The task's folder is also the home for its sibling records: `SPIKE.md` (/spike), `REVIEW.md` (/review), `RETRO.md` (/compound), `GOAL.md` (only for an explicit /flow epic, sprint, version, release, or multi-feature container), `NOTES.md` (design/fix record) - all next to TASK.md, never loose in docs/.
+The task's folder is also the home for its sibling records: `SPIKE.md`
+(/spike), `DECISION.md` (load-bearing choices), `REVIEW.md` (/review),
+`RETRO.md` (/compound), `NOTES.md` (design/fix record) - all next to TASK.md,
+never loose in docs/. Explicit /flow epic, sprint, version, release, or
+multi-feature containers put their broader record in sections of the container
+TASK.md.
 
 ## Workflow
 
