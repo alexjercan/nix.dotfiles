@@ -497,11 +497,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1784975708,
-        "narHash": "sha256-VjKU58Wkbh+OaGMN3/cZzJZYNF4HosQfRGGzfWEMRCc=",
+        "lastModified": 1784975898,
+        "narHash": "sha256-u1sdFjco2MhUG8wuOIKubmUSvcaNg8CagPZYwLIsMx0=",
         "owner": "alexjercan",
         "repo": "tatr",
-        "rev": "0b33dc22084f25d581dbf2208beaba95fb874233",
+        "rev": "c4a93ef727648ad3932495194afc7005325e4838",
         "type": "github"
       },
       "original": {
@@ -521,11 +521,11 @@
         "uv2nix": "uv2nix_2"
       },
       "locked": {
-        "lastModified": 1784569638,
-        "narHash": "sha256-lQKlAuWHL7xDvKiWxe5sIOEobb885oHq9K/FYOmaaqk=",
+        "lastModified": 1784974977,
+        "narHash": "sha256-Oc79x/y9iuMk0sDFoDgbXlB6GnMT74N8WPqvtXj0ILM=",
         "owner": "alexjercan",
         "repo": "today",
-        "rev": "0d57e56dbcb1e43326f2509111c8f4361ec31bc2",
+        "rev": "ce9f28e0daad5395a65ebd69570f4224c6810d3b",
         "type": "github"
       },
       "original": {
