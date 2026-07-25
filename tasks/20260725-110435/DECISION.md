@@ -1,4 +1,4 @@
-# Decision: durable flow state marker
+# Decision: single-task flow and durable state marker
 
 - STATUS: ACCEPTED
 - DATE: 20260725
@@ -7,18 +7,26 @@
 ## Context
 
 The current flow skills can treat task checklists as if they prove planning
-happened, and `flow` always starts by creating a fresh umbrella task. That is
-unsafe for `flow task <id>` resume cases: the named task might be stale,
-wrong, incomplete, or manually populated with unchecked boxes by the user.
+happened, and `flow` tends to start by creating a fresh umbrella task. That is
+unsafe and noisy for ordinary single-goal work. For `flow task <id>` resume
+cases, the named task might be stale, wrong, incomplete, or manually populated
+with unchecked boxes by the user.
 
 The user requirement is stricter: every flow must start from problem
 understanding, ask or confirm before planning, and refuse implementation unless
 the task file itself says the task was planned or the full planning artifacts
-exist.
+exist. A normal single requested thing should stay in one task. Umbrella,
+epic, sprint, release, or version tasks are only appropriate when the user
+explicitly asks for a broader multi-feature container.
 
 ## Decision
 
-Use a durable marker in the task's own `TASK.md`:
+For normal single-goal flow, create or reuse one task and write the plan in
+that task's `TASK.md`. Do not create an umbrella task unless the user
+explicitly asks for an epic, sprint, version, release, or multi-feature goal
+that needs child tasks.
+
+Use a durable marker in the active task's own `TASK.md`:
 
 ```text
 ## Flow State
@@ -44,14 +52,19 @@ stop at the plan gate until the user says to build.
 - Store phase only in sidecar files. Rejected because the user asked for the
   task file itself to state the current step, and `tatr check` can parse
   `TASK.md` directly.
+- Always create an umbrella task for `/flow`. Rejected because it creates
+  duplicate tasks for one requested thing. Umbrellas are reserved for explicit
+  epic, sprint, release, version, or multi-feature requests.
 - Require approved markers on all old tasks. Rejected because it would dirty
   unrelated historical backlog. The hard required marker starts with
   `IN_PROGRESS` tasks, where accidental implementation is dangerous.
 
 ## Consequences
 
-- Existing-task flow can reuse the named task folder without inventing an
-  umbrella task.
+- Existing-task flow can reuse the named task folder without inventing another
+  task.
+- Single-goal flow has one active task; multi-feature flow may have an explicit
+  umbrella only when the user asked for that shape.
 - Fresh sessions can tell whether planning was approved from the task file
   alone.
 - `/work` can fail fast before creating a worktree or changing task status.
