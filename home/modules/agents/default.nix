@@ -2,8 +2,43 @@
   pkgs,
   config,
   lib,
+  inputs,
   ...
-}: {
+}: let
+  externalSkills =
+    lib.optionalAttrs (inputs.tatr ? skills && inputs.tatr.skills ? tatr) {
+      tatr = inputs.tatr.skills.tatr;
+    };
+
+  externalSkillFiles = builtins.listToAttrs (lib.flatten (lib.mapAttrsToList (
+      name: source: [
+        {
+          name = ".claude/skills/${name}";
+          value = {
+            inherit source;
+            recursive = true;
+          };
+        }
+        {
+          name = ".agents/skills/${name}";
+          value = {
+            inherit source;
+            recursive = true;
+          };
+        }
+      ]
+    )
+    externalSkills));
+
+  copyExternalCodexSkills = lib.concatStringsSep "\n" (lib.mapAttrsToList (
+      name: source: ''
+        run rm -rf "$codexSkills/${name}"
+        run cp -rL "${source}" "$codexSkills/${name}"
+        run chmod -R u+w "$codexSkills/${name}"
+      ''
+    )
+    externalSkills);
+in {
   # Coding agent tooling and its shared configuration.
   home.packages = with pkgs; [
     agent-browser
@@ -29,19 +64,20 @@
       @~/AGENTS.md
     '';
 
-    # Skills folder linked into ~/.claude/skills. `recursive = true` links each
-    # file individually rather than the whole directory, so Claude Code can
-    # still drop its own skills into ~/.claude/skills alongside the managed ones.
+    # Local skills folder linked into ~/.claude/skills. `recursive = true`
+    # links each file individually rather than the whole directory, so Claude
+    # Code can still drop its own skills into ~/.claude/skills alongside the
+    # managed ones. External skills are added as separate entries below.
     ".claude/skills" = {
       source = ./skills;
       recursive = true;
     };
 
-    # The SAME skills, linked into ~/.agents/skills for AGENTS.md-ecosystem
-    # tools that read that shared location. NOTE: codex does NOT read here - it
-    # discovers skills from ~/.codex/skills and, unlike Claude Code, ignores
-    # symlinked SKILL.md, so codex is fed real-file copies by the activation
-    # script below, not this symlink tree.
+    # The SAME local skills, linked into ~/.agents/skills for AGENTS.md-
+    # ecosystem tools that read that shared location. NOTE: codex does NOT read
+    # here - it discovers skills from ~/.codex/skills and, unlike Claude Code,
+    # ignores symlinked SKILL.md, so codex is fed real-file copies by the
+    # activation script below, not this symlink tree.
     ".agents/skills" = {
       source = ./skills;
       recursive = true;
@@ -51,7 +87,7 @@
     # fine here - codex resolves AGENTS.md by path and follows the link
     # (verified: the content lands in `codex debug prompt-input`).
     ".codex/AGENTS.md".source = ./AGENTS.md;
-  };
+  } // externalSkillFiles;
 
   # Codex discovers user skills from ~/.codex/skills/<name>/SKILL.md, but its
   # scanner IGNORES a symlinked SKILL.md (verified with `codex debug
@@ -71,6 +107,7 @@
       run cp -rL "$src" "$codexSkills/$name"
       run chmod -R u+w "$codexSkills/$name"
     done
+    ${copyExternalCodexSkills}
     # rm before cp (as in the loop above): a leftover symlink from an earlier
     # generation can point at the same store inode as the source (nix.optimise
     # hardlinks identical files), and `cp` aborts with "are the same file"

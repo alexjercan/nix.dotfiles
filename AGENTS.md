@@ -6,12 +6,14 @@ what is specific to this repository.
 ## What this repo is
 
 My NixOS and home-manager configuration (flake at the root, hosts under
-`hosts/`, home modules under `home/modules/`). It is also the SOURCE of the
+`hosts/`, home modules under `home/modules/`). It is also the SOURCE of most
 agent tooling: the flow-family skills live in `home/modules/agents/skills/`
-and the sprout/daily/today CLIs live in `home/modules/scripts/`; the
-home-manager module deploys them (the same skills to both `~/.claude/skills`
-for Claude Code and `~/.agents/skills` for the codex CLI, and the global
-`home/modules/agents/AGENTS.md` to `~/AGENTS.md`).
+and the sprout/daily/today CLIs live in `home/modules/scripts/`. Tool-owned
+skills can come from their own flakes; the tatr skill is imported from
+`inputs.tatr.skills.tatr` when the locked input exposes it. The home-manager
+agents module deploys the managed skills to both `~/.claude/skills` for Claude
+Code and `~/.agents/skills` for the codex CLI, and deploys the global
+`home/modules/agents/AGENTS.md` to `~/AGENTS.md`.
 
 ## Development flow
 
