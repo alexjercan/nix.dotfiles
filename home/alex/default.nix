@@ -164,8 +164,9 @@ in {
 
     # Agent backends are operator-installed binaries the server shells out to
     # (never Python deps); git is needed for codex/claude in a project cwd.
-    # `today` (from inputs.today.overlays.default) backs the journal_* MCP tools.
-    path = [pkgs.codex pkgs.claude-code pkgs.git pkgs.today];
+    # `today` (from inputs.today.overlays.default) backs the journal_* MCP tools,
+    # and `macros` (inputs.macros-nvim.overlays.default) backs the macros_* tools.
+    path = [pkgs.codex pkgs.claude-code pkgs.git pkgs.today pkgs.macros];
   };
 
   home.pointerCursor = {
