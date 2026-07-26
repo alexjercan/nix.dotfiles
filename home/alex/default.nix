@@ -144,6 +144,12 @@ in {
       agent_backend = "app_server";
       agent_model = "gpt-5.5";
       agent_auth_mode = "chatgpt";
+
+      # the-den journal: the orchestrator's journal_* MCP tools shell out to
+      # `today` (on `path` below) against this den. Set explicitly because the
+      # systemd user service does NOT inherit the DEN_PATH session var (that is
+      # only in the interactive shell env); mirrors home/modules/scripts DEN_PATH.
+      den_path = "/home/alex/personal/the-den";
     };
 
     # State is shared with local dev (default ~/.local/state/scufris); dev runs
@@ -158,7 +164,8 @@ in {
 
     # Agent backends are operator-installed binaries the server shells out to
     # (never Python deps); git is needed for codex/claude in a project cwd.
-    path = [pkgs.codex pkgs.claude-code pkgs.git];
+    # `today` (from inputs.today.overlays.default) backs the journal_* MCP tools.
+    path = [pkgs.codex pkgs.claude-code pkgs.git pkgs.today];
   };
 
   home.pointerCursor = {
