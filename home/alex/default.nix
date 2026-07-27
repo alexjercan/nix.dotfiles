@@ -108,20 +108,22 @@ in {
 
     # Reference the secret as a subpath of the flake source (inputs.self), NOT a
     # `../../secrets` path literal - see LESSONS.md flake-path-literal-string-coercion.
+    #
+    # `format = "dotenv"` decrypts the WHOLE file as this secret's value, so the
+    # decrypted secret at `.path` is already a complete `KEY=value` env file that
+    # scufris can load directly via environmentFile (see below). Do NOT wrap this
+    # in a sops template that re-prepends `KEY=` - that doubles the line into
+    # `SCUFRIS_TELEGRAM_BOT_TOKEN=SCUFRIS_TELEGRAM_BOT_TOKEN=<token>` and Telegram
+    # 404s. Per-key placeholder extraction only works for yaml/json sops files;
+    # for dotenv, use the whole decrypted file as the env file.
     secrets."SCUFRIS_TELEGRAM_BOT_TOKEN" = {
       sopsFile = "${inputs.self}/secrets/scufris.env";
       format = "dotenv";
     };
-
-    # Render the env file scufris reads via environmentFile. Extend this
-    # template as more secrets are added.
-    templates."scufris.env".content = ''
-      SCUFRIS_TELEGRAM_BOT_TOKEN=${config.sops.placeholder."SCUFRIS_TELEGRAM_BOT_TOKEN"}
-    '';
   };
 
-  # The scufris user service must start after sops-nix has decrypted/rendered
-  # the template, or environmentFile points at a not-yet-existing path.
+  # The scufris user service must start after sops-nix has decrypted the secret,
+  # or environmentFile points at a not-yet-existing path.
   systemd.user.services.scufris.Unit.After = ["sops-nix.service"];
 
   # scufris is now the local web-dashboard server (replaces the old bot). Config
@@ -150,17 +152,33 @@ in {
       # systemd user service does NOT inherit the DEN_PATH session var (that is
       # only in the interactive shell env); mirrors home/modules/scripts DEN_PATH.
       den_path = "/home/alex/personal/the-den";
+
+      # Telegram frontend: with SCUFRIS_TELEGRAM_BOT_TOKEN set (from the sops
+      # secret above), the app runs an in-process long-poll bot that drives the
+      # same orchestrator turn path as the web landing chat. This allowlist IS
+      # the auth - the bot silently ignores updates from any other chat id, and
+      # an empty list ignores EVERYONE - so my own chat id must be listed for the
+      # bot to respond at all. (SCUFRIS_TELEGRAM_ALLOWED_CHAT_IDS)
+      telegram_allowed_chat_ids = 8231376426;
+
+      # Auto-wake: when a sub-agent finishes awaiting a decision (a WAITING
+      # outcome) or errors, grant the orchestrator a turn with the question
+      # injected, so a stalled loop self-heals without me driving it from the
+      # chat. Off by default upstream because a wake runs the orchestrator
+      # unattended in its `auto` permission mode; enabled here deliberately so
+      # the Telegram bot is a hands-off control surface. (SCUFRIS_AUTO_WAKE)
+      auto_wake = 1;
     };
 
     # State is shared with local dev (default ~/.local/state/scufris); dev runs
     # on a different port (SCUFRIS_PORT=7000 in the repo .env) so only the port
     # differs, not the state.
-    # Secrets load from the sops-rendered env template above (SCUFRIS_TELEGRAM_BOT_TOKEN),
-    # decrypted at activation into $XDG_RUNTIME_DIR (never in the nix store).
-    # Edit the real value with `sops secrets/scufris.env`; see secrets/README.md.
-    # Fallback until the first `home-manager switch` onto this wiring: the old
-    # plaintext file "${config.home.homeDirectory}/.config/scufris/env".
-    environmentFile = config.sops.templates."scufris.env".path;
+    # The dotenv secret above is decrypted at activation into $XDG_RUNTIME_DIR
+    # (never in the nix store) as a complete `KEY=value` env file, so point
+    # environmentFile straight at it. Add more secrets by editing the dotenv file
+    # (`sops secrets/scufris.env`, see secrets/README.md) - every secret's `.path`
+    # resolves to the same full decrypted env file.
+    environmentFile = config.sops.secrets."SCUFRIS_TELEGRAM_BOT_TOKEN".path;
 
     # Agent backends are operator-installed binaries the server shells out to
     # (never Python deps); git is needed for codex/claude in a project cwd.
