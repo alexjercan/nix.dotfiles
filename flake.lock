@@ -440,11 +440,11 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1785106759,
-        "narHash": "sha256-bN4X/4Rbenc0UUhwLPQ8JDGuIAFwvDz/djnU/ASNJ7g=",
+        "lastModified": 1785156322,
+        "narHash": "sha256-U9mPm1wkUEqzJZtpi7EP7fnblMlD0gqpPaX1PfKA/Bc=",
         "owner": "alexjercan",
         "repo": "scufris",
-        "rev": "a29df64308addb99a8ec3f682b18a6ff3cc1f86f",
+        "rev": "0b2bd431f5f0f3636e1db3f2fce6192ef50e9f50",
         "type": "github"
       },
       "original": {
