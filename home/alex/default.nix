@@ -239,6 +239,12 @@ in {
     };
   };
 
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d";
+  };
+
   imports = [
     "${modulesPath}/neovim"
     "${modulesPath}/tmux"

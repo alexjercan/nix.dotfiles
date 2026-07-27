@@ -14,6 +14,7 @@
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
+  boot.loader.systemd-boot.configurationLimit = 10;
   boot.loader.efi.canTouchEfiVariables = true;
 
   # networking.hostName is set by the flake from the host directory name
@@ -232,6 +233,11 @@
   # };
 
   virtualisation.docker.enable = true;
+  virtualisation.docker.autoPrune = {
+    enable = true;
+    dates = "weekly";
+    flags = ["--all"]; # also removes unused images; omit for images-in-use-only
+  };
 
   programs.vim = {
     enable = true;
@@ -252,12 +258,23 @@
   };
 
   # Open ports in the firewall.
-  networking.firewall.allowedUDPPorts = [8080];
+  # networking.firewall.allowedUDPPorts = [];
   # 8000: scufris web dashboard, exposed to the LAN (host bound to 0.0.0.0).
-  networking.firewall.allowedTCPPorts = [8080 8000 7000];
+  # networking.firewall.allowedTCPPorts = [];
   # networking.firewall.allowedUDPPortRanges = [];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
+
+  # Extra firewall rules for llama-cpp and my other services that need to be
+  # exposed to the LAN but not the Internet.
+  networking.firewall.extraCommands = ''
+    iptables -A nixos-fw -p tcp -s 172.16.0.0/12 --dport 11433 -j nixos-fw-accept
+    iptables -A nixos-fw -p tcp -s 192.168.0.0/24 --dport 8000 -j nixos-fw-accept
+  '';
+  networking.firewall.extraStopCommands = ''
+    iptables -D nixos-fw -p tcp -s 172.16.0.0/12 --dport 11433 -j nixos-fw-accept 2>/dev/null || true
+    iptables -D nixos-fw -p tcp -s 192.168.0.0/24 --dport 8000 -j nixos-fw-accept 2>/dev/null || true
+  '';
 
   services.samba = {
     enable = true;
@@ -294,6 +311,7 @@
     package = pkgs.llama-cpp.override {cudaSupport = true;};
     openFirewall = false;
     settings = {
+      host = "0.0.0.0";
       port = 11433;
       ctx-size = 128000;
       models-preset =
@@ -339,8 +357,29 @@
     };
   };
 
+  systemd.services.cache-cleanup = {
+    description = "Prune llama-cpp model cache";
+    serviceConfig.Type = "oneshot";
+    path = [pkgs.python3Packages.huggingface-hub];
+    script = ''
+      hf cache prune --cache-dir /var/cache/private/llama-cpp
+    '';
+  };
+  systemd.timers.cache-cleanup = {
+    wantedBy = ["timers.target"];
+    timerConfig = {
+      OnCalendar = "monthly";
+      Persistent = true;
+    };
+  };
+
   services.logmein-hamachi.enable = true;
   documentation.man.cache.enable = false;
+
+  services.journald.extraConfig = ''
+    SystemMaxUse=500M
+    MaxRetentionSec=1month
+  '';
 
   # Storage optimization
   nix.optimise.automatic = true;

@@ -5,10 +5,9 @@
   inputs,
   ...
 }: let
-  externalSkills =
-    lib.optionalAttrs (inputs.tatr ? skills && inputs.tatr.skills ? tatr) {
-      tatr = inputs.tatr.skills.tatr;
-    };
+  externalSkills = lib.optionalAttrs (inputs.tatr ? skills && inputs.tatr.skills ? tatr) {
+    tatr = inputs.tatr.skills.tatr;
+  };
 
   externalSkillFiles = builtins.listToAttrs (lib.flatten (lib.mapAttrsToList (
       name: source: [
@@ -51,43 +50,45 @@ in {
   # cross-tool standard (opencode, codex, etc. read it natively from the home
   # directory), so we keep the source of truth in this module and point the
   # tool-specific files at it.
-  home.file = {
-    # Global instructions read by opencode, codex and other AGENTS.md-aware
-    # tools when run from anywhere under the home directory.
-    "AGENTS.md".source = ./AGENTS.md;
+  home.file =
+    {
+      # Global instructions read by opencode, codex and other AGENTS.md-aware
+      # tools when run from anywhere under the home directory.
+      "AGENTS.md".source = ./AGENTS.md;
 
-    # Claude Code reads ~/.claude/CLAUDE.md as its global memory. Import the
-    # shared guidelines via the `@` include syntax so there is a single source
-    # of truth. The `@` import path is resolved relative to this file
-    # (~/.claude/), so reference the home-directory copy explicitly.
-    ".claude/CLAUDE.md".text = ''
-      @~/AGENTS.md
-    '';
+      # Claude Code reads ~/.claude/CLAUDE.md as its global memory. Import the
+      # shared guidelines via the `@` include syntax so there is a single source
+      # of truth. The `@` import path is resolved relative to this file
+      # (~/.claude/), so reference the home-directory copy explicitly.
+      ".claude/CLAUDE.md".text = ''
+        @~/AGENTS.md
+      '';
 
-    # Local skills folder linked into ~/.claude/skills. `recursive = true`
-    # links each file individually rather than the whole directory, so Claude
-    # Code can still drop its own skills into ~/.claude/skills alongside the
-    # managed ones. External skills are added as separate entries below.
-    ".claude/skills" = {
-      source = ./skills;
-      recursive = true;
-    };
+      # Local skills folder linked into ~/.claude/skills. `recursive = true`
+      # links each file individually rather than the whole directory, so Claude
+      # Code can still drop its own skills into ~/.claude/skills alongside the
+      # managed ones. External skills are added as separate entries below.
+      ".claude/skills" = {
+        source = ./skills;
+        recursive = true;
+      };
 
-    # The SAME local skills, linked into ~/.agents/skills for AGENTS.md-
-    # ecosystem tools that read that shared location. NOTE: codex does NOT read
-    # here - it discovers skills from ~/.codex/skills and, unlike Claude Code,
-    # ignores symlinked SKILL.md, so codex is fed real-file copies by the
-    # activation script below, not this symlink tree.
-    ".agents/skills" = {
-      source = ./skills;
-      recursive = true;
-    };
+      # The SAME local skills, linked into ~/.agents/skills for AGENTS.md-
+      # ecosystem tools that read that shared location. NOTE: codex does NOT read
+      # here - it discovers skills from ~/.codex/skills and, unlike Claude Code,
+      # ignores symlinked SKILL.md, so codex is fed real-file copies by the
+      # activation script below, not this symlink tree.
+      ".agents/skills" = {
+        source = ./skills;
+        recursive = true;
+      };
 
-    # Codex reads a personal global AGENTS.md from its own home. A symlink is
-    # fine here - codex resolves AGENTS.md by path and follows the link
-    # (verified: the content lands in `codex debug prompt-input`).
-    ".codex/AGENTS.md".source = ./AGENTS.md;
-  } // externalSkillFiles;
+      # Codex reads a personal global AGENTS.md from its own home. A symlink is
+      # fine here - codex resolves AGENTS.md by path and follows the link
+      # (verified: the content lands in `codex debug prompt-input`).
+      ".codex/AGENTS.md".source = ./AGENTS.md;
+    }
+    // externalSkillFiles;
 
   # Codex discovers user skills from ~/.codex/skills/<name>/SKILL.md, but its
   # scanner IGNORES a symlinked SKILL.md (verified with `codex debug
