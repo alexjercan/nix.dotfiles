@@ -335,25 +335,6 @@
             dry-penalty-last-n = "4096";
             jinja = "on";
           };
-          "gemma-4-12B-it" = {
-            hf-repo = "ggml-org/gemma-4-12B-it-GGUF";
-            hf-file = "gemma-4-12B-it-Q4_K_M.gguf";
-            alias = "ggml-org/gemma-4-12B-it-GGUF";
-            fit = "on";
-            seed = "3407";
-            temp = "0.2";
-            top-p = "0.9";
-            min-p = "0.05";
-            top-k = "20";
-            repeat-penalty = "1.05";
-            repeat-last-n = "256";
-            dry-multiplier = "0.5";
-            dry-base = "1.75";
-            dry-allowed-length = "8";
-            dry-penalty-last-n = "4096";
-            jinja = "on";
-            no-mmproj = "on";
-          };
         });
     };
   };
