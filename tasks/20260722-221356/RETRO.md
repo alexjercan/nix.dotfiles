@@ -1,4 +1,4 @@
-# Retro: Replace PoC dummy with real TELEGRAM_BOT_TOKEN sops secret
+# Retro: Replace PoC dummy with real SCUFRIS_TELEGRAM_BOT_TOKEN sops secret
 
 - TASK: 20260722-221356
 - BRANCH: fix/real-telegram-secret (landed 3b3c131)
@@ -13,14 +13,14 @@
   zero leaks (the harness classifier even blocked an argv-based decrypt attempt).
 - One clean review round with no findings, because the rename was verified
   consistent (secret name = placeholder = template key = dotenv key =
-  TELEGRAM_BOT_TOKEN) before handing off.
+  SCUFRIS_TELEGRAM_BOT_TOKEN) before handing off.
 
 ## What went wrong
 
 - The PoC (20260722-214112) invented the secret's variable name from a nearby
   code COMMENT (`SCUFRIS_OPENAI_API_KEY`, mentioned in home/alex/default.nix)
   rather than the actual `~/.config/scufris/env`, which holds a single
-  `TELEGRAM_BOT_TOKEN`. So the dummy PoC used the wrong KEY name, not just a
+  `SCUFRIS_TELEGRAM_BOT_TOKEN`. So the dummy PoC used the wrong KEY name, not just a
   dummy value - this task had to fix the name too. Root cause: assumed the
   secret's shape from documentation instead of reading the secret file's keys.
 

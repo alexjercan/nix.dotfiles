@@ -66,7 +66,7 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `read-secret-keys-not-assume` (x1): derive a secret's variable NAMES from the
   actual secret file's keys (names only), not from a nearby code comment/config -
   a dummy PoC used `SCUFRIS_OPENAI_API_KEY` from a comment when the real env held
-  only `TELEGRAM_BOT_TOKEN`. 20260722-221356
+  only `SCUFRIS_TELEGRAM_BOT_TOKEN`. 20260722-221356
 - `inputs-self-needs-tracked-file` (x1): a `${inputs.self}/<path>` reference
   resolves against the git tree, so a newly-created file is invisible to
   `nix flake check`/build until `git add`ed - stage new referenced files before

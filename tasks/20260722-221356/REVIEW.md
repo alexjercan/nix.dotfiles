@@ -1,4 +1,4 @@
-# Review: Replace PoC dummy with real TELEGRAM_BOT_TOKEN sops secret
+# Review: Replace PoC dummy with real SCUFRIS_TELEGRAM_BOT_TOKEN sops secret
 
 - TASK: 20260722-221356
 - BRANCH: fix/real-telegram-secret
@@ -9,9 +9,9 @@
 - REVIEWER: out-of-context
 
 No findings. The out-of-context reviewer confirmed the rename is consistent
-across the sops secret, `sops.placeholder`, and template (all `TELEGRAM_BOT_TOKEN`,
+across the sops secret, `sops.placeholder`, and template (all `SCUFRIS_TELEGRAM_BOT_TOKEN`,
 no leftover `SCUFRIS_OPENAI_API_KEY`); that the committed `secrets/scufris.env`
-is genuinely encrypted (`TELEGRAM_BOT_TOKEN=ENC[...]`, 0 dummy/old-name
+is genuinely encrypted (`SCUFRIS_TELEGRAM_BOT_TOKEN=ENC[...]`, 0 dummy/old-name
 occurrences); that a non-printing decrypt round-trip yields a non-empty value
 (length 46) without ever echoing the token; that no plaintext token leaks in the
 diff, comments, TASK.md, README, or commit message; that the stale "DUMMY" wording
@@ -24,4 +24,4 @@ No open findings; no manual: DoD item is the reviewer's to resolve - the user's
 
 Pending user check (manual: DoD):
 - Run `home-manager switch` and confirm scufris starts with the real
-  TELEGRAM_BOT_TOKEN from the decrypted env file.
+  SCUFRIS_TELEGRAM_BOT_TOKEN from the decrypted env file.
