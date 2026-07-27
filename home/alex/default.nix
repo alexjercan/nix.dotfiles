@@ -166,7 +166,18 @@ in {
     # (never Python deps); git is needed for codex/claude in a project cwd.
     # `today` (from inputs.today.overlays.default) backs the journal_* MCP tools,
     # and `macros` (inputs.macros-nvim.overlays.default) backs the macros_* tools.
-    path = [pkgs.codex pkgs.claude-code pkgs.git pkgs.today pkgs.macros];
+    # `nvidia_x11.bin` provides nvidia-smi, which backs the GPU stats page: the
+    # HM user service overrides PATH, so without it nvidia-smi is unreachable and
+    # the dashboard shows `gpus: []` (works locally only because the interactive
+    # shell PATH has /run/current-system/sw/bin). nvidia-smi/NVML must match the
+    # LOADED kernel module or it errors "Driver/library version mismatch" and the
+    # page silently falls back to `gpus: []`. This matches today because the host
+    # (hosts/nixos) runs the DEFAULT kernel with `nvidiaPackages.stable`, so
+    # `linuxPackages.nvidia_x11` == the host's `hardware.nvidia.package` (same
+    # nixpkgs input, same driver). If the host ever pins a non-default kernel or a
+    # beta/legacy/production nvidia package, switch this to reference that same
+    # driver instead.
+    path = [pkgs.codex pkgs.claude-code pkgs.git pkgs.today pkgs.macros pkgs.linuxPackages.nvidia_x11.bin];
   };
 
   home.pointerCursor = {
