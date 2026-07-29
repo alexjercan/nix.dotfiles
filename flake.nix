@@ -45,7 +45,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     scufris = {
-      url = "github:alexjercan/scufris";
+      # Pinned to a release tag, not master: version bumps are a deliberate act.
+      # New versions: https://github.com/alexjercan/scufris/releases
+      url = "github:alexjercan/scufris/v0.1.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
