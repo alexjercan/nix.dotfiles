@@ -3,7 +3,6 @@
   home.packages = with pkgs; [
     audacity
     blender
-    davinci-resolve
     ffmpeg
     gimp
     inkscape
