@@ -23,9 +23,8 @@ Code and `~/.agents/skills` for the codex CLI, and deploys the global
 - `LESSONS.md` at the repo root is the lessons ledger. Read it before
   starting any task; /compound and /lessons maintain it. Records live in
   the task folders (`tasks/<id>/`) and the ledger.
-- The conformance gate is `/home/alex/personal/tatr/tatr check` plus
-  `/home/alex/personal/tatr/tatr check --ledger LESSONS.md`; both must
-  exit 0 (use that binary - the installed tatr may be older).
+- The conformance gate is `tatr check` plus
+  `tatr check --ledger LESSONS.md`; both must exit 0.
 
 ## Check suite
 

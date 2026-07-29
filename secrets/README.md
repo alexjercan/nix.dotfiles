@@ -9,14 +9,11 @@ home-manager activation via the `sops-nix.service` user service, into
 
 Files here:
 
-- `scufris.env` - sops dotenv for scufris's `environmentFile`. Currently holds a
-  DUMMY `SCUFRIS_OPENAI_API_KEY` (PoC); swap in the real value before relying on
-  it (see "Edit a secret").
-  - It must also hold `SCUFRIS_AUTH_PASSWORD_HASH` once the scufris input is
-    bumped past v0.1.0: the dashboard binds the LAN and from that release on it
-    REFUSES TO START without a credential. Generate the line with
-    `scufris hash-password` and paste it in with "Edit a secret" below. The
-    stored value is a scrypt hash, not the password.
+- `scufris.env` - sops dotenv for scufris's `environmentFile`. It currently
+  holds `SCUFRIS_TELEGRAM_BOT_TOKEN` and `SCUFRIS_AUTH_PASSWORD_HASH`.
+  sops-nix declares this as one `scufris-env` secret because dotenv mode
+  decrypts the whole file; the attr name is the output file name, not a
+  per-variable selector.
 
 ## The model: one dedicated age key per machine
 

@@ -35,7 +35,8 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `sops-dotenv-decrypts-whole-file` (x1): a sops-nix secret with
   `format = "dotenv"` decrypts the ENTIRE file as that secret's value (no
   per-key extraction), so its `.path` is already a full `KEY=value` env file -
-  point `environmentFile` at it directly. Wrapping it in a template that
+  name the attr after the env FILE (e.g. `scufris-env`) and point
+  `environmentFile` at it directly. Wrapping it in a template that
   re-prepends `KEY=${placeholder}` doubles the line
   (`SCUFRIS_TELEGRAM_BOT_TOKEN=SCUFRIS_TELEGRAM_BOT_TOKEN=<token>`) and the
   Telegram API 404s. Per-key placeholders need a yaml/json sopsFile. 20260722-113105

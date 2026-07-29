@@ -100,9 +100,8 @@ in {
   # sops-nix PoC (task 20260722-214112, see tasks/20260722-113105/RECOMMENDATION.md).
   # Encrypted-in-repo secrets via a DEDICATED passwordless age key per machine
   # (~/.config/sops/age/keys.txt, generated with age-keygen, kept out of the repo
-  # and the store). The secret file is a sops DOTENV (secrets/scufris.env); a
-  # template re-assembles the KEY=value env file scufris consumes, decrypted at
-  # activation into $XDG_RUNTIME_DIR by the sops-nix user service.
+  # and the store). The secret file is a sops DOTENV (secrets/scufris.env),
+  # decrypted at activation into $XDG_RUNTIME_DIR by the sops-nix user service.
   sops = {
     age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
 
@@ -110,13 +109,10 @@ in {
     # `../../secrets` path literal - see LESSONS.md flake-path-literal-string-coercion.
     #
     # `format = "dotenv"` decrypts the WHOLE file as this secret's value, so the
-    # decrypted secret at `.path` is already a complete `KEY=value` env file that
-    # scufris can load directly via environmentFile (see below). Do NOT wrap this
-    # in a sops template that re-prepends `KEY=` - that doubles the line into
-    # `SCUFRIS_TELEGRAM_BOT_TOKEN=SCUFRIS_TELEGRAM_BOT_TOKEN=<token>` and Telegram
-    # 404s. Per-key placeholder extraction only works for yaml/json sops files;
-    # for dotenv, use the whole decrypted file as the env file.
-    secrets."SCUFRIS_TELEGRAM_BOT_TOKEN" = {
+    # attr name is just the runtime output file name. It is not a per-key
+    # selector. The decrypted file at `.path` is already a complete `KEY=value`
+    # env file that scufris can load directly via environmentFile.
+    secrets."scufris-env" = {
       sopsFile = "${inputs.self}/secrets/scufris.env";
       format = "dotenv";
     };
@@ -194,12 +190,10 @@ in {
     # differs, not the state.
     # The dotenv secret above is decrypted at activation into $XDG_RUNTIME_DIR
     # (never in the nix store) as a complete `KEY=value` env file, so point
-    # environmentFile straight at it. Add more secrets by editing the dotenv file
-    # (`sops secrets/scufris.env`, see secrets/README.md) - every secret's `.path`
-    # resolves to the same full decrypted env file. The dashboard password hash
-    # (SCUFRIS_AUTH_PASSWORD_HASH, see auth_mode above) is delivered the same
-    # way; without it a LAN-bound scufris refuses to start.
-    environmentFile = config.sops.secrets."SCUFRIS_TELEGRAM_BOT_TOKEN".path;
+    # environmentFile straight at it. Add more secret env vars by editing
+    # `secrets/scufris.env` with sops; this path always resolves to the full
+    # decrypted env file.
+    environmentFile = config.sops.secrets."scufris-env".path;
 
     # Agent backends are operator-installed binaries the server shells out to
     # (never Python deps); git is needed for codex/claude in a project cwd.
