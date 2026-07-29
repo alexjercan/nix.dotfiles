@@ -8,7 +8,6 @@
     llama-cpp
     macros
     openssl
-    poetry
     tatr
   ];
 }
