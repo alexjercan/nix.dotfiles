@@ -140,6 +140,25 @@ in {
       port = 8000;
       log_level = "INFO";
 
+      # Dashboard authentication. A LAN-reachable bind (host above, plus the
+      # 192.168.0.0/24 -> 8000 firewall rule in hosts/nixos) means anything on
+      # the network could otherwise create agents and drive the orchestrator.
+      # "required" is explicit here; scufris's own default ("auto") would
+      # already require it for a non-loopback bind.
+      #
+      # This is FAIL-CLOSED: the service REFUSES TO START unless
+      # SCUFRIS_AUTH_PASSWORD_HASH is set. That variable is a secret, so it does
+      # not belong here - add it to the sops dotenv below:
+      #
+      #     nix run nixpkgs#scufris -- hash-password   # or `scufris hash-password`
+      #     sops secrets/scufris.env                   # paste the printed line
+      #
+      # The hash (scrypt), never the password, is what is stored. Only takes
+      # effect once the scufris flake input is bumped past v0.1.0, which is the
+      # release that introduces the option - until then this is inert (unknown
+      # SCUFRIS_ vars are ignored).
+      auth_mode = "required";
+
       # Agent: the orchestrator chat. Codex app-server backend by default,
       # authenticated with a ChatGPT subscription (`scufris login` / `codex login`).
       agent_enabled = true;
@@ -177,7 +196,9 @@ in {
     # (never in the nix store) as a complete `KEY=value` env file, so point
     # environmentFile straight at it. Add more secrets by editing the dotenv file
     # (`sops secrets/scufris.env`, see secrets/README.md) - every secret's `.path`
-    # resolves to the same full decrypted env file.
+    # resolves to the same full decrypted env file. The dashboard password hash
+    # (SCUFRIS_AUTH_PASSWORD_HASH, see auth_mode above) is delivered the same
+    # way; without it a LAN-bound scufris refuses to start.
     environmentFile = config.sops.secrets."SCUFRIS_TELEGRAM_BOT_TOKEN".path;
 
     # Agent backends are operator-installed binaries the server shells out to
