@@ -214,6 +214,7 @@
     nvtopPackages.nvidia
     pv
     python3
+    sops
     tuigreet
     vim
     wget
