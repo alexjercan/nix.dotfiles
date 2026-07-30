@@ -131,6 +131,27 @@
         "type": "github"
       }
     },
+    "home-manager_2": {
+      "inputs": {
+        "nixpkgs": [
+          "scufris",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1785306346,
+        "narHash": "sha256-DScBkW0fOgpGPK2trNoX3ryLTlaC14+gglFo/BhGJ4g=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "e705714e918c3b11affcdd15db2cbe3a070420a0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
     "import-tree": {
       "locked": {
         "lastModified": 1784254960,
@@ -432,6 +453,7 @@
     "scufris": {
       "inputs": {
         "flake-parts": "flake-parts_4",
+        "home-manager": "home-manager_2",
         "nixpkgs": [
           "nixpkgs"
         ],
@@ -441,11 +463,11 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1785420290,
-        "narHash": "sha256-LmO8CNZiw9nIjkkCXKccNmUFz0wU/PCT9cZw02QkzC8=",
+        "lastModified": 1785438831,
+        "narHash": "sha256-NGpuBtPPXSTzIxea8c2TBP//30xSSK1XevsBQWJ40G4=",
         "owner": "alexjercan",
         "repo": "scufris",
-        "rev": "5df5d500a160473b9acdbf9e72319d4b4bcfbf30",
+        "rev": "db67d52ed785df99b6183874fc61bcebd4091105",
         "type": "github"
       },
       "original": {
