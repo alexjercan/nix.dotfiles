@@ -6,6 +6,12 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 
 ## Process lessons
 
+- `split-files-need-isolated-phases` (x1): progressive disclosure saves
+  context only when unused branches remain unread or phases use fresh contexts;
+  reading every split file in one session merely defers the same cost. 20260730-142052
+- `task-close-contracts-must-compose` (x1): a task-specific workflow that
+  closes a task must also produce the generic records required by `tatr check`;
+  spike currently omits review and retro from its close path. 20260730-142052
 - `out-of-context-review-pass` (x3, PROMOTED 2026-07-20 -> review skill
   round-1 default): the fresh-context reviewer found what the implementing
   session could not see (an unfailable test; a docs-only loophole; a
