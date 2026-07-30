@@ -6,6 +6,7 @@
 ## Round 1
 
 - VERDICT: REQUEST_CHANGES
+- REVIEWER: not recorded
 
 - [x] R1.1 (MAJOR) home/modules/agents/skills/spike/SKILL.md:47-49,95-96,121 -
   the spike/plan boundary is self-contradictory. Step 5 has spike create the
@@ -46,6 +47,7 @@
 ## Round 2
 
 - VERDICT: APPROVE
+- REVIEWER: not recorded
 
 - R1.1 verified resolved: Step 5 now scopes spike to coarse direction-level
   tasks and hands Step-breakdown to `/plan`; the Doc Format example and the

@@ -1,4 +1,8 @@
-# Retro: plan skill DoD-grep excludes tasks/
+# Retro: plan skill: DoD-grep proof template excludes tasks/ by default
+
+- TASK: 20260720-220044
+- BRANCH: not recorded
+- REVIEW ROUNDS: 1
 
 ## What went well
 

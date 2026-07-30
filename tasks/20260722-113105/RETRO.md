@@ -1,4 +1,4 @@
-# Retro: Investigate sops-nix vs agenix, write recommendation
+# Retro: Investigate encrypted secrets management (sops-nix vs agenix)
 
 - TASK: 20260722-113105
 - BRANCH: chore/secrets-research (landed 47dfb9b)

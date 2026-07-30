@@ -1,4 +1,7 @@
-# Review
+# Review: flow skill: codify umbrella/GOAL lifecycle (close, residue, no-RETRO)
+
+- TASK: 20260720-220111
+- BRANCH: not recorded
 
 ## Round 1
 

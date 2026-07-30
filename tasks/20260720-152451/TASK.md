@@ -2,7 +2,10 @@
 
 - STATUS: CLOSED
 - PRIORITY: 90
-- TAGS: feature, skills
+- TAGS: feature,skills
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Story
 
@@ -34,8 +37,8 @@ nova-protocol improvised release-tracker tasks to hold exactly this.
 - flow SKILL.md creates, updates and closes the umbrella + GOAL.md at the
   named points and contains the format block (cmd: grep -n "GOAL.md" home/modules/agents/skills/flow/SKILL.md)
 - tatr and plan skills cross-reference it (cmd: grep -n "GOAL.md" home/modules/agents/skills/tatr/SKILL.md home/modules/agents/skills/plan/SKILL.md)
-- manual: this flow's own GOAL.md matches the prescribed format (reconcile
-  both ways if review disagrees)
+- This flow's own GOAL.md matches the prescribed format (manual: user reads it;
+  reconcile both ways if review disagrees)
 
 ## Notes
 

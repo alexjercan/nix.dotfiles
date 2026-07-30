@@ -2,7 +2,10 @@
 
 - STATUS: CLOSED
 - PRIORITY: 25
-- TAGS: chore, nix
+- TAGS: chore,nix
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Story
 
@@ -54,3 +57,14 @@ cleaned up and the runtime unknowns documented in-line.
 - Test on hyprland after each change - the caps/discord passthrough is the
   fragile bit. (Caps/discord and wlogout rendering are best-effort, pending an
   eyeball test by the owner.)
+
+## Definition of Done
+
+No Definition of Done was recorded when this task ran. The section is added on
+2026-07-30 so the record satisfies the tatr v2 schema; nothing is reconstructed
+after the fact.
+
+- The work delivered and the verification the closing session ran are recorded
+  in the sections above (manual: read this record).
+- The task was accepted by its review (manual: read the round verdicts in
+  REVIEW.md).

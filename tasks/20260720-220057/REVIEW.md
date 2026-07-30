@@ -1,4 +1,7 @@
-# Review
+# Review: review skill: constrain reviewer to BLOCKER|MAJOR|MINOR|NIT
+
+- TASK: 20260720-220057
+- BRANCH: not recorded
 
 ## Round 1
 

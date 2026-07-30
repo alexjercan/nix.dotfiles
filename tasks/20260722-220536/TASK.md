@@ -2,7 +2,10 @@
 
 - STATUS: CLOSED
 - PRIORITY: 40
-- TAGS: docs, nix, security
+- TAGS: docs,nix,security
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Story
 
@@ -27,12 +30,13 @@ could mislead someone into an unrecoverable state).
 
 ## Definition of Done
 
-- test: the scratch dry-run proves key B (added via `sops updatekeys`) decrypts
-        a secret originally encrypted only to key A.
-- cmd: `nix flake check --no-build` still passes (the new README is not matched
-       by the `secrets/*.env` rule, so sops-nix ignores it).
-- cmd: `test -f secrets/README.md` and it names `sops updatekeys`, `age-keygen`,
-       and the new-machine onboarding steps.
+- Key B, added via `sops updatekeys`, decrypts a secret originally encrypted
+  only to key A (test: the scratch dry-run).
+- The flake still evaluates - the new README is not matched by the
+  `secrets/*.env` rule, so sops-nix ignores it
+  (cmd: `nix flake check --no-build`).
+- `secrets/README.md` exists and names `sops updatekeys`, `age-keygen` and the
+  new-machine onboarding steps (cmd: `test -f secrets/README.md`).
 
 ## Notes
 

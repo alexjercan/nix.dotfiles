@@ -1,4 +1,8 @@
-# Retro: deploy the agents skills to codex
+# Retro: deploy the agents skills to codex too (~/.agents/skills)
+
+- TASK: 20260721-102529
+- BRANCH: not recorded
+- REVIEW ROUNDS: 1
 
 ## What went well
 

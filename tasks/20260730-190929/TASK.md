@@ -3,9 +3,7 @@
 - STATUS: CLOSED
 - PRIORITY: 90
 - TAGS: nix,security,sops,scufris
-
-## Flow State
-
+- KIND: TASK
 - FLOW STEP: DONE
 - PLAN STATUS: APPROVED
 

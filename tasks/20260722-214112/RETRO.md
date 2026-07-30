@@ -1,4 +1,4 @@
-# Retro: PoC - migrate scufris env to sops-nix (dummy secret)
+# Retro: PoC: migrate scufris env to sops-nix (dummy secret)
 
 - TASK: 20260722-214112
 - BRANCH: chore/sops-nix-poc (landed 2004344)

@@ -6,6 +6,7 @@
 ## Round 1
 
 - VERDICT: APPROVE
+- REVIEWER: not recorded
 
 Docs-only change to `flow/SKILL.md` and `work/SKILL.md`. Verified against the
 goal (each APPROVEd task branch should land as a single commit, one-per-task

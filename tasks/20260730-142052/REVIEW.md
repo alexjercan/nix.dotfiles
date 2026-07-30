@@ -1,4 +1,4 @@
-# Review: Redesign the flow skills for concise progressive disclosure
+# Review: Spike: redesign the flow skills for concise progressive disclosure
 
 - TASK: 20260730-142052
 - BRANCH: master

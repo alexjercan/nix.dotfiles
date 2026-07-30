@@ -1,4 +1,4 @@
-# Retro: Redesign the flow skills for concise progressive disclosure
+# Retro: Spike: redesign the flow skills for concise progressive disclosure
 
 - TASK: 20260730-142052
 - BRANCH: master

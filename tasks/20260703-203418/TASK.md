@@ -3,6 +3,9 @@
 - STATUS: CLOSED
 - PRIORITY: 80
 - TAGS: feature,historical
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Goal
 
@@ -69,3 +72,14 @@ instead of `--json`).
 **Testing.** Docs were written against the final `--help` output of the built
 `today` and `daily` derivations, so the flags, defaults, and exit codes match
 what shipped. Verified the recursive skills wiring needs no edit.
+
+## Definition of Done
+
+No Definition of Done was recorded when this task ran. The section is added on
+2026-07-30 so the record satisfies the tatr v2 schema; nothing is reconstructed
+after the fact.
+
+- The work delivered and the verification the closing session ran are recorded
+  in the sections above (manual: read this record).
+- The task was accepted by its review (manual: read the round verdicts in
+  REVIEW.md).

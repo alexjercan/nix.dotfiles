@@ -1,4 +1,8 @@
-# Retro: review skill severity constraint
+# Retro: review skill: constrain reviewer to BLOCKER|MAJOR|MINOR|NIT
+
+- TASK: 20260720-220057
+- BRANCH: not recorded
+- REVIEW ROUNDS: 1
 
 ## What went well
 

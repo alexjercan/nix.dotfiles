@@ -2,11 +2,11 @@
 
 - STATUS: OPEN
 - PRIORITY: 70
-- TAGS: feature,skills,flow,spike
-
-## Flow State
-
+- TAGS: feature, skills, flow, spike
+- KIND: STORY
 - FLOW STEP: PLANNING
+- PLAN STATUS: DRAFT
+- PARENT: 20260730-153122
 
 ## Story
 

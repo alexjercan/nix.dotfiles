@@ -2,7 +2,10 @@
 
 - STATUS: CLOSED
 - PRIORITY: 60
-- TAGS: feature, flow
+- TAGS: feature,flow
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Story
 

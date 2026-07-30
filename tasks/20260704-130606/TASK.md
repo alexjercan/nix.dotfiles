@@ -3,6 +3,9 @@
 - STATUS: CLOSED
 - PRIORITY: 50
 - TAGS: docs,skills,historical
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Goal
 
@@ -52,3 +55,14 @@ feed it durable research. Small, surgical doc edits only.
 - Files: home/modules/agents/skills/{plan,flow,tatr}/SKILL.md. Grep for the
   existing "plan, work, review, compound" lifecycle phrasing to find the exact
   spots to extend.
+
+## Definition of Done
+
+No Definition of Done was recorded when this task ran. The section is added on
+2026-07-30 so the record satisfies the tatr v2 schema; nothing is reconstructed
+after the fact.
+
+- The work delivered and the verification the closing session ran are recorded
+  in the sections above (manual: read this record).
+- The task was accepted by its review (manual: read the round verdicts in
+  REVIEW.md).

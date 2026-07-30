@@ -3,6 +3,9 @@
 - STATUS: CLOSED
 - PRIORITY: 50
 - TAGS: feature,historical
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Goal
 
@@ -105,3 +108,14 @@ was the right call. The retro's "check every fallible command" lesson was
 directly useful here (the new-session guard). Next time, reach for
 `TMUX_TMPDIR` isolation from the start when a shell tool drives tmux, rather
 than risking the real server.
+
+## Definition of Done
+
+No Definition of Done was recorded when this task ran. The section is added on
+2026-07-30 so the record satisfies the tatr v2 schema; nothing is reconstructed
+after the fact.
+
+- The work delivered and the verification the closing session ran are recorded
+  in the sections above (manual: read this record).
+- The task was accepted by its review (manual: read the round verdicts in
+  REVIEW.md).

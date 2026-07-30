@@ -2,11 +2,11 @@
 
 - STATUS: OPEN
 - PRIORITY: 75
-- TAGS: feature,skills,flow,lessons
-
-## Flow State
-
+- TAGS: feature, skills, flow, lessons
+- KIND: STORY
 - FLOW STEP: PLANNING
+- PLAN STATUS: DRAFT
+- PARENT: 20260730-153122
 
 ## Story
 

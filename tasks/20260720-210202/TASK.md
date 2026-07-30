@@ -2,7 +2,10 @@
 
 - STATUS: CLOSED
 - PRIORITY: 40
-- TAGS: infra, nix, skills
+- TAGS: infra,nix,skills
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Goal
 
@@ -12,7 +15,9 @@ Replace the two old bash journal scripts (`today` + `daily`, in
 the new subcommand surface. After this, there is ONE `today` command with
 subcommands; the `daily` binary is gone.
 
-## Packaging / home wiring
+## Steps
+
+### Packaging / home wiring
 
 1. Add the flake input in `flake.nix` (mirror the `tatr` input):
 
@@ -35,7 +40,7 @@ subcommands; the `daily` binary is gone.
    unambiguous). Put this where the old `today`/`daily` enablement lived
    (`home/modules/scripts/default.nix`, or a small new module).
 
-## Remove the old scripts
+### Remove the old scripts
 
 4. Delete `home/modules/scripts/today.nix` and `home/modules/scripts/daily.nix`.
 5. In `home/modules/scripts/default.nix`: drop the `./today.nix` / `./daily.nix`
@@ -43,7 +48,7 @@ subcommands; the `daily` binary is gone.
    blocks. Keep `./sprout.nix`. (Verify nothing else references `config.today.*`
    or `config.daily.*`.)
 
-## Update the agent skills
+### Update the agent skills
 
 The skills live in `home/modules/agents/skills/{today,daily}/SKILL.md`. Since one
 binary now does everything, prefer CONSOLIDATING into the single `today` skill
@@ -81,15 +86,18 @@ Behavior notes to carry into the skill docs:
 - Only `[ ]`/`[x]` are tasks; other markers (the retired `[~]`) are skipped.
 - Macros/weight/note writes are validated (a logged value always reads back).
 
-## Verify / DoD
+## Definition of Done
 
-- (cmd) `nix flake check` on nix.dotfiles is green.
-- (cmd) `nix build .#homeConfigurations.alex.activationPackage` (or the repo's
-  usual build) succeeds with `today.nix`/`daily.nix` gone.
-- (manual) `home-manager switch` (or nixos rebuild) then: `which today` resolves
-  to the Nix store package (not the bash script), `which daily` is GONE, and
-  `today show --json` / `today path` work against the real den.
-- (manual) The updated skills read correctly and every example runs.
+- `nix flake check` on nix.dotfiles is green (cmd: `nix flake check`).
+- The home config still builds with `today.nix`/`daily.nix` gone
+  (cmd: `nix build .#homeConfigurations.alex.activationPackage`, or the repo's
+  usual build).
+- After activation, `which today` resolves to the Nix store package (not the
+  bash script), `which daily` is GONE, and `today show --json` / `today path`
+  work against the real den (manual: user runs `home-manager switch` or a nixos
+  rebuild and reports).
+- The updated skills read correctly and every example runs (manual: user
+  reads the skills and runs the examples).
 
 ## Notes
 

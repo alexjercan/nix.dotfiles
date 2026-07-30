@@ -1,4 +1,8 @@
-# Retro: mark pre-flow tasks historical
+# Retro: retro-completeness: mark pre-flow (Jul 3/4) tasks historical
+
+- TASK: 20260720-220137
+- BRANCH: not recorded
+- REVIEW ROUNDS: 1
 
 ## What went well
 

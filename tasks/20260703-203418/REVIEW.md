@@ -1,9 +1,14 @@
-# Review: Write Claude Code skills for `daily` and `today`
+# Review: Write Claude Code skills that drive `daily` and `today` as CLI tools
 
 - TASK: 20260703-203418
 - BRANCH: agent-daily-today
-- ROUND: 1
+
+## Round 1
+
 - VERDICT: APPROVE
+- REVIEWER: not recorded
+
+- ROUND: 1
 
 ## Summary
 

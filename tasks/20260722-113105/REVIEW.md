@@ -1,4 +1,4 @@
-# Review: Investigate sops-nix vs agenix, write recommendation
+# Review: Investigate encrypted secrets management (sops-nix vs agenix)
 
 - TASK: 20260722-113105
 - BRANCH: chore/secrets-research

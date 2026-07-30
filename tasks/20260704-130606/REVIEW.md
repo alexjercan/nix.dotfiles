@@ -6,6 +6,7 @@
 ## Round 1
 
 - VERDICT: APPROVE
+- REVIEWER: not recorded
 
 Reviewed the diff against all three files and against task 20260704-130605's
 spike model. Consistency checks that passed:

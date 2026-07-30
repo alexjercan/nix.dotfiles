@@ -3,6 +3,9 @@
 - STATUS: CLOSED
 - PRIORITY: 60
 - TAGS: bug
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Goal
 
@@ -15,6 +18,14 @@ unrelated to the flow-suite v2 work); discovered while verifying the
 sprout-land task, which fell back to building the sprout package directly.
 Diagnose (stale store path? import-tree + git worktree interaction?) and
 restore a working repo-level check, then re-point the check suite at it.
+
+## Steps
+
+Recorded as Diagnosis and Fix below rather than as a step list; restated here
+on 2026-07-30 for the tatr v2 schema.
+
+- [x] Diagnose the `path '...-hosts' is not valid` failure (see Diagnosis).
+- [x] Reference the directories as subpaths of the flake source (see Fix).
 
 ## Diagnosis
 
@@ -40,11 +51,12 @@ no longer orphan them.
 - [x] `nix flake check --no-build` passes on the fixed tree
       (cmd: `nix flake check --no-build`).
 - [x] The GC-orphan failure can no longer be set up: fresh eval -> delete the
-      referenced store path -> re-check stays green (cmd, deterministic repro:
+      referenced store path -> re-check stays green (cmd: deterministic repro -
       run `nix flake check --no-build`, `nix-store --delete` the flake
       `-source` path, re-run `nix flake check --no-build` -> exit 0). On master
       the same sequence against the floating `-hosts` path reproduces the error.
 - [x] No other `../` string-coerced directory literals remain in `flake/`
       (cmd: `grep -rn '\.\./' flake/` shows only comment matches).
-- [x] The repo-level check suite is `nix flake check --no-build` again (no
-      fallback to building a package directly).
+- [x] The repo-level check suite is `nix flake check --no-build` again, with no
+      fallback to building a package directly
+      (cmd: `nix flake check --no-build`).

@@ -6,6 +6,7 @@
 ## Round 1
 
 - VERDICT: APPROVE
+- REVIEWER: not recorded
 
 Minimal, correct fix that delivers the Goal. Verified independently:
 

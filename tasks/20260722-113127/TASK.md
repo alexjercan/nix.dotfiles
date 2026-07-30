@@ -2,7 +2,10 @@
 
 - STATUS: CLOSED
 - PRIORITY: 35
-- TAGS: chore, nix
+- TAGS: chore,nix
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Story
 
@@ -38,3 +41,14 @@ Decision: LEAVE nixvim un-followed; document why (done, comment added in flake.n
 
 - Whatever the outcome, the input should carry a comment so the inconsistency
   reads as intentional. (Done.)
+
+## Definition of Done
+
+No Definition of Done was recorded when this task ran. The section is added on
+2026-07-30 so the record satisfies the tatr v2 schema; nothing is reconstructed
+after the fact.
+
+- The work delivered and the verification the closing session ran are recorded
+  in the sections above (manual: read this record).
+- The task was accepted by its review (manual: read the round verdicts in
+  REVIEW.md).

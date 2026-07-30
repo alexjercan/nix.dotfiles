@@ -2,10 +2,8 @@
 
 - STATUS: CLOSED
 - PRIORITY: 80
-- TAGS: docs, skills, flow
-
-## Flow State
-
+- TAGS: docs,skills,flow
+- KIND: TASK
 - FLOW STEP: DONE
 - PLAN STATUS: APPROVED
 

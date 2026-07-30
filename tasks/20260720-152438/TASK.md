@@ -2,7 +2,10 @@
 
 - STATUS: CLOSED
 - PRIORITY: 95
-- TAGS: feature, skills
+- TAGS: feature,skills
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Story
 
@@ -33,8 +36,8 @@ default; scufris approved 44/44 reviews in round 1.
 - review SKILL.md defines the default, the REVIEWER field and the carve-out
   (cmd: grep -n "out-of-context" home/modules/agents/skills/review/SKILL.md)
 - flow SKILL.md references it (cmd: grep -n "out-of-context" home/modules/agents/skills/flow/SKILL.md)
-- manual: the remaining reviews in this flow use the default and the user
-  sees the REVIEWER field in committed REVIEW.md files
+- The remaining reviews in this flow use the default (manual: the user sees the
+  REVIEWER field in committed REVIEW.md files)
 
 ## Notes
 

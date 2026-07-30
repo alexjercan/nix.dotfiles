@@ -1,6 +1,9 @@
-# Review
+# Review: plan skill: DoD-grep proof template excludes tasks/ by default
 
-## Review round 1 (out-of-context reviewer)
+- TASK: 20260720-220044
+- BRANCH: not recorded
+
+## Round 1
 
 What I tried to break: whether the new plan-skill guidance is correct, generic,
 and placed where a plan-writer actually reads it; whether the example commands
@@ -20,6 +23,7 @@ prose claims. The rule is correctly limited to absence greps; nothing overclaime
 
 - No findings.
 - VERDICT: APPROVE
+- REVIEWER: out-of-context
 
 Note: this REVIEW.md was reconstructed in the main checkout after landing - the
 reviewer wrote it in the worktree but it was untracked and removed with the

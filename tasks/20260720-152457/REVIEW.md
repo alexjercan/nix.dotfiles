@@ -38,7 +38,7 @@ Open `manual:` DoD items for this task (pending user checks, batched at Finish):
   ("and continue with the" / "next task.").
   - Response: Rewrapped to a single clean line.
 
-## Round 1 addendum - user feedback (mid-round)
+### Round 1 addendum - user feedback (mid-round)
 
 The user asked that command/test proofs be wrapped in backticks so markdown
 does not mangle globs/quotes/stars. Made backticks part of the prescribed

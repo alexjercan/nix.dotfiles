@@ -2,7 +2,10 @@
 
 - STATUS: CLOSED
 - PRIORITY: 45
-- TAGS: nix, security
+- TAGS: nix,security
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Story
 
@@ -25,16 +28,17 @@ secret entering (encrypted) git history (2026-07-22).
 
 ## Definition of Done
 
-- cmd: `git show HEAD:secrets/scufris.env` shows `SCUFRIS_TELEGRAM_BOT_TOKEN=ENC[...]`
-       (encrypted, real variable name) and NOT `SCUFRIS_OPENAI_API_KEY` and NOT
-       any plaintext token.
-- cmd: `nix flake check --no-build` passes.
-- cmd: the home config builds (`nix build .#homeConfigurations.alex.activationPackage --no-link`).
-- test: `sops decrypt` of the file yields a `SCUFRIS_TELEGRAM_BOT_TOKEN=` line with a
-        non-empty value (verified via a non-printing check, e.g. grep -c, not by
-        echoing the token).
-- manual: user runs `home-manager switch` and confirms scufris starts with the
-          real token from the decrypted env file.
+- The committed secret shows `SCUFRIS_TELEGRAM_BOT_TOKEN=ENC[...]` (encrypted,
+  real variable name) and NOT `SCUFRIS_OPENAI_API_KEY` and NOT any plaintext
+  token (cmd: `git show HEAD:secrets/scufris.env`).
+- The flake evaluates (cmd: `nix flake check --no-build`).
+- The home config builds
+  (cmd: `nix build .#homeConfigurations.alex.activationPackage --no-link`).
+- Decrypting the file yields a `SCUFRIS_TELEGRAM_BOT_TOKEN=` line with a
+  non-empty value, verified by a non-printing check (e.g. grep -c) rather than
+  by echoing the token (test: `sops decrypt`).
+- scufris starts with the real token from the decrypted env file (manual: user
+  runs `home-manager switch` and confirms).
 
 ## Notes
 

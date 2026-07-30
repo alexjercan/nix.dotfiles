@@ -1,10 +1,12 @@
-# Review: PR-style branch sync before squash-merge
+# Review: PR-style merge: sync feature branch with default before squash-merge
 
 - TASK: 20260704-134842
 - BRANCH: feature/pr-style-branch-sync
-- VERDICT: APPROVE
 
 ## Round 1
+
+- VERDICT: APPROVE
+- REVIEWER: not recorded
 
 Reviewed the diff of `flow/SKILL.md` and `work/SKILL.md` against the
 integration branch, plus the surrounding skills for stale references.

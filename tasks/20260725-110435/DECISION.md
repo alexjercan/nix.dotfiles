@@ -2,6 +2,8 @@
 
 - STATUS: ACCEPTED
 - DATE: 20260725
+- TASK: 20260725-110435
+- TAGS: decision, flow, skills, tatr
 - SCOPE: flow-family skills and tatr check
 
 ## Context
@@ -45,7 +47,7 @@ The skills will enforce the human part: start from understanding, compare the
 user request against task contents, ask questions or state assumptions, and
 stop at the plan gate until the user says to build.
 
-## Alternatives Considered
+## Alternatives considered
 
 - Treat `## Steps` as planned. Rejected because the user can write checkboxes
   before there is a confirmed plan.

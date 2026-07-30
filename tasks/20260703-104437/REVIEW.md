@@ -6,6 +6,7 @@
 ## Round 1
 
 - VERDICT: REQUEST_CHANGES
+- REVIEWER: not recorded
 
 - [x] R1.1 (MAJOR) home/modules/scripts/sprout.nix (cmd_new) - `cmd_new`
   ignores the exit status of `git worktree add`. With `errexit` off, when the
@@ -61,6 +62,7 @@
 ## Round 2
 
 - VERDICT: APPROVE
+- REVIEWER: not recorded
 
 All three round-1 findings verified resolved in commit b0409de:
 - R1.1: `sprout new ../escape` now exits 1 and prints no path; `cmd_new`

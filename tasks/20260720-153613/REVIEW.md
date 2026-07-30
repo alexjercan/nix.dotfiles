@@ -1,7 +1,12 @@
-# Review: Fix nix flake check 'path ...-hosts is not valid'
+# Review: Fix nix flake check: 'path ...-hosts is not valid'
 
-- VERDICT: APPROVE (round 1, out-of-context reviewer)
+- TASK: 20260720-153613
 - BRANCH: bug/flake-check-hosts
+
+## Round 1
+
+- VERDICT: APPROVE
+- REVIEWER: out-of-context
 
 ## Summary
 

@@ -6,6 +6,7 @@
 ## Round 1
 
 - VERDICT: APPROVE
+- REVIEWER: not recorded
 
 The `-i/--interactive` design is delivered cleanly and matches the amended
 plan. Verified independently:

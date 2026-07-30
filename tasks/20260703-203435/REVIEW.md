@@ -1,9 +1,14 @@
-# Review: Make the `today` script agent-friendly
+# Review: Make the `today` script agent-friendly (non-interactive, exit codes, print path)
 
 - TASK: 20260703-203435
 - BRANCH: agent-daily-today
-- ROUND: 1
+
+## Round 1
+
 - VERDICT: APPROVE
+- REVIEWER: not recorded
+
+- ROUND: 1
 
 ## Summary
 

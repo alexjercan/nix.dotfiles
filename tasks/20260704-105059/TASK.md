@@ -3,6 +3,9 @@
 - STATUS: CLOSED
 - PRIORITY: 1
 - TAGS: feature,docs,skills,historical
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Context
 
@@ -82,3 +85,14 @@ is what the recent retros push for ("ground truth beats reasoning"). Nothing
 went wrong. Next time, for a self-referential skill edit like this, it is worth
 sanity-checking that the new instructions are internally executable end to end,
 which the scratch-repo dry run effectively did.
+
+## Definition of Done
+
+No Definition of Done was recorded when this task ran. The section is added on
+2026-07-30 so the record satisfies the tatr v2 schema; nothing is reconstructed
+after the fact.
+
+- The work delivered and the verification the closing session ran are recorded
+  in the sections above (manual: read this record).
+- The task was accepted by its review (manual: read the round verdicts in
+  REVIEW.md).

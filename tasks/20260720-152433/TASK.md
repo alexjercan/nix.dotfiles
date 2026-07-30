@@ -2,7 +2,10 @@
 
 - STATUS: CLOSED
 - PRIORITY: 100
-- TAGS: feature, tooling
+- TAGS: feature,tooling
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Story
 
@@ -53,7 +56,8 @@ dangerous prose in the suite.
 - flow SKILL.md landing step uses sprout land and no longer contains the
   pwd/branch/squash/commit one-liner (cmd: grep -n "merge --squash" home/modules/agents/skills/flow/SKILL.md)
 - new/ls/show/rm behavior unchanged (test: sprout-test.sh new/show/rm cases)
-- manual: user sees a later task of this very flow landed via sprout land
+- A later task of this very flow lands via sprout land (manual: user sees it
+  happen).
 
 ## Notes
 

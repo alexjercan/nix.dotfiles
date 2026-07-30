@@ -1,8 +1,9 @@
-# DECISION: how one sops secret reaches both a user service and a root unit
+# Decision: how one sops secret reaches both a user service and a root unit
 
 - STATUS: ACCEPTED
 - DATE: 2026-07-30
 - TASK: 20260730-190929
+- TAGS: decision, nix, security, sops, scufris
 
 ## Context
 
@@ -23,9 +24,11 @@ Today the repo has exactly one sops instance, at the home-manager level
 (`flake/home-configurations.nix:39`), decrypting `secrets/scufris.env` as a
 dotenv into `$XDG_RUNTIME_DIR` with a per-user age key.
 
-## D1: system-level sops is the sole decryptor
+## Decision
 
-**Decision.** Import `inputs.sops-nix.nixosModules.sops` into `hosts/nixos` and
+### D1: system-level sops is the sole decryptor
+
+Import `inputs.sops-nix.nixosModules.sops` into `hosts/nixos` and
 make the NixOS level the only place decryption happens. It emits two derived
 outputs from one encrypted file:
 
@@ -38,7 +41,16 @@ outputs from one encrypted file:
 Home-manager drops its own `sops` block and refers to the rendered path as a
 LITERAL STRING.
 
-**Alternatives considered.**
+### D2: the system decrypts with the host SSH key
+
+Leave `sops.age.sshKeyPaths` at its default, so the system
+decrypts with `/etc/ssh/ssh_host_ed25519_key` (openssh is enabled and the key
+exists). Convert its public half with `ssh-to-age`, add it to `.sops.yaml` as a
+`&host_nixos` anchor beside `&alex_nixos`, and `sops updatekeys` the secret.
+
+## Alternatives considered
+
+### D1: system-level sops is the sole decryptor
 
 - *Both levels decrypt the same file.* HM keeps its sops and renders the env
   file itself; NixOS adds only the raw hostd secret. Keeps `home/alex`
@@ -57,7 +69,17 @@ LITERAL STRING.
   fail-closed, while that directory does not exist before login and disappears
   at logout (no lingering). It would fail at every boot.
 
-**Consequences.**
+### D2: the system decrypts with the host SSH key
+
+Point `sops.age.keyFile` at
+`/home/alex/.config/sops/age/keys.txt` - no re-keying, no `.sops.yaml` change.
+Rejected: it has a root boot-time service read a key out of a user's home
+directory, and it leaves the secret with a single recipient, so losing the alex
+key locks the machine out of its own credential too.
+
+## Consequences
+
+### D1: system-level sops is the sole decryptor
 
 - Accepted cost: the rendered path is duplicated as a string across the two
   evals. Mitigated by a comment on each side naming the other.
@@ -73,20 +95,7 @@ LITERAL STRING.
 - Gain: the credential exists at boot, independent of any login session, for
   both units; and rotating it can `restartUnits` the helper.
 
-## D2: the system decrypts with the host SSH key
-
-**Decision.** Leave `sops.age.sshKeyPaths` at its default, so the system
-decrypts with `/etc/ssh/ssh_host_ed25519_key` (openssh is enabled and the key
-exists). Convert its public half with `ssh-to-age`, add it to `.sops.yaml` as a
-`&host_nixos` anchor beside `&alex_nixos`, and `sops updatekeys` the secret.
-
-**Alternative considered.** Point `sops.age.keyFile` at
-`/home/alex/.config/sops/age/keys.txt` - no re-keying, no `.sops.yaml` change.
-Rejected: it has a root boot-time service read a key out of a user's home
-directory, and it leaves the secret with a single recipient, so losing the alex
-key locks the machine out of its own credential too.
-
-**Consequences.**
+### D2: the system decrypts with the host SSH key
 
 - The re-key must be run by a key that can currently decrypt, so the user runs
   `sops updatekeys` themselves.

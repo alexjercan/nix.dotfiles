@@ -2,11 +2,11 @@
 
 - STATUS: OPEN
 - PRIORITY: 50
-- TAGS: feature,flow,tatr,migration,testing
-
-## Flow State
-
+- TAGS: feature, flow, tatr, migration, testing
+- KIND: STORY
 - FLOW STEP: PLANNING
+- PLAN STATUS: DRAFT
+- PARENT: 20260730-153122
 
 ## Story
 
@@ -45,8 +45,8 @@ workflow finish the Epic in one coherent state.
 - Skill and sprout integration suites pass
   (cmd: `bash home/modules/agents/skills/check.sh && bash home/modules/scripts/sprout-test.sh`).
 - Flake evaluation passes (cmd: `nix flake check --no-build`).
-- manual: approve representative final reports against the agreed output
-  budgets.
+- Representative final reports meet the agreed output budgets (manual: user
+  approves them).
 
 ## Notes
 

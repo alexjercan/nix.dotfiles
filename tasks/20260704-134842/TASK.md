@@ -3,6 +3,9 @@
 - STATUS: CLOSED
 - PRIORITY: 100
 - TAGS: feature,docs,skills,historical
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Context
 
@@ -113,3 +116,14 @@ than trusting memory (the standing "ground truth beats reasoning" lesson).
 Nesting this flow inside a `/sprout` container branch worked but added a
 re-sprout when the plan commit landed after the first sprout; next time, commit
 the plan onto the integration branch before sprouting the first task.
+
+## Definition of Done
+
+No Definition of Done was recorded when this task ran. The section is added on
+2026-07-30 so the record satisfies the tatr v2 schema; nothing is reconstructed
+after the fact.
+
+- The work delivered and the verification the closing session ran are recorded
+  in the sections above (manual: read this record).
+- The task was accepted by its review (manual: read the round verdicts in
+  REVIEW.md).

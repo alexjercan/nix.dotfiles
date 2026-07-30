@@ -2,11 +2,11 @@
 
 - STATUS: OPEN
 - PRIORITY: 65
-- TAGS: feature,skills,flow,parallel,review
-
-## Flow State
-
+- TAGS: feature, skills, flow, parallel, review
+- KIND: STORY
 - FLOW STEP: PLANNING
+- PLAN STATUS: DRAFT
+- PARENT: 20260730-153122
 
 ## Story
 

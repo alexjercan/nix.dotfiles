@@ -1,4 +1,4 @@
-# Retro: Fix nix flake check 'path ...-hosts is not valid'
+# Retro: Fix nix flake check: 'path ...-hosts is not valid'
 
 - TASK: 20260720-153613
 - BRANCH: bug/flake-check-hosts (landed as 68d3ecf via sprout land)
@@ -54,3 +54,7 @@
   store as a floating non-GC-root `<hash>-subdir`; GC orphans it against the
   flake eval cache -> "path is not valid". Reference `${inputs.self}/subdir`
   instead so it stays inside the tracked flake source root.
+
+## Action items
+
+Not recorded.

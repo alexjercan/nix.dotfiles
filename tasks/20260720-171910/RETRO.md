@@ -1,4 +1,4 @@
-# Retro: Adopt flow v2 (nix.dotfiles)
+# Retro: Adopt flow v2: move ledger to root, create repo AGENTS.md flow pointer
 
 - TASK: 20260720-171910
 - BRANCH: chore/flow-v2-adoption (landed as 862589e via sprout land)
@@ -20,3 +20,7 @@
 ## Action items
 
 - [x] GOAL.md ticked; self-matching-grep lesson tracked for Finish.
+
+## What to improve next time
+
+Not recorded.

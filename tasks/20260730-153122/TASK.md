@@ -3,10 +3,9 @@
 - STATUS: OPEN
 - PRIORITY: 0
 - TAGS: goal,skills,flow
-
-## Flow State
-
+- KIND: EPIC
 - FLOW STEP: PLANNING
+- PLAN STATUS: DRAFT
 
 ## Epic
 

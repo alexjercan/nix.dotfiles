@@ -2,7 +2,10 @@
 
 - STATUS: CLOSED
 - PRIORITY: 40
-- TAGS: chore, nix, security
+- TAGS: chore,nix,security
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Story
 
@@ -37,14 +40,15 @@ here.
 
 ## Definition of Done
 
-- cmd: `nix flake check --no-build` passes on the branch.
-- cmd: `sops -d secrets/scufris.env` prints `SCUFRIS_OPENAI_API_KEY=sops-poc-placeholder`
-       (encrypt/decrypt round-trip works with the dedicated age key).
-- cmd: the home-manager config for `alex` builds
-       (`nix build .#homeConfigurations.alex.activationPackage --no-link`).
-- manual: user runs `home-manager switch`, swaps the dummy for the real value in
-          `secrets/scufris.env` via `sops`, and confirms scufris starts and
-          authenticates from the decrypted env file.
+- The flake evaluates on the branch (cmd: `nix flake check --no-build`).
+- The encrypt/decrypt round-trip works with the dedicated age key: the
+  decrypted file prints `SCUFRIS_OPENAI_API_KEY=sops-poc-placeholder`
+  (cmd: `sops -d secrets/scufris.env`).
+- The home-manager config for `alex` builds
+  (cmd: `nix build .#homeConfigurations.alex.activationPackage --no-link`).
+- scufris starts and authenticates from the decrypted env file (manual: user
+  runs `home-manager switch`, swaps the dummy for the real value in
+  `secrets/scufris.env` via `sops`, and confirms).
 
 ## Notes
 

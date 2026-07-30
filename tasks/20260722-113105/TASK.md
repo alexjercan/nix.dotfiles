@@ -2,7 +2,10 @@
 
 - STATUS: CLOSED
 - PRIORITY: 40
-- TAGS: chore, nix, security
+- TAGS: chore,nix,security
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Story
 
@@ -32,3 +35,14 @@ learn-and-document first, adopt-if-warranted second.
   proves the replacement.
 - Standalone home-manager on non-NixOS (Ubuntu) constrains options - a host SSH
   key may not exist there; factor that in.
+
+## Definition of Done
+
+No Definition of Done was recorded when this task ran. The section is added on
+2026-07-30 so the record satisfies the tatr v2 schema; nothing is reconstructed
+after the fact.
+
+- The work delivered and the verification the closing session ran are recorded
+  in the sections above (manual: read this record).
+- The task was accepted by its review (manual: read the round verdicts in
+  REVIEW.md).

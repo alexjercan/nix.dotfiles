@@ -1,4 +1,4 @@
-# Review: PoC - migrate scufris env to sops-nix (dummy secret)
+# Review: PoC: migrate scufris env to sops-nix (dummy secret)
 
 - TASK: 20260722-214112
 - BRANCH: chore/sops-nix-poc

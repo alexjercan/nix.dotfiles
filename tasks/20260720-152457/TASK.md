@@ -2,7 +2,10 @@
 
 - STATUS: CLOSED
 - PRIORITY: 85
-- TAGS: feature, skills
+- TAGS: feature,skills
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Story
 
@@ -34,8 +37,8 @@ it is a template fix.
 - plan/work/review/flow/tatr skills each carry the proof notation and their
   role in it (cmd: `grep -rn "manual:" home/modules/agents/skills/{plan,work,review,flow,tatr}/SKILL.md`)
 - plan SKILL.md's example DoD uses proofs (cmd: `grep -n "cmd:" home/modules/agents/skills/plan/SKILL.md`)
-- manual: user confirms the notation reads well in this flow's own task
-  files (all plans in this flow already use it)
+- The notation reads well in this flow's own task files (manual: user confirms;
+  all plans in this flow already use it)
 
 ## Notes
 

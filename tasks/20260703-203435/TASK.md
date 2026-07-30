@@ -3,6 +3,9 @@
 - STATUS: CLOSED
 - PRIORITY: 100
 - TAGS: feature,historical
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Goal
 
@@ -83,3 +86,14 @@ script against a fixture den: `--path` does not create; `--create` prints a
 valid path and is idempotent; a first entry with no yesterday succeeds with a
 stderr warning; a missing template exits 1; an unknown flag exits 2; the
 no-flag default invokes `$EDITOR`.
+
+## Definition of Done
+
+No Definition of Done was recorded when this task ran. The section is added on
+2026-07-30 so the record satisfies the tatr v2 schema; nothing is reconstructed
+after the fact.
+
+- The work delivered and the verification the closing session ran are recorded
+  in the sections above (manual: read this record).
+- The task was accepted by its review (manual: read the round verdicts in
+  REVIEW.md).

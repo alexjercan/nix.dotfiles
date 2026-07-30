@@ -1,6 +1,13 @@
-# Review: swap den scripts to the packaged today CLI (20260720-210202)
+# Review: Swap den scripts to the packaged today CLI (add today, drop today/daily.nix, update skills)
+
+- TASK: 20260720-210202
+- BRANCH: feature/today-cli-swap
+
+## Round 1
 
 - VERDICT: APPROVE
+- REVIEWER: not recorded
+
 - ROUNDS: 1 (out-of-context reviewer)
 
 ## Summary

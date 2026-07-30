@@ -1,4 +1,8 @@
-# Retro: resolve 3 pending promotions
+# Retro: lessons: resolve 3 pending promotions (dod-grep x5, edit-worktree, dry-run-scratch)
+
+- TASK: 20260720-220130
+- BRANCH: not recorded
+- REVIEW ROUNDS: 1
 
 ## What went well
 

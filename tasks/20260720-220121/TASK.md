@@ -2,7 +2,10 @@
 
 - STATUS: CLOSED
 - PRIORITY: 55
-- TAGS: docs, flow
+- TAGS: docs,flow
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Story
 

@@ -3,6 +3,9 @@
 - STATUS: CLOSED
 - PRIORITY: 90
 - TAGS: feature,historical
+- KIND: TASK
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Goal
 
@@ -87,3 +90,14 @@ correct indices; `--toggle-task 1` mutates and prints only to stderr, and the
 next `--json` shows the flip; empty macros -> zeros, unlogged weight -> null;
 missing entry exits 1 (stderr); unknown flag exits 2; default markdown
 unchanged.
+
+## Definition of Done
+
+No Definition of Done was recorded when this task ran. The section is added on
+2026-07-30 so the record satisfies the tatr v2 schema; nothing is reconstructed
+after the fact.
+
+- The work delivered and the verification the closing session ran are recorded
+  in the sections above (manual: read this record).
+- The task was accepted by its review (manual: read the round verdicts in
+  REVIEW.md).
