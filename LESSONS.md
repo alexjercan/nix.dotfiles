@@ -38,14 +38,13 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   literal to a string in a flake (interpolation or `builtins.readDir`) copies
   it to the store as a floating non-GC-root `<hash>-subdir` that GC orphans
   against the eval cache ("path is not valid"); use `${inputs.self}/subdir`. 20260720-153613
-- `sops-dotenv-decrypts-whole-file` (x1): a sops-nix secret with
-  `format = "dotenv"` decrypts the ENTIRE file as that secret's value (no
-  per-key extraction), so its `.path` is already a full `KEY=value` env file -
-  name the attr after the env FILE (e.g. `scufris-env`) and point
-  `environmentFile` at it directly. Wrapping it in a template that
-  re-prepends `KEY=${placeholder}` doubles the line
-  (`SCUFRIS_TELEGRAM_BOT_TOKEN=SCUFRIS_TELEGRAM_BOT_TOKEN=<token>`) and the
-  Telegram API 404s. Per-key placeholders need a yaml/json sopsFile. 20260722-113105
+- `sops-dotenv-decrypts-whole-file` (x2): a sops-nix secret with
+  `format = "dotenv"` decrypts the ENTIRE file as that secret's value and
+  IGNORES `key` (`sops-install-secrets/main.go`, same for ini/binary), so it
+  can never yield a raw single-value file. Wrapping it in a template that
+  re-prepends `KEY=${placeholder}` doubles the line and the Telegram API 404s.
+  A secret two consumers need at different granularities must be yaml/json:
+  per-key secrets for the raw file, a template for the env file. 20260722-113105, 20260730-190929
 
 - `rule-and-example-must-agree` (x2): re-read a rule and its examples together
   before committing - a format example has twice modeled the mistake its rule
@@ -88,10 +87,11 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `build-just-the-package` (x2): verify a script module by nix-building only
   its package via the flake's nixpkgs, not a full home-manager rebuild.
   20260703-104437, 20260720-152433
-- `dod-grep-excludes-task-records` (x5, PROMOTED 2026-07-20 -> plan skill DoD
-  guidance): a blanket no-stale-references grep self-matches the task's own
-  record; absence-proving DoD greps now exclude tasks/ from the start.
-  20260720-171855, 20260720-171910, 20260720-171902, 20260720-171843, 20260720-171836, 20260720-220044
+- `dod-grep-excludes-task-records` (x6, PROMOTED 2026-07-20 -> plan skill DoD
+  guidance; see Pending promotions - the promoted rule covers tasks/ but not
+  COMMENTS): a blanket no-stale-references grep self-matches the task's own
+  record, and equally the prose the same diff writes about the thing removed.
+  20260720-171855, 20260720-171910, 20260720-171902, 20260720-171843, 20260720-171836, 20260720-220044, 20260730-190929
 - `edit-the-worktree-not-the-cwd` (x3, PROMOTED 2026-07-20 -> work skill sprout
   step): the shell cwd resets between Bash calls - drive edits/git by absolute
   worktree path or `git -C`, never chain cross-repo git in one call (two GOAL
@@ -116,8 +116,30 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   active task instead of creating an umbrella/child pair, unless the user asks
   for an epic, sprint, version, release, or multi-feature container.
   20260725-110435
+- `untested-guarantee-comment` (x1): a comment claiming a tool VALIDATES or
+  REJECTS something is a testable claim, and one written while designing the
+  mechanism records a hope - sops-nix's `validateSopsFiles` only hashes the
+  file, it never checks keys. Test it in the same edit or write "should". 20260730-190929
+- `test-harness-exit-code` (x1): the pipe-eats-the-exit-code rule applies to
+  the SCAFFOLDING too - a helper ending in `| head` always returns 0, which
+  reported two working assertions as broken. Capture `e=$?` on the producing
+  line. 20260730-190929
+- `checkout-head-not-index` (x1): `git checkout -- <file>` restores from the
+  INDEX, so a helper that runs `git add` first makes the restore a silent
+  no-op and leaks the sabotage into the next test. Use `git checkout HEAD --`. 20260730-190929
+- `assert-the-seam-you-just-created` (x1): when a design's accepted cost is a
+  value duplicated across two evaluations/configs, write the agreement as a
+  build-failing check, not a "keep in sync" comment - here it then caught
+  three further defects that review would have had to find by reading. 20260730-190929
 
 ## Pending promotions (3+ occurrences, user decides)
 
-None open - the three x3+ lessons were resolved and promoted into the plan and
-work skills on 2026-07-20 (task 20260720-220130).
+- `dod-grep-excludes-task-records` (x6) -> plan skill DoD guidance (WIDEN an
+  existing promotion): the 2026-07-20 promotion tells absence-proving greps to
+  exclude `tasks/`, which is only half the self-match. A diff that removes a
+  mechanism usually also writes prose ABOUT the removal - a comment naming the
+  deleted module, a NOTE explaining the absence - and that prose necessarily
+  contains the token being proved absent. It cost two grep rewrites in
+  20260730-190929. Proposed: the guidance also excludes comment lines
+  (e.g. `| grep -vE ":[0-9]+: *#"`), so the proof distinguishes code from prose
+  about the code.

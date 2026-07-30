@@ -97,31 +97,6 @@ in {
     ];
   };
 
-  # sops-nix PoC (task 20260722-214112, see tasks/20260722-113105/RECOMMENDATION.md).
-  # Encrypted-in-repo secrets via a DEDICATED passwordless age key per machine
-  # (~/.config/sops/age/keys.txt, generated with age-keygen, kept out of the repo
-  # and the store). The secret file is a sops DOTENV (secrets/scufris.env),
-  # decrypted at activation into $XDG_RUNTIME_DIR by the sops-nix user service.
-  sops = {
-    age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
-
-    # Reference the secret as a subpath of the flake source (inputs.self), NOT a
-    # `../../secrets` path literal - see LESSONS.md flake-path-literal-string-coercion.
-    #
-    # `format = "dotenv"` decrypts the WHOLE file as this secret's value, so the
-    # attr name is just the runtime output file name. It is not a per-key
-    # selector. The decrypted file at `.path` is already a complete `KEY=value`
-    # env file that scufris can load directly via environmentFile.
-    secrets."scufris-env" = {
-      sopsFile = "${inputs.self}/secrets/scufris.env";
-      format = "dotenv";
-    };
-  };
-
-  # The scufris user service must start after sops-nix has decrypted the secret,
-  # or environmentFile points at a not-yet-existing path.
-  systemd.user.services.scufris.Unit.After = ["sops-nix.service"];
-
   # scufris is now the local web-dashboard server (replaces the old bot). Config
   # is a flat attrset mapping to SCUFRIS_ env vars (scufris/config.py). The built
   # dashboard is served from the packaged web derivation via SCUFRIS_WEB_DIST
@@ -134,66 +109,64 @@ in {
       # just loopback.
       host = "0.0.0.0";
       port = 8000;
-      log_level = "INFO";
 
       # Dashboard authentication. A LAN-reachable bind (host above, plus the
       # 192.168.0.0/24 -> 8000 firewall rule in hosts/nixos) means anything on
       # the network could otherwise create agents and drive the orchestrator.
-      # "required" is explicit here; scufris's own default ("auto") would
-      # already require it for a non-loopback bind.
+      # Explicit rather than relying on the default ("auto" would already
+      # require it for a non-loopback bind, and SCUFRIS_HOSTD_SECRET being set
+      # forces it too) - the two implicit paths both happen to be right today,
+      # which is exactly why the intent is worth stating outright.
       #
-      # This is FAIL-CLOSED: the service REFUSES TO START unless
-      # SCUFRIS_AUTH_PASSWORD_HASH is set. That variable is a secret, so it does
-      # not belong here - add it to the sops dotenv below:
+      # FAIL-CLOSED: the service REFUSES TO START without
+      # SCUFRIS_AUTH_PASSWORD_HASH, which lives in secrets/scufris.yaml:
       #
-      #     nix run nixpkgs#scufris -- hash-password   # or `scufris hash-password`
-      #     sops secrets/scufris.env                   # paste the printed line
-      #
-      # The hash (scrypt), never the password, is what is stored. Only takes
-      # effect once the scufris flake input is bumped past v0.1.0, which is the
-      # release that introduces the option - until then this is inert (unknown
-      # SCUFRIS_ vars are ignored).
+      #     scufris hash-password     # prints the scrypt hash, never the password
+      #     sops secrets/scufris.yaml # paste it as the value
       auth_mode = "required";
 
-      # Agent: the orchestrator chat. Codex app-server backend by default,
-      # authenticated with a ChatGPT subscription (`scufris login` / `codex login`).
-      agent_enabled = true;
-      agent_backend = "app_server";
-      agent_model = "gpt-5.5";
-      agent_auth_mode = "chatgpt";
+      # The orchestrator's backend: codex, claude, opencode, or mock.
+      agent_backend = "codex";
 
       # the-den journal: the orchestrator's journal_* MCP tools shell out to
       # `today` (on `path` below) against this den. Set explicitly because the
       # systemd user service does NOT inherit the DEN_PATH session var (that is
-      # only in the interactive shell env); mirrors home/modules/scripts DEN_PATH.
+      # only in the interactive shell env); mirrors home/modules/scripts.
       den_path = "/home/alex/personal/the-den";
 
-      # Telegram frontend: with SCUFRIS_TELEGRAM_BOT_TOKEN set (from the sops
-      # secret above), the app runs an in-process long-poll bot that drives the
-      # same orchestrator turn path as the web landing chat. This allowlist IS
-      # the auth - the bot silently ignores updates from any other chat id, and
-      # an empty list ignores EVERYONE - so my own chat id must be listed for the
-      # bot to respond at all. (SCUFRIS_TELEGRAM_ALLOWED_CHAT_IDS)
-      telegram_allowed_chat_ids = 8231376426;
+      # This host's NixOS flake, for the R3 host actions. Read only - nothing
+      # here writes to it; changes go through scufris-hostd's proposal flow.
+      host_config_repo = "/home/alex/personal/nix.dotfiles";
 
       # Auto-wake: when a sub-agent finishes awaiting a decision (a WAITING
       # outcome) or errors, grant the orchestrator a turn with the question
       # injected, so a stalled loop self-heals without me driving it from the
       # chat. Off by default upstream because a wake runs the orchestrator
       # unattended in its `auto` permission mode; enabled here deliberately so
-      # the Telegram bot is a hands-off control surface. (SCUFRIS_AUTO_WAKE)
+      # the Telegram bot is a hands-off control surface.
       auto_wake = 1;
+
+      # NOTE: the Telegram chat allowlist is NOT here. It lives in
+      # secrets/scufris.yaml as SCUFRIS_TELEGRAM_ALLOWED_CHAT_IDS, because
+      # `settings` lands in the world-readable nix store and that allowlist IS
+      # the bot's auth - an empty list ignores everyone, so my chat id must be
+      # set for the bot to respond at all.
     };
 
-    # State is shared with local dev (default ~/.local/state/scufris); dev runs
-    # on a different port (SCUFRIS_PORT=7000 in the repo .env) so only the port
-    # differs, not the state.
-    # The dotenv secret above is decrypted at activation into $XDG_RUNTIME_DIR
-    # (never in the nix store) as a complete `KEY=value` env file, so point
-    # environmentFile straight at it. Add more secret env vars by editing
-    # `secrets/scufris.env` with sops; this path always resolves to the full
-    # decrypted env file.
-    environmentFile = config.sops.secrets."scufris-env".path;
+    # Secrets go HERE, never in `settings` (which lands in the nix store).
+    #
+    # A LITERAL path, not a typed reference: this file is rendered by
+    # `sops.templates."scufris.env"` in hosts/nixos/default.nix, and that is a
+    # NixOS evaluation while this is a standalone home-manager one - the two
+    # cannot share a `config`. flake/checks.nix asserts the two sides still
+    # name the same path, so a change on either side fails `nix flake check`
+    # rather than silently starting the service with no secrets.
+    #
+    # Decryption happens at the SYSTEM level (at boot, keyed to the machine's
+    # SSH host key), not at home-manager activation, so the root scufris-hostd
+    # unit and this user service read from one source. See
+    # tasks/20260730-190929/DECISION.md.
+    environmentFile = "/run/secrets/rendered/scufris.env";
 
     # Agent backends are operator-installed binaries the server shells out to
     # (never Python deps); git is needed for codex/claude in a project cwd.
@@ -201,15 +174,14 @@ in {
     # and `macros` (inputs.macros-nvim.overlays.default) backs the macros_* tools.
     # `nvidia_x11.bin` provides nvidia-smi, which backs the GPU stats page: the
     # HM user service overrides PATH, so without it nvidia-smi is unreachable and
-    # the dashboard shows `gpus: []` (works locally only because the interactive
-    # shell PATH has /run/current-system/sw/bin). nvidia-smi/NVML must match the
-    # LOADED kernel module or it errors "Driver/library version mismatch" and the
-    # page silently falls back to `gpus: []`. This matches today because the host
+    # the dashboard shows `gpus: []`. nvidia-smi/NVML must match the LOADED
+    # kernel module or it errors "Driver/library version mismatch" and the page
+    # silently falls back to `gpus: []`. This matches today because the host
     # (hosts/nixos) runs the DEFAULT kernel with `nvidiaPackages.stable`, so
     # `linuxPackages.nvidia_x11` == the host's `hardware.nvidia.package` (same
-    # nixpkgs input, same driver). If the host ever pins a non-default kernel or a
-    # beta/legacy/production nvidia package, switch this to reference that same
-    # driver instead.
+    # nixpkgs input, same driver). If the host ever pins a non-default kernel or
+    # a beta/legacy/production nvidia package, switch this to reference that
+    # same driver instead.
     path = [pkgs.codex pkgs.claude-code pkgs.git pkgs.today pkgs.macros pkgs.linuxPackages.nvidia_x11.bin];
   };
 

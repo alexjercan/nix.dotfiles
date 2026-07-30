@@ -1,13 +1,33 @@
-# sops recipient policy. Each machine has its OWN dedicated passwordless age
-# key (~/.config/sops/age/keys.txt, generated with `age-keygen`, kept out of
-# the repo and the Nix store). Add a machine by generating its key, adding its
-# public key as an anchor below, listing it in the relevant creation rule, and
-# running `sops updatekeys secrets/<file>`.
+# sops recipient policy. Two KINDS of recipient, and a secret that a system
+# unit must read needs both:
+#
+#   - a per-USER key (~/.config/sops/age/keys.txt, generated with `age-keygen`,
+#     kept out of the repo and the Nix store). This is what decrypts when I edit
+#     a secret by hand, and it works the same on NixOS and on standalone
+#     home-manager.
+#   - a per-HOST key, derived from the machine's SSH host key with `ssh-to-age`.
+#     This is what the NixOS `sops-nix` module decrypts with at boot
+#     (`sops.age.sshKeyPaths`, which defaults to /etc/ssh/ssh_host_ed25519_key),
+#     BEFORE any user session exists. A secret encrypted only to a user key
+#     cannot be read by a system service.
+#
+# Add a machine by generating/deriving its key, adding the public key as an
+# anchor below, listing it in the relevant creation rule, and running
+# `sops updatekeys secrets/<file>` from a key that can already decrypt.
 keys:
-  # alex@nixos (dedicated PoC age key, 2026-07-22)
+  # alex@nixos - per-user key (dedicated PoC age key, 2026-07-22)
   - &alex_nixos age1mlm56pcyksalqcgdp7gja5wzs28fp2jz8cdp8z4d3zdj2dfv2cqsca4u2g
+  # nixos host key - `ssh-to-age -i /etc/ssh/ssh_host_ed25519_key.pub`
+  # (2026-07-30). Lets the system-level sops-nix decrypt at boot for
+  # services.scufris-hostd; see tasks/20260730-190929/DECISION.md.
+  - &host_nixos age1msnpfzujk0j7muvze6qxvrsucwtylala0j2hhqa0n57am83qk5fqev62c2
 creation_rules:
-  - path_regex: secrets/[^/]+\.env$
+  # `.yaml` as well as `.env`: a YAML secret is the only format sops-nix can
+  # extract a SINGLE key from (dotenv/ini/binary always decrypt whole-file), and
+  # that per-key extraction is what feeds the raw secret file the root
+  # scufris-hostd unit reads.
+  - path_regex: secrets/[^/]+\.(env|yaml)$
     key_groups:
       - age:
           - *alex_nixos
+          - *host_nixos

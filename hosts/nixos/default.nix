@@ -2,14 +2,33 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 {
+  inputs,
   config,
   pkgs,
   lib,
   ...
-}: {
+}: let
+  # The variables held by secrets/scufris.yaml, in the order they are rendered
+  # into the app's env file. This list is the ONLY place a scufris secret name
+  # is written: it drives both the per-key sops secrets and the template below,
+  # so a name cannot be spelled one way in one place and another way in the
+  # other. Note that the NixOS EVALUATION accepts any name here - sops-nix's
+  # `validateSopsFiles` only hashes the file, it never inspects its keys - so a
+  # typo is caught by flake/checks.nix, which asserts this list and the
+  # encrypted file hold exactly the same set, and failing that by
+  # sops-install-secrets at activation.
+  scufrisEnvVars = [
+    "SCUFRIS_TELEGRAM_BOT_TOKEN"
+    "SCUFRIS_AUTH_PASSWORD_HASH"
+    "SCUFRIS_TELEGRAM_ALLOWED_CHAT_IDS"
+    "SCUFRIS_HOSTD_SECRET"
+  ];
+in {
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
+    inputs.scufris.nixosModules.scufris-hostd
+    inputs.sops-nix.nixosModules.sops
   ];
 
   # Bootloader.
@@ -171,9 +190,17 @@
   users.users.alex = {
     isNormalUser = true;
     description = "alex";
-    extraGroups = ["networkmanager" "libvirtd" "wheel" "docker" "sambashare" "dialout" "video" "audio"];
+    # `scufris` is what lets the systemd USER service reach the root helper's
+    # socket: scufris-hostd creates /run/scufris-hostd as root:scufris 0750, so
+    # without membership here the app cannot even traverse to the socket.
+    extraGroups = ["networkmanager" "libvirtd" "wheel" "docker" "sambashare" "dialout" "video" "audio" "scufris"];
     shell = pkgs.fish;
   };
+
+  # A DEDICATED group for the scufris socket, not a shared one. `users` is the
+  # default primary group of every normal account, so using it would hand the
+  # root helper's socket to every human user on the box.
+  users.groups.scufris = {};
 
   programs.fish.enable = true;
   programs.nix-ld.enable = true;
@@ -391,6 +418,55 @@
     automatic = true;
     dates = "weekly";
     options = "--delete-older-than 30d";
+  };
+
+  # scufris secrets. ONE encrypted file, decrypted once, here at the SYSTEM
+  # level, feeding two units that live in two different evaluations:
+  #
+  #   * scufris-hostd (below), a root unit, needs the shared socket credential
+  #     as a RAW file - it reads --secret-file whole and strips it.
+  #   * the scufris app, a home-manager USER service, needs a complete
+  #     `KEY=value` env file for its EnvironmentFile.
+  #
+  # Decryption is at the system level rather than in home-manager because the
+  # root unit starts at boot, long before any user session exists: a secret
+  # rendered into $XDG_RUNTIME_DIR at home-manager activation is simply not
+  # there yet, and is gone again whenever alex logs out. See
+  # tasks/20260730-190929/DECISION.md.
+  #
+  # The key is the machine's own: sops.age.sshKeyPaths defaults to
+  # /etc/ssh/ssh_host_ed25519_key, whose age form is a recipient in .sops.yaml
+  # alongside my per-user key. Nothing here reads anything out of /home.
+  sops.secrets = lib.genAttrs scufrisEnvVars (name: {
+    sopsFile = "${inputs.self}/secrets/scufris.yaml";
+    # Each secret is named after the variable it holds, so `key` (which defaults
+    # to the attribute name) selects the right entry with nothing to keep in
+    # sync. Per-key extraction is why this file is YAML and not the dotenv it
+    # used to be: sops-nix ignores `key` for dotenv/ini/binary and always
+    # decrypts whole-file (LESSONS.md sops-dotenv-decrypts-whole-file).
+    mode = "0400";
+    # Rotating the credential must restart the helper that holds it; the app
+    # side is a user service and is restarted by `home-manager switch`.
+    restartUnits = lib.optional (name == "SCUFRIS_HOSTD_SECRET") "scufris-hostd.service";
+  });
+
+  # The app's env file, assembled from the same secrets. Rendered at activation
+  # into /run/secrets/rendered/, never the nix store: `content` holds opaque
+  # placeholder tokens at eval time and sops-nix substitutes the real values in
+  # place. home/alex/default.nix reads this path.
+  sops.templates."scufris.env" = {
+    owner = "alex";
+    mode = "0400";
+    content = lib.concatMapStringsSep "\n" (name: "${name}=${config.sops.placeholder.${name}}") scufrisEnvVars;
+  };
+
+  services.scufris-hostd = {
+    enable = true;
+    group = "scufris";                              # a DEDICATED group, not `users`
+    # The RAW single-value secret, NOT the env file above: scufris-hostd reads
+    # this file whole and strips it, so handing it a `KEY=value` blob would make
+    # every frame fail authentication.
+    secretFile = config.sops.secrets."SCUFRIS_HOSTD_SECRET".path;
   };
 
   # This value determines the NixOS release from which the default

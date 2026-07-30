@@ -29,7 +29,11 @@ Code and `~/.agents/skills` for the codex CLI, and deploys the global
 ## Check suite
 
 - `bash home/modules/scripts/sprout-test.sh` - the sprout CLI's test suite.
-- `nix flake check --no-build` - flake evaluation.
+- `nix flake check` - flake evaluation AND the `checks` outputs in
+  `flake/checks.nix`, which assert wiring spanning two evaluations (the NixOS
+  config and the standalone home config) that evaluating either one alone
+  cannot catch. Use the bare form before landing: `--no-build` evaluates the
+  checks but does not RUN them, so it proves nothing about their assertions.
 
 ## Skills are a doc surface
 

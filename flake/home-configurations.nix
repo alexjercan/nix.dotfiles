@@ -33,10 +33,16 @@ in {
           nixvim = inputs.nixvim;
         };
 
+        # NOTE: no `sops-nix.homeManagerModules.sops` here. Secrets for this
+        # machine are decrypted at the SYSTEM level (hosts/nixos/default.nix)
+        # and consumed by the home config as a plain /run path, because the same
+        # secret must also reach a root unit that starts before any user session
+        # exists - see tasks/20260730-190929/DECISION.md. A non-NixOS host would
+        # add the module back and render its own env file; keeping an unused
+        # module here would only suggest home-manager decrypts something.
         modules = [
           "${homeDir}/${userName}"
           inputs.nix-index-database.homeModules.default
-          inputs.sops-nix.homeManagerModules.sops
         ];
       };
     })
