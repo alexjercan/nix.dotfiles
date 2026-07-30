@@ -6,7 +6,7 @@
 
 ## Flow State
 
-- FLOW STEP: REVIEWING
+- FLOW STEP: DONE
 - PLAN STATUS: APPROVED
 
 ## Story
