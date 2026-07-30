@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review"
+  short_description: "Critique a feature branch"
+  default_prompt: "Use $review to critique this branch and issue a verdict."

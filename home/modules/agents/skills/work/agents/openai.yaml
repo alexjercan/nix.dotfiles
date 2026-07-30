@@ -1,0 +1,4 @@
+interface:
+  display_name: "Work"
+  short_description: "Implement a planned task"
+  default_prompt: "Use $work to implement this planned task in a sprout worktree."

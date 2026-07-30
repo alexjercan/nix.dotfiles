@@ -1,0 +1,5 @@
+name: flow-single-task
+skill: flow
+when: single cohesive requested thing
+loads:
+forbids: epic.md landing.md resume.md

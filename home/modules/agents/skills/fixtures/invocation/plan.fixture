@@ -1,0 +1,4 @@
+name: plan-implicit
+skill: plan
+invocation: implicit
+triggers: /plan, tatr tasks, scoping

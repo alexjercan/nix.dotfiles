@@ -38,19 +38,21 @@ conditional parallel planning and review.
 
 ## Child Tasks
 
-- [ ] 20260730-153325 (p100, tatr) Add typed v2 workflow schema and migrate
+- [x] 20260730-153325 (p100, tatr) Add typed v2 workflow schema and migrate
       tatr history.
-- [ ] 20260730-154657 (p90, tatr) Add transactional flow lifecycle commands
+- [x] 20260730-154657 (p90, tatr) Add transactional flow lifecycle commands
       and guards. Depends on: 20260730-153325.
-- [ ] 20260730-154740 (p85, tatr) Add Epic graph, frontier, claims, and phase
+- [x] 20260730-154740 (p85, tatr) Add Epic graph, frontier, claims, and phase
       context. Depends on: 20260730-153325, 20260730-154657.
-- [ ] 20260730-154745 (p85, tatr) Scaffold and validate flow artifact schemas.
+- [x] 20260730-154745 (p85, tatr) Scaffold and validate flow artifact schemas.
       Depends on: 20260730-153325.
 - [ ] 20260730-154756 (p80, tatr) Require user disposition for lesson
       promotions. Depends on: 20260730-153325, 20260730-154745.
-- [ ] 20260730-142533 (p80, nix.dotfiles) Refactor flow skills for bounded
+- [x] 20260730-142533 (p80, nix.dotfiles) Refactor flow skills for bounded
       context and concise output. Depends on: 20260730-153325,
       20260730-154745.
+      3 review rounds, 27 findings (1 withdrawn on scope); adds
+      skills/check.sh, its --self-test, and two nix checks.
 - [ ] 20260730-154955 (p75, nix.dotfiles) Integrate guarded flow lifecycle and
       lesson decisions. Depends on: 20260730-154657, 20260730-154745,
       20260730-154756, 20260730-142533.
@@ -62,17 +64,27 @@ conditional parallel planning and review.
       20260730-142533.
 - [ ] 20260730-155003 (p50, nix.dotfiles) Adopt tatr v2 and revalidate nix
       task history. Depends on every Story above and published tatr default.
+- [ ] 20260731-010900 (p20, nix.dotfiles) Decide whether the live-agent skill
+      behavior pass is worth automating. Depends on: 20260730-142533.
 
 ## Decisions
 
 - 20260730-153122 DECISION.md: use a typed breaking tatr v2 schema,
   transactional lifecycle commands, and explicit repository migrations
   (ACCEPTED).
+- 20260730-142533 DECISION.md: prove the skill suite structurally, and treat
+  live-agent behavior as a manual acceptance item here rather than building a
+  credential-bound, non-deterministic harness into the gate (ACCEPTED).
 
 ## Manual Acceptance
 
 - (pending) Confirm the final output budgets produce concise but sufficient
   reports on representative flow, spike, plan, work, review, and compound runs.
+- (pending) 20260730-142533: confirm the live behavior the structural gate
+  cannot observe - that a real session loads only the guarded branch files,
+  selects the intended skill on both Claude Code and codex, and keeps its
+  reports inside the stated caps. `bash home/modules/agents/skills/check.sh`
+  proves the SHAPE that makes this possible, never the obedience.
 
 ## Notes
 

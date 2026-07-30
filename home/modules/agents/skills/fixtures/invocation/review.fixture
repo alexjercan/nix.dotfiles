@@ -1,0 +1,4 @@
+name: review-implicit
+skill: review
+invocation: implicit
+triggers: /review, feature branch, verdict

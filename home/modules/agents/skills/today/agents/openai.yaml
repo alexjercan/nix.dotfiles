@@ -1,0 +1,4 @@
+interface:
+  display_name: "Today"
+  short_description: "Read and edit the daily journal"
+  default_prompt: "Use $today to read or update the day journal in the den."

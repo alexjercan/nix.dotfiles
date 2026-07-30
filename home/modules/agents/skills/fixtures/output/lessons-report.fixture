@@ -1,0 +1,4 @@
+name: lessons-report
+skill: lessons
+limit: 100
+requires: slugs, cleared, promotion

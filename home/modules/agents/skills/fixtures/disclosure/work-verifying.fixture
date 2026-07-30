@@ -1,0 +1,5 @@
+name: work-verifying
+skill: work
+when: check suite doc-surface sweep
+loads: verify.md
+forbids: bug.md review-feedback.md

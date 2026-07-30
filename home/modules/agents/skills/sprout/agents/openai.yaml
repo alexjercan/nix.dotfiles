@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sprout"
+  short_description: "Manage git worktrees"
+  default_prompt: "Use $sprout to create, list, land or remove a git worktree."

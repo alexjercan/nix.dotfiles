@@ -1,0 +1,4 @@
+name: spike-report
+skill: spike
+limit: 120
+requires: recommendation, open risk, SPIKED

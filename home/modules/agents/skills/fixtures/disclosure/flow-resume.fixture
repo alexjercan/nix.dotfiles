@@ -1,0 +1,5 @@
+name: flow-resume
+skill: flow
+when: resuming interrupted session
+loads: resume.md
+forbids: epic.md

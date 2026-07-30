@@ -1,0 +1,5 @@
+name: review-judging-a-diff
+skill: review
+when: judging correctness spec tests design docs honesty
+loads: dimensions.md
+forbids: rounds.md

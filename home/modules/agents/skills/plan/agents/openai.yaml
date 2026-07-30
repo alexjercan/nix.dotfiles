@@ -1,0 +1,4 @@
+interface:
+  display_name: "Plan"
+  short_description: "Scope work into tatr tasks"
+  default_prompt: "Use $plan to break this request into tatr tasks with steps and proofs."

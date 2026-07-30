@@ -1,259 +1,100 @@
 ---
 name: work
-description: Implement a planned tatr task end to end in an isolated git worktree (via sprout), with tests and verification. Use this skill when the user asks to start work with `/work`, to implement or pick up a task from the backlog, or to execute a plan created earlier. It takes a tatr task (given by ID or chosen from the backlog), creates a sprout worktree and feature branch, works through the task's steps, and delivers a working, tested solution.
+description: Implement one planned task in a sprout worktree, test-first, and verify it. Use for `/work` or to address review feedback.
 ---
 
-# Work - Implement a Tatr Task on a Feature Branch
+# Work - Implement a Task on a Feature Branch
 
-Work is the step after planning: take one tatr task, implement it to
-completion, and leave behind working code, passing tests, and an updated
-TASK.md. See the tatr skill for the CLI and file format, and the plan skill
-for how tasks get their Steps.
-
-The goal is a solution a serious developer would ship, not the minimum diff
-that appears to work.
+Deliver the solution a serious developer would ship, not the minimum diff that
+appears to work.
 
 ## Workflow
 
-1. **Pick the task.** If the user named a task ID, use it. Otherwise run
-   `tatr ls --sort priority` and pick the highest-priority OPEN task, or ask
-   if the choice is genuinely unclear. Read `tasks/<id>/TASK.md` fully,
-   including Notes and any `Depends on:` entries; if a dependency task is not
-   CLOSED, stop and tell the user instead of building on missing work.
+1. **Pick the task.** Use the ID the user or `flow` gave, else the top
+   `tatr ls --sort priority` OPEN task. Read it with
+   `tatr context <id> --phase work`.
 
-   Refuse to implement an unplanned task. A task is planned only when its
-   `TASK.md` has `## Flow State` with `- PLAN STATUS: APPROVED`. A `## Steps`
-   section by itself is not enough: the user may have written checkboxes before
-   the problem was understood. If the marker is missing, send the task back
-   through `/flow` or `/plan`; do not sprout, set `IN_PROGRESS`, or start
-   writing code.
-
-2. **Start the task.** Prefer an isolated worktree over a bare branch, so this
-   task never collides with other work in flight. With `HEAD` on the intended
-   base (usually the default branch), create the worktree with sprout and move
-   into it:
+2. **Sprout.** With HEAD on the intended base:
 
    ```bash
    cd "$(sprout new <type>/<short-slug>)"
+   tatr flow <id> --to WORKING
    ```
 
-   `sprout new` cuts the branch off the current `HEAD` and checks it out in a
-   fresh worktree under the sprouts cache, printing its path. Do all of the
-   task's work inside that worktree. Only after you are in it, set STATUS to
-   `IN_PROGRESS` and `FLOW STEP: WORKING` in `tasks/<id>/TASK.md` (the tasks/
-   tree is present on the branch, so edits and commits travel with the work and
-   merge back later).
-   The shell cwd does NOT persist between commands - a fresh call starts back
-   wherever the shell initializes, not in the worktree. Drive every file edit
-   and git command by ABSOLUTE worktree path (or `git -C <worktree>`) instead
-   of relying on a prior `cd`, and never chain operations across two repos in
-   one call: a container tick has twice been committed from the wrong repo that
-   way.
-   Derive `<type>` from the task's tags (`feature`, `bug` -> `fix`,
-   `refactor`, ...) and `<short-slug>` from the title, e.g.
-   `feature/api-rate-limiting`. If sprout is unavailable, fall back to a plain
-   `git checkout -b <type>/<short-slug>` in place. If the main working tree is
-   dirty with unrelated changes, ask the user before touching anything.
+   `<type>` comes from the tags (`feature`, `bug` -> `fix`, `refactor`), the
+   slug from the title. `tatr flow --to WORKING` is the gate: it refuses a
+   task without `PLAN STATUS: APPROVED`, with open dependencies, or claimed by
+   another session. A refusal means plan it first - do not hand-edit TASK.md
+   around it.
 
-3. **Understand before writing.** Read the files named in the task and enough
-   surrounding code to match its conventions (naming, error handling, test
-   style, comment density). If the plan's Steps contradict what the code
-   actually looks like, update the Steps to match reality first.
+   If the main working tree is dirty with unrelated changes, ask the user
+   before touching anything. If sprout is unavailable, fall back to a plain
+   `git checkout -b <type>/<short-slug>` in place.
 
-4. **Implement step by step.** Work through the Steps top to bottom, ticking
-   each checkbox (`- [x]`) as it lands.
+   The shell cwd does NOT persist between commands. Drive every edit and git
+   call by absolute worktree path or `git -C <worktree>`, and never chain
+   operations across two repositories in one call.
 
-   Write the test FIRST, not alongside and not after. For every DoD item whose
-   proof is a `test:` or `cmd:` check, encode that criterion as the test, run
-   it, and watch it fail for the right reason BEFORE writing the
-   implementation - a test that passes before the code exists is testing
-   nothing. Then write the minimal code to make it pass, and refactor with it
-   green (red -> green -> refactor). Prefer the example/integration altitude for
-   that first test:
-   - a small runnable example or harness-level test that drives the feature the
-     way a user would, isolated to the one system under test - in a game, the
-     small visual example that exercises just this mechanism in isolation;
-   - integration or end-to-end tests over isolated unit tests where practical;
-   - drop to a unit test only when the seam is genuinely unit-shaped (a pure
-     function, a tricky branch), and add unit tests for edge cases the
-     example does not reach.
+3. **Understand before writing.** Read the files the task names plus enough
+   surrounding code to match its conventions. If the Steps contradict the
+   code, fix the Steps first.
 
-   A `manual:` proof cannot be written test-first and does not pretend to be:
-   it stays a human check, reported as pending for the reviewer to list and the
-   user to accept (step 5).
+4. **Implement test-first.** Work the Steps top to bottom, ticking each box as
+   it lands. For every `test:` or `cmd:` proof, encode the criterion, run it,
+   and watch it FAIL for the right reason before writing the implementation.
+   Then the minimal code to make it pass, then refactor green.
 
-   For a BUG FIX, reproduce before you fix: the first artifact is a failing
-   test that replicates the reported behavior, at the highest fidelity the
-   project offers (an end-to-end/scenario harness that plays the exact
-   situation beats a unit test of the suspected mechanism). Then prove the
-   regression test against the bug: demonstrate
-   it failing on the pre-fix behavior (a temporary revert or sabotage of
-   the fix) and record the failing numbers in TASK.md before trusting it.
-   A/B safety rule: COMMIT the fix before applying any sabotage, so the
-   revert (`git checkout <file>`) restores the fix and not the branch
-   base - a file-level checkout against an uncommitted tree has destroyed
-   finished work before. And when a test rig models scheduling or clock
-   behavior, mirror the production entity's scheduling-relevant components
-   (interpolation opt-ins, sync configs); a clean trace on a non-faithful
-   rig is not evidence.
+   Prefer the example/integration altitude for that first test: a small
+   runnable example or harness-level test that drives the feature the way a
+   user would, isolated to the one system under test. Drop to a unit test only
+   when the seam is genuinely unit-shaped.
 
-   Documentation is part of the change, not a follow-up: a change is not
-   done until every doc surface it invalidates is updated in the same task.
-   When the change warrants NEW written documentation (new component,
-   changed behavior), write it as `tasks/<id>/NOTES.md` next to TASK.md, or
-   update the relevant reference doc in `docs/`. Do not scatter README
-   fragments around the tree. When implementation forces a load-bearing
-   architectural choice the plan did not already record - a mechanism, a
-   layering, a dependency a cold reader would need the *why* of - write a
-   `tasks/<id>/DECISION.md` for it (plan skill format, supersede-by-link if it
-   changes an earlier one). Under single-task `/flow`, the active task owns
-   that record directly; under explicit epic `/flow`, also index it in the
-   container `TASK.md` Decisions section. DECISION.md is the durable decision
-   record; NOTES.md is design and fix notes - keep the load-bearing choice in
-   the former so it stays findable.
+   A `manual:` proof stays a human check and is reported as pending, never
+   self-ticked.
 
-5. **Verify.** Run the project's full check suite: tests, linter, formatter,
-   type checker, build - whatever the project defines. Then run each DoD
-   item's named proof explicitly: execute every `test:` and `cmd:` proof and
-   confirm it passes on the actual criterion (not a neighbouring one). A
-   `manual:` proof is NOT yours to tick - report it as pending user
-   confirmation and leave it for the reviewer to list and the user to accept;
-   self-ticking a manual item is exactly the proxy-verification the notation
-   exists to prevent. Fix what breaks. Do
-   not report success on the strength of the diff alone; the tests must
-   actually pass, and if some fail, say so with the output. Every
-   verification must be able to fail: if a check would still pass with the
-   mechanism deleted, it proves nothing - replace it with one that can.
-   Verification pitfalls that have shipped breakage before:
-   - Never pipe the check command through a filter that eats its exit code
-     (`| grep`, `| tail`, trailing `echo`); a failed compile reads as
-     success. Run it bare or write output to a file and grep the file.
-   - When the change touches a SHARED system/observer or adds to a shared
-     schedule chain, run the whole affected module's suite, not just the new
-     tests - only the existing tests catch a silently broken consumer.
-   - A new required field or parameter breaks exhaustive constructors in
-     tests and examples that a plain check never compiles; build ALL targets
-     (e.g. `cargo check --all-targets`) and grep the whole repo for the
-     type's literal before landing.
-   - Before landing a content/data change, grep for fixture tests that
-     assert on or `include_str!` the exact files touched - fixture pins live
-     far from the diff. Pin durable intents, not frozen literals a sibling
-     will legitimately move.
-   - Run the DOC-SURFACE SWEEP: for every command, flag, type, path or
-     behavior the diff renames, removes or changes, grep the repo's doc
-     surfaces - README, `docs/`, AGENTS.md (its module maps and version
-     claims especially), and skill files when the repo ships skills - and
-     fix every stale mention in the same task. Stale docs are not cosmetic:
-     an outdated AGENTS.md module map has made a session invent API names a
-     reviewer then had to catch (bevy-common-systems, 20260705-134942), and
-     `keep-docs-in-sync-with-code` reached x5 by 2026-07-20 in nova-protocol
-     before being enforced there. TASK-HISTORY IS IMMUTABLE: the `tasks/` tree
-     is the append-only record of what was true when each task ran, not a doc
-     surface to correct - EXCLUDE it from the sweep (`--exclude-dir=tasks`, or
-     scope the grep to code/doc paths) and never rewrite an old TASK/REVIEW/
-     RETRO/NOTES to match a later rename. This is why absence-proving DoD greps
-     also exclude `tasks/` (plan skill): the record legitimately still quotes
-     the old name. Fix the live doc surfaces; leave the history verbatim. (Two
-     repos diverged here during the v2 wave - nova rewrote path mentions inside
-     historical records while nix.dotfiles left them verbatim; verbatim is the
-     policy.)
+   Documentation is part of the change: every doc surface the diff invalidates
+   is updated in the same task. New written documentation goes in
+   `tasks/<id>/NOTES.md` or the project's reference docs. A load-bearing
+   choice the plan did not record gets a DECISION.md (plan skill's
+   `decision.md`).
 
-6. **Close the task.** In TASK.md set STATUS to `CLOSED` and append to the
-   description:
-   - what changed and why, including alternatives considered;
-   - difficulties or bugs hit along the way and how they were diagnosed;
-   - for a diagnostic or falsification close, the exact evidence rig
-     (systems run, command path, components) - without it the evidence
-     misleads the next session;
-   - brief self-reflection: what could have gone better, what to do
-     differently next time. Future sessions read this.
+5. **Verify.** The full check suite plus every proof from
+   `tatr proofs <id>`, run bare.
 
-7. **Commit and report.** Commit the code and the TASK.md changes together on
-   the feature branch (inside the worktree); use several focused commits if
-   the steps form natural units. These commits are the branch's working
-   history for review - when `/flow` merges the approved branch it squashes
-   them into a single commit on the default branch, so the durable record of
-   the task is TASK.md and that squash commit, not the intermediate messages;
-   keep the commits focused for the reviewer without agonizing over wording
-   that will be collapsed. Then report: worktree path, branch name, task ID,
-   summary of the change, and test results. Leave the worktree in place - the
-   branch is now ready for `/review`. Do not merge into the default branch,
-   remove the worktree, or push unless the user asks.
+6. **Close out.** Append to TASK.md what changed and why, alternatives
+   considered, difficulties and how they were diagnosed, the evidence rig for
+   a diagnostic close, and a short self-reflection. Commit code and TASK.md
+   together on the feature branch; several focused commits are fine, since
+   landing squashes them.
 
-## Addressing Review Feedback
+   `tatr flow <id>` moves WORKING -> REVIEWING. The task stays IN_PROGRESS
+   through review and compound and closes only at DONE.
 
-When `/review` has left a `tasks/<id>/REVIEW.md` with a REQUEST_CHANGES
-verdict, addressing it is also `/work`'s job:
-
-1. Stay in the same worktree on the same feature branch. Read the latest
-   round's findings.
-2. For each finding that is not ticked: either fix it and write
-   `Response: fixed in <commit>` on its Response line, or push back with
-   concrete reasoning if you believe the finding is wrong. Never tick the
-   checkboxes yourself; those belong to the reviewer.
-3. Re-run the full check suite after the fixes, commit (including REVIEW.md
-   with the responses), and hand the branch back for the next review round.
-
-## Syncing with the Default Branch
-
-A feature branch cannot land on the default branch until it is up to date with
-it, exactly like a pull request that must be current with its base before it
-merges. When the default branch has moved on since the branch was cut (other
-tasks landed there), sync before merging:
-
-1. In the worktree, merge the default branch into the feature branch
-   (`git merge <default>`, the local default branch - not `origin/*` when the
-   workflow does not push). Do this on the branch so that any conflicts are
-   resolved here, not on the default branch.
-2. Resolve conflicts on the branch and commit the merge, then re-run the full
-   check suite (step 5's verify) on the updated branch. Fix whatever the merge
-   broke; the branch is only ready to merge back once it is green and
-   `git merge-base --is-ancestor <default> <branch>` succeeds.
-
-Only then is the branch ready to merge back. `/work` itself does not merge into
-the default branch - that stays the caller's call (`/flow` does it as its
-squash-merge step) - but keeping the branch current is branch hygiene `/work`
-owns, whether or not flow is driving.
 
 ## Guidelines
 
-- One task per worktree/branch. If mid-implementation you discover unrelated
-  work, create a new tatr task for it instead of widening the diff.
-- Before closing a task that deletes, moves, or swaps a mechanism or marker,
-  grep the workspace for (1) its symbol names, (2) its describing words, and
-  (3) everything that observes or queries it - including comments, docs,
-  examples, tests, and the CHANGELOG. Silent consumers outlive clean symbol
-  sweeps.
-- Any commit made in the shared main checkout (not a worktree) starts with
-  `git branch --show-current` - parallel sessions can move its HEAD.
-- A grep sweep that feeds a checklist is never head-truncated; dump it in
-  full (or to a file) and count the matches into the plan - `| head` has
-  hidden whole files' worth of work.
-- Compose test rigs and expected values from the production helpers/bundles,
-  not hand-written re-derivations; grep the test module for an existing rig
-  of the same kind first.
-- A validation gate must check a value's meaning in EACH domain it crosses
-  (fs path, URL segment, storage key, served set), not just the domain it
-  was written in.
-- Follow the repo's existing patterns before inventing new ones; consistency
-  beats local elegance.
-- Do not weaken or delete failing tests to get to green; fix the code, or if
-  the test is genuinely wrong, say so explicitly in the task notes.
-- Keep TASK.md truthful at all times: tick a step only when EVERY clause of
-  it is done - otherwise split it, or amend the step text in the same edit
-  when the implementation legitimately adapted. Steps reflect the plan as
-  executed, not as first written.
-- If the task turns out to be much larger than planned, stop and split it
-  into new tasks rather than delivering a half-working mega-change.
+- One task per worktree. Unrelated work found mid-implementation becomes a new
+  tatr task created in this worktree, not a wider diff.
+- Tick a step only when EVERY clause of it is done; re-read the literal text
+  first. Otherwise split the step, or amend its text in the same edit.
+- Do not weaken or delete a failing test to reach green.
+- Any commit in the shared main checkout starts with `git branch
+  --show-current`; parallel sessions move its HEAD.
+- A grep sweep feeding a checklist is never head-truncated; dump it in full
+  and count the matches.
+- Compose test rigs from the production helpers, not hand-written
+  re-derivations; grep for an existing rig of the same kind first.
+- If the task turns out much larger than planned, stop and split it.
 
-## Relationship to Planning and Review
+## Output
 
-`/plan` produces the task with its Steps checklist; `/work` consumes it. If a
-task has no Steps section, or has Steps but no `PLAN STATUS: APPROVED`, refuse
-the implementation and plan it first. Planning and working in the same session
-is fine only when the plan gate is explicit and `TASK.md` is updated before
-work starts; the TASK.md is still the source of truth, not the conversation.
+Worktree path, branch, task ID, one-line summary, proof results - 150 words or
+fewer. Leave the worktree in place. Do not merge, remove it, or push.
 
-After implementation, `/review` critiques the branch and `/work` addresses
-the findings, cycling until the review verdict is APPROVE. Only close the
-loop with the user (merge, push) when they ask.
+## Load on demand
+
+Read one ONLY when its condition holds. Never preload them.
+
+- the task is a bug, crash, regression or falsification -> `bug.md`
+- running the check suite and the doc-surface sweep -> `verify.md`
+- the review returned a REQUEST_CHANGES verdict -> `review-feedback.md`

@@ -6,16 +6,28 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 
 ## Process lessons
 
-- `split-files-need-isolated-phases` (x1): progressive disclosure saves
+- `write-the-sabotage-first` (x1): a checker written before anything that can
+  break it is unfalsifiable - two rules here passed green while checking
+  nothing (a hardcoded skill list, a self-test branch that bumped a counter
+  nothing read). Write one sabotage case per rule BEFORE the rule. 20260730-142533
+- `compute-coverage-dont-claim-it` (x1): "21 rules proven able to fail" was 20
+  of 26, and "runs in CI" described a script nothing ran; derive a
+  completeness claim from the artifact and fail on the gap. 20260730-142533
+- `refactor-by-rule-not-by-section` (x1): cutting prose by heading or word
+  budget drops rules that merely shared a block with filler - four incident
+  rules went that way; extract every imperative first, then check each is
+  present, moved, or deliberately retired. 20260730-142533
+- `split-files-need-isolated-phases` (x2): progressive disclosure saves
   context only when unused branches remain unread or phases use fresh contexts;
-  reading every split file in one session merely defers the same cost. 20260730-142052
+  reading every split file in one session merely defers the same cost. 20260730-142052, 20260730-142533
 - `task-close-contracts-must-compose` (x1): a task-specific workflow that
   closes a task must also produce the generic records required by `tatr check`;
   spike currently omits review and retro from its close path. 20260730-142052
-- `out-of-context-review-pass` (x3, PROMOTED 2026-07-20 -> review skill
+- `out-of-context-review-pass` (x4, PROMOTED 2026-07-20 -> review skill
   round-1 default): the fresh-context reviewer found what the implementing
   session could not see (an unfailable test; a docs-only loophole; a
-  whitespace hole in a validator). 20260720-152433, 20260720-152438, 20260720-152503
+  whitespace hole in a validator; a conformance gate that checked a hardcoded
+  list). 20260720-152433, 20260720-152438, 20260720-152503, 20260730-142533
 - `commit-before-every-sabotage` (x1): the A/B commit-first rule applies per
   sabotage, not per task - a restore reverted uncommitted review fixes. 20260720-152433
 - `scripted-replace-asserts-match` (x1): str.replace edits silently no-op on a

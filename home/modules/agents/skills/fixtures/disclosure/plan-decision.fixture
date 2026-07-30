@@ -1,0 +1,5 @@
+name: plan-decision
+skill: plan
+when: architectural interface fork load-bearing
+loads: decision.md
+forbids: proofs.md

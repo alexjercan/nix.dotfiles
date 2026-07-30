@@ -1,0 +1,5 @@
+name: flow-epic
+skill: flow
+when: epic sprint release multi-feature
+loads: epic.md
+forbids: resume.md

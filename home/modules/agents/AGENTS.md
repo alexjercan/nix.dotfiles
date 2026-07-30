@@ -32,6 +32,24 @@ Global guidelines for agent sessions. Keep these in mind for all work.
 - Kill helper processes by recorded PID, never `pkill -f <pattern>` - the pattern can match your own shell's command line or an unrelated process.
 - An edit you believe you made is a hypothesis until the artifact shows it; re-read the produced text, not just the tool's success report.
 
+## Agent workflow cache
+
+A repository's own `AGENTS.md` should carry a short `## Agent workflow`
+section answering, in one line each, the questions every session otherwise
+re-derives from scratch:
+
+- the issue tracker, and the epic/story convention;
+- where prototypes and runnable examples live, and whether they are retained;
+- where domain or glossary docs live, if the repo has any;
+- allowed research sources, or network constraints;
+- the canonical check command(s), and where records live.
+
+Keep it to answers, with detail behind ONE pointer. Resolve a prototype or
+example location in this order: the `## Agent workflow` section, an established
+repo-native `examples/` or `scripts/` convention, the task folder, then one
+question to the user - and cache the answer there so no later session asks
+again.
+
 ## Documentation and reflection
 
 After meaningful changes, document:

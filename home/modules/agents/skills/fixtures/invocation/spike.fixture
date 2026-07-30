@@ -1,0 +1,4 @@
+name: spike-implicit
+skill: spike
+invocation: implicit
+triggers: /spike, fuzzy question, what to build

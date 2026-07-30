@@ -1,0 +1,5 @@
+name: lessons-ledger
+skill: lessons
+when: ledger format promotion retirement
+loads: ledger.md
+forbids:

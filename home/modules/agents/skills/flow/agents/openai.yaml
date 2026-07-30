@@ -1,0 +1,4 @@
+interface:
+  display_name: "Flow"
+  short_description: "Deliver a goal end to end"
+  default_prompt: "Use $flow to drive this goal through plan, work, review, compound and landing."
