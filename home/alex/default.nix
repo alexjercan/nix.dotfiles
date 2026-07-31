@@ -4,7 +4,14 @@
   config,
   ...
 }: let
-  modulesPath = ../modules;
+  # Subpath of the flake source, not a `../modules` path literal: every use
+  # below interpolates it into a string, and coercing a path literal that way
+  # copies the directory to a floating `<hash>-modules` store root that GC
+  # reaps out from under the eval cache. `nix flake check` then fails with
+  # "path '<hash>-modules' is not valid" until someone re-adds it by hand. Same
+  # reason as `homeDir` in flake/home-configurations.nix, and LESSONS.md
+  # `flake-path-literal-string-coercion`.
+  modulesPath = "${inputs.self}/home/modules";
 in {
   # Home Manager needs a bit of information about you and the paths it should
   # manage.

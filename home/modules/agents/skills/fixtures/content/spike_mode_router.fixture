@@ -1,0 +1,5 @@
+name: spike_mode_router
+skill: spike
+file: SKILL.md
+section: Load on demand
+requires: external, current facts, logic, ui prototype, mixed evidence

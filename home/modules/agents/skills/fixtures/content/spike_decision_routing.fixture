@@ -1,0 +1,5 @@
+name: spike_decision_routing
+skill: spike
+file: SKILL.md
+section: Route the result
+requires: decision.md, planned stories, dropped, seeds nothing, production

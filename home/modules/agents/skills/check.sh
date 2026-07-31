@@ -66,19 +66,100 @@ RULES=(
   not-loadable condition-misses-branch leaks-on-unrelated-branch bad-fixture
   wrong-policy description-misses-trigger codex-parity
   missing-output-contract missing-output-limit missing-output-element
+  missing-content-element forbidden-content-element
 )
 
 if [ "${1-}" = --rules ]; then printf '%s\n' "${RULES[@]}"; exit 0; fi
 
+# `--fixture <name>` runs ONE fixture case and nothing else, so a task's
+# Definition of Done can name a single criterion as a runnable proof. The bare
+# gate prints only findings, so a passing case is invisible to it and could
+# never back a per-criterion `cmd:`.
+fixture_filter=
+if [ "${1-}" = --fixture ]; then
+  if [ "$#" -ne 2 ] || [ -z "${2-}" ]; then
+    printf '%s\n' 'usage: check.sh --fixture <case-name>' >&2
+    exit 2
+  fi
+  fixture_filter="$2"
+  set --
+fi
+
 # A typo like `--selftest` must not print `skills: clean` and exit 0, which
 # reads exactly like a passing self-test.
 if [ "$#" -gt 0 ]; then
-  printf 'unknown argument: %s (expected --self-test or --rules)\n' "$1" >&2
+  printf 'unknown argument: %s (expected --self-test, --rules or --fixture)\n' "$1" >&2
   exit 2
 fi
 
 findings=0
 fail() { printf '%s: %s: %s\n' "$1" "$2" "$3" >&2; findings=$((findings + 1)); }
+
+# --- helpers ----------------------------------------------------------------
+# Defined before the `--fixture` dispatch below, because the fixture runner
+# calls into them and that path skips the rest of the gate.
+
+# Body = everything after the closing --- of the frontmatter block.
+body_of() { awk 'NR==1&&$0=="---"{fm=1;next} fm==1&&$0=="---"{fm=2;next} fm==2' "$1"; }
+frontmatter_of() { awk 'NR==1&&$0=="---"{fm=1;next} fm==1&&$0=="---"{exit} fm==1' "$1"; }
+count_words() { wc -w < "$1" | tr -d ' '; }
+count_words_str() { printf '%s' "$1" | wc -w | tr -d ' '; }
+fm_value() { frontmatter_of "$1" | sed -n "s/^$2: *//p" | head -1; }
+
+# A conditional reference is an ARROW POINTER: some condition text, then `->`,
+# then a backticked lowercase `<name>.md` on the same line. A bare mention of
+# another skill's file (e.g. "flow's `epic.md`") is prose, not a pointer, and
+# deliberately does not count - that is what keeps cross-skill vocabulary legal
+# while still proving every LOADABLE branch is guarded by a stated condition.
+pointer_lines() { grep -nE -- '->[^`]*`[a-z][a-z0-9-]*\.md`' "$1" 2>/dev/null; }
+pointer_targets() {
+  pointer_lines "$1" | grep -oE '`[a-z][a-z0-9-]*\.md`' | tr -d '`' | sort -u
+}
+# The condition guarding a pointer: everything on its line before the arrow.
+pointer_condition() {
+  pointer_lines "$1" | grep -F "\`$2\`" | sed 's/^[0-9]*://; s/->.*//' |
+    tr 'A-Z' 'a-z' | tr -s ' '
+}
+# The body of one `## <heading>` section, up to the next `## `. A leading step
+# number is stripped before comparing, so `## 5. Route the result` is found by
+# `Route the result` and renumbering a workflow does not silently orphan a
+# fixture that named the step by its title.
+# Headings inside a fenced block belong to an ILLUSTRATION, not to the file's
+# own structure. Without the fence flag a content case can be satisfied by the
+# template a reference happens to show rather than by the rule it states.
+section_of() {
+  awk -v want="$2" '
+    /^```/ { fence = !fence; if (s) print; next }
+    !fence && /^## / {
+      h = substr($0, 4); sub(/^[0-9]+\. */, "", h); s = (h == want); next
+    }
+    s
+  ' "$1"
+}
+
+# A single named case runs the fixture harness alone: the surrounding rule
+# sections would report findings that have nothing to do with the criterion
+# being proved, and a proof that goes red for an unrelated reason is not a
+# proof of anything.
+if [ -n "$fixture_filter" ]; then
+  if [ ! -f "$root/fixtures/run.sh" ]; then
+    printf 'no fixture runner at %s\n' "$root/fixtures/run.sh" >&2
+    exit 2
+  fi
+  # shellcheck source=fixtures/run.sh
+  . "$root/fixtures/run.sh"
+  run_fixtures "$fixture_filter"
+  if [ "$fixtures_matched" -eq 0 ]; then
+    printf 'no fixture case named %s under %s\n' "$fixture_filter" "$root/fixtures" >&2
+    exit 2
+  fi
+  if [ "$findings" -gt 0 ]; then
+    printf '\nfixture %s: %d finding(s)\n' "$fixture_filter" "$findings" >&2
+    exit 1
+  fi
+  printf 'fixture %s: ok (%d case(s))\n' "$fixture_filter" "$fixtures_matched"
+  exit 0
+fi
 
 # Every directory holding a SKILL.md is a skill, whether or not anyone listed
 # it. `fixtures/` has no SKILL.md and is correctly not one.
@@ -104,30 +185,6 @@ done
 for s in "${FLOW_FAMILY[@]}" "${TOOL_SKILLS[@]}"; do
   [ -d "$root/$s" ] || fail "$s" missing-skill "listed in check.sh but has no directory"
 done
-
-# --- helpers ----------------------------------------------------------------
-
-# Body = everything after the closing --- of the frontmatter block.
-body_of() { awk 'NR==1&&$0=="---"{fm=1;next} fm==1&&$0=="---"{fm=2;next} fm==2' "$1"; }
-frontmatter_of() { awk 'NR==1&&$0=="---"{fm=1;next} fm==1&&$0=="---"{exit} fm==1' "$1"; }
-count_words() { wc -w < "$1" | tr -d ' '; }
-count_words_str() { printf '%s' "$1" | wc -w | tr -d ' '; }
-fm_value() { frontmatter_of "$1" | sed -n "s/^$2: *//p" | head -1; }
-
-# A conditional reference is an ARROW POINTER: some condition text, then `->`,
-# then a backticked lowercase `<name>.md` on the same line. A bare mention of
-# another skill's file (e.g. "flow's `epic.md`") is prose, not a pointer, and
-# deliberately does not count - that is what keeps cross-skill vocabulary legal
-# while still proving every LOADABLE branch is guarded by a stated condition.
-pointer_lines() { grep -nE -- '->[^`]*`[a-z][a-z0-9-]*\.md`' "$1" 2>/dev/null; }
-pointer_targets() {
-  pointer_lines "$1" | grep -oE '`[a-z][a-z0-9-]*\.md`' | tr -d '`' | sort -u
-}
-# The condition guarding a pointer: everything on its line before the arrow.
-pointer_condition() {
-  pointer_lines "$1" | grep -F "\`$2\`" | sed 's/^[0-9]*://; s/->.*//' |
-    tr 'A-Z' 'a-z' | tr -s ' '
-}
 
 # --- 1. frontmatter ---------------------------------------------------------
 

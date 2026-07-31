@@ -56,9 +56,12 @@ conditional parallel planning and review.
 - [ ] 20260730-154955 (p75, nix.dotfiles) Integrate guarded flow lifecycle and
       lesson decisions. Depends on: 20260730-154657, 20260730-154745,
       20260730-154756, 20260730-142533.
-- [ ] 20260730-142540 (p70, nix.dotfiles) Add tatr-native wayfinding, web
+- [x] 20260730-142540 (p70, nix.dotfiles) Add tatr-native wayfinding, web
       research, and retained prototypes. Depends on: 20260730-153325,
       20260730-154657, 20260730-154740, 20260730-142533.
+      2 review rounds, 7 findings (all MINOR/NIT); adds the Epic index, the
+      spike mode router over research.md/prototype.md, a `content` fixture
+      kind and `check.sh --fixture <case>`.
 - [ ] 20260730-154958 (p65, nix.dotfiles) Add conditional parallel planning
       and review lanes. Depends on: 20260730-154740, 20260730-154745,
       20260730-142533.
@@ -72,6 +75,9 @@ conditional parallel planning and review.
 - 20260730-153122 DECISION.md: use a typed breaking tatr v2 schema,
   transactional lifecycle commands, and explicit repository migrations
   (ACCEPTED).
+- 20260730-142540 DECISION.md: prove the retained-prototype criteria
+  structurally over the skill texts rather than making the gate execute
+  prototype fixtures (ACCEPTED).
 - 20260730-142533 DECISION.md: prove the skill suite structurally, and treat
   live-agent behavior as a manual acceptance item here rather than building a
   credential-bound, non-deterministic harness into the gate (ACCEPTED).
@@ -80,6 +86,11 @@ conditional parallel planning and review.
 
 - (pending) Confirm the final output budgets produce concise but sufficient
   reports on representative flow, spike, plan, work, review, and compound runs.
+- (pending) 20260730-142540: run one real spike that retains a prototype, then
+  confirm the prototype still runs from its recorded command after the spike
+  closes. The `retained_prototype_smoke` fixture proves the record NAMES a
+  command, observations, a verdict and its limitations; nothing automated runs
+  that command. See tasks/20260730-142540/DECISION.md.
 - (pending) 20260730-142533: confirm the live behavior the structural gate
   cannot observe - that a real session loads only the guarded branch files,
   selects the intended skill on both Claude Code and codex, and keeps its

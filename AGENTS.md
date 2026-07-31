@@ -20,7 +20,8 @@ global `home/modules/agents/AGENTS.md` to `~/AGENTS.md`.
 
 - Tracker: tatr, records under `tasks/<id>/`. Epics are `KIND: EPIC` with
   `KIND: STORY` children; one requested thing is one task.
-- Examples and prototypes: none retained. Verification lives in
+- Examples and prototypes: none in-tree; a spike's exploratory prototype is
+  retained under `tasks/<id>/prototype/`. Verification lives in
   `flake/checks*.nix` and the shell test scripts under `home/modules/scripts/`.
 - Domain docs: none. `README.md` plus the module comments are the reference.
 - Research: local sources first; no network is required by any check.
@@ -50,8 +51,11 @@ Detail: the Check suite section below.
   policy, duplicated rules, and the fixtures under `skills/fixtures/`.
   `--self-test` sabotages each rule in a scratch copy and asserts the gate
   reports that rule, so the gate is never silently vacuous; `--rules` prints
-  the inventory it checks coverage against. `nix flake check` runs both forms,
-  so this is the fast hand-run, not the only run.
+  the inventory it checks coverage against; `--fixture <case>` runs the one
+  fixture whose `name:` matches and prints `fixture <case>: ok`, which is how
+  a task's Definition of Done names a single criterion as a `cmd:` proof.
+  `nix flake check` runs the bare and `--self-test` forms, so this is the fast
+  hand-run, not the only run.
 - `nix flake check` - flake evaluation AND the `checks` outputs under
   `flake/`, which assert wiring spanning two evaluations (the NixOS config and
   the standalone home config) that evaluating either one alone cannot catch.

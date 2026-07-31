@@ -1,0 +1,5 @@
+name: wayfinder_context_index
+skill: flow
+file: epic.md
+section: The Epic index
+requires: destination, decisions, frontier, fog, out of scope, tatr frontier, one selected story

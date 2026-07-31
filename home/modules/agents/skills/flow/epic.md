@@ -18,9 +18,32 @@ hint. A child in ANOTHER repository is named in the body prose, not in
 Epic containers are exempt from plan approval, review, retro and
 unchecked-Steps requirements. Their dependencies and DECISION.md are not.
 
+## The Epic index
+
+An Epic is a context map, not a copy of its children. It indexes five things,
+and a wayfinding run reads the index plus the one selected Story or discovery
+task - opening a second Story body means the index failed at its job.
+
+- **Destination** - what completing the Epic means: `## Epic` and
+  `## Done Means`.
+- **Decisions** - one line per settled question, each pointing at the record
+  that argued it, so nobody re-litigates it from the Epic alone.
+- **Frontier** - the unblocked, unclaimed children available now. Derived by
+  `tatr frontier <epic-id>`, never maintained by hand.
+- **Fog** - in-scope questions not yet precise enough to be Stories. Each
+  stays one sentence until a spike, research or decision task graduates it
+  into a Story.
+- **Out of Scope** - the boundaries someone would otherwise rediscover by
+  building past them.
+
+Resuming works the same way as starting: read the index, take the frontier's
+top row, open that Story. Every other Story stays unread, which is what makes
+an Epic bigger than one context survivable.
+
 ## Container TASK.md sections
 
-`tatr check` requires `## Done Means` and `## Child Tasks` on a `KIND: EPIC`.
+`tatr check` requires `## Done Means` and `## Child Tasks` on a `KIND: EPIC`,
+and accepts the index sections alongside them.
 
 ```markdown
 ## Epic
@@ -42,6 +65,14 @@ What this epic delivers and why.
 
 - <task-id> DECISION.md: <one-line decision> (ACCEPTED)
 
+## Fog
+
+- <question in scope but not yet a Story> - <what would settle it>
+
+## Out of Scope
+
+- <boundary> - <why it is out>
+
 ## Manual Acceptance
 
 - (pending) <task-id>: <what the user should confirm>
@@ -55,7 +86,8 @@ tatr frontier <epic-id>
 
 One tab-separated row per open child: `<STATE> <id> p<priority> <flow step>
 <title>`, plus `blocked-by=<ids>` on a BLOCKED row. STATE is READY, BLOCKED or
-CLAIMED. Take the top READY row. Never read every child's TASK.md to choose.
+CLAIMED. Take the top READY row; reading the children's bodies to choose is
+the cost the index exists to avoid.
 
 Skip the container itself until Finish.
 

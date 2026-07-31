@@ -10,6 +10,17 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   break it is unfalsifiable - two rules here passed green while checking
   nothing (a hardcoded skill list, a self-test branch that bumped a counter
   nothing read). Write one sabotage case per rule BEFORE the rule. 20260730-142533
+- `degenerate-case-before-real-cases` (x1): a new checker or assertion FORMAT
+  gets designed from the cases its author is about to write, so the degenerate
+  ones stay invisible - a content fixture with no assertions printed `ok`, and
+  a section matcher accepted a heading inside a fenced example. Write the
+  emptiest and the decoration-satisfied case first; this is separate from
+  proving each rule can fire. 20260730-142540
+- `narrow-the-guard-to-the-word` (x1): an assertion listing several acceptable
+  alternatives proves only that ONE held - a fixture matched on `external` and
+  would have passed with the `research` clause it existed to guard deleted.
+  Narrow the list to the load-bearing token and assert the rest
+  separately. 20260730-142540
 - `compute-coverage-dont-claim-it` (x1): "21 rules proven able to fail" was 20
   of 26, and "runs in CI" described a script nothing ran; derive a
   completeness claim from the artifact and fail on the gap. 20260730-142533
@@ -46,10 +57,12 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   dirs, not tasks dirs - a misleading name cost a silent no-op walk. 20260720-152503
 - `validate-the-exact-parsed-token` (x1): a trimmed re-validation of an
   untrimmed parse is a hole; check the bytes the parser consumes. 20260720-152503
-- `flake-path-literal-string-coercion` (x1): coercing a `../subdir` path
+- `flake-path-literal-string-coercion` (x2): coercing a `../subdir` path
   literal to a string in a flake (interpolation or `builtins.readDir`) copies
   it to the store as a floating non-GC-root `<hash>-subdir` that GC orphans
-  against the eval cache ("path is not valid"); use `${inputs.self}/subdir`. 20260720-153613
+  against the eval cache ("path is not valid"); use `${inputs.self}/subdir`.
+  Latent until the directory's CONTENT changes, so the fix outlives the file
+  it was found in. 20260720-153613, 20260730-142540
 - `sops-dotenv-decrypts-whole-file` (x2): a sops-nix secret with
   `format = "dotenv"` decrypts the ENTIRE file as that secret's value and
   IGNORES `key` (`sops-install-secrets/main.go`, same for ini/binary), so it
@@ -80,9 +93,6 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `proof-must-cover-its-conjunct` (x1): a DoD proof for a two-part criterion
   must fail if either part is deleted; a case-sensitive grep survived its
   target's removal. 20260720-152519
-- `counts-come-from-the-diff` (x2): work reports and close records have
-  miscounted their own changes; cite the diff's numbers, not the
-  narrative's. 20260720-171843, 20260720-171836
 - `claim-only-verified-state` (x1): a REVIEW.md Response claimed a scripted
   fix that had silently aborted; re-run the exposing check before writing
   the claim. 20260720-171836
@@ -145,6 +155,19 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   three further defects that review would have had to find by reading. 20260730-190929
 
 ## Pending promotions (3+ occurrences, user decides)
+
+- `counts-come-from-the-diff` (x3, 20260720-171843, 20260720-171836,
+  20260730-142540) -> tatr (tool), falling back to the close-out template:
+  work reports and close records must cite the diff's numbers, not the
+  narrative's. Three cycles have hand-copied a diff stat into a record and got
+  it wrong, most recently by reading it before appending the block that quotes it,
+  then "correcting" it into a triple no diff produces (20260730-142540 R1.6,
+  R2.1). Prose has not held it because the failure is a MOMENT, not a source.
+  Proposed: `tatr` renders the stat itself - e.g. `tatr stat <id> --since
+  <base>` emitting the `git diff --shortstat` line for the task's branch - so
+  the record cites generated output instead of a retyped number. If that is
+  more tool than it is worth, the weaker form is a close-out template that
+  carries the command rather than its result.
 
 - `dod-grep-excludes-task-records` (x6) -> plan skill DoD guidance (WIDEN an
   existing promotion): the 2026-07-20 promotion tells absence-proving greps to

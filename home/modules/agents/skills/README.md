@@ -47,6 +47,12 @@ and pointed at from a `## Load on demand` section in this shape:
 The condition text before the arrow is what the disclosure fixtures assert
 against, so it has to name the branch in words, on the arrow's own line.
 
+A skill whose work comes in several shapes routes to them the same way. `spike`
+names four modes - research, logic prototype, UI prototype, and mixed evidence
+- over two references: logic and UI prototypes share every storage and
+retention rule, so a file each would duplicate rather than separate them. One
+mode may reach two references, as mixed evidence does.
+
 | Surface | Budget |
 | --- | --- |
 | One description | at most 30 words |
@@ -78,10 +84,16 @@ key, so the policy is declared once.
 ## Checks
 
 ```bash
-bash home/modules/agents/skills/check.sh              # conformance gate
-bash home/modules/agents/skills/check.sh --self-test  # prove the gate can fail
-nix flake check                                       # both, plus deployment
+bash home/modules/agents/skills/check.sh                # conformance gate
+bash home/modules/agents/skills/check.sh --self-test    # prove the gate can fail
+bash home/modules/agents/skills/check.sh --fixture <case>  # one fixture case
+nix flake check                                         # both, plus deployment
 ```
+
+`--fixture <case>` runs the fixture whose `name:` matches and nothing else,
+printing `fixture <case>: ok` when it passes. The bare gate prints only
+findings, so a task whose Definition of Done rests on one fixture names that
+case as its `cmd:` proof.
 
 `check.sh` owns the skill TEXTS: budgets, the reference graph, substituted
 typographic glyphs (en/em dash, smart quotes, ellipsis, arrows - not every
@@ -96,3 +108,11 @@ The fixtures are structural proofs over the skill texts: they show the suite is
 shaped so only the intended files are reachable on a branch and only the
 intended skills are implicitly invocable. Whether a given model then obeys that
 shape is a manual check, not something a deterministic gate can assert.
+
+There are four fixture kinds. `disclosure/` states what a phase may load on one
+branch and what it may not; `invocation/` states which skills the two agent
+tools may trigger implicitly; `output/` states what a phase's chat report must
+contain and its word cap; `content/` states which rules a reference file or one
+of its `##` sections must still say. The first three prove a file is reachable
+and bounded, which is exactly what a reference that kept its pointer while
+losing its rule would also pass - `content/` is what closes that gap.

@@ -150,6 +150,22 @@ expect_rule reworded-condition condition-misses-branch \
 expect_rule uncovered-reference no-disclosure-fixture \
   "rm -f fixtures/disclosure/work-on-a-bug.fixture"
 
+# Content fixtures assert that a reference actually STATES its rule, which no
+# budget or pointer check can see: a `prototype.md` that resolves, loads on the
+# right branch and fits its budget can still have lost the storage order it
+# exists to carry. Each of these deletes one required element of a real rule.
+expect_rule content-element-dropped missing-content-element \
+  "sed -i 's/limitations/gaps/g' spike/prototype.md"
+
+expect_rule content-element-forbidden forbidden-content-element \
+  "sed -i '/^## Retained evidence\$/a A throwaway sketch is fine here.' spike/prototype.md"
+
+expect_rule content-file-missing bad-fixture \
+  "sed -i 's/^file: prototype.md\$/file: nosuchref.md/' fixtures/content/retained_prototype_smoke.fixture"
+
+expect_rule content-section-missing bad-fixture \
+  "sed -i 's/^## Retained evidence\$/## Evidence we keep/' spike/prototype.md"
+
 # ONE exit decision, after everything is computed. An earlier version put the
 # case gate first and then bumped `failures` from the undeclared-rule block
 # below it, where nothing ever read it again - so that half of the check could
