@@ -1,4 +1,0 @@
-name: review-report
-skill: review
-limit: 150
-requires: findings first, verdict, manual

@@ -1,5 +1,0 @@
-name: parallel_plan_synthesis
-skill: plan
-file: lanes.md
-section: Synthesis
-requires: one plan, one decision.md, discard, rejected alternative

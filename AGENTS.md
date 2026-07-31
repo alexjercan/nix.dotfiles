@@ -28,7 +28,9 @@ global `home/modules/agents/AGENTS.md` to `~/AGENTS.md`.
 - Canonical checks: `nix flake check`,
   `bash home/modules/agents/skills/check.sh`,
   `bash home/modules/scripts/sprout-test.sh`, `tatr check --ledger LESSONS.md`.
-- Lessons ledger: `LESSONS.md` at the repo root.
+- Lessons ledger: `LESSONS.md` at the repo root; a pending promotion blocks
+  `tatr check --ledger` until the user's disposition is recorded with
+  `tatr ledger` (grammar: `skills/lessons/ledger.md`).
 
 Detail: the Check suite section below.
 
@@ -48,19 +50,18 @@ Detail: the Check suite section below.
 - `bash home/modules/scripts/sprout-test.sh` - the sprout CLI's test suite.
 - `bash home/modules/agents/skills/check.sh` - the skill-suite conformance
   gate: context budgets, the conditional-reference graph, the invocation
-  policy, duplicated rules, and the fixtures under `skills/fixtures/`.
-  `--self-test` sabotages each rule in a scratch copy and asserts the gate
-  reports that rule, so the gate is never silently vacuous; `--rules` prints
-  the inventory it checks coverage against; `--fixture <case>` runs the one
-  fixture whose `name:` matches and prints `fixture <case>: ok`, which is how
-  a task's Definition of Done names a single criterion as a `cmd:` proof.
-  `nix flake check` runs the bare and `--self-test` forms, so this is the fast
-  hand-run, not the only run.
+  policy, duplicated rules, a present `## Output` contract, and
+  `direct-state-edit` (no flow-family skill may tell an agent to write a
+  lifecycle marker or a ledger disposition by hand - `tatr flow` and
+  `tatr ledger` own those). `--rules` prints the rule inventory. Runs in about
+  two seconds; every rule is structural, so it proves the files have the right
+  SHAPE and never that a reference still states the rule it carries. That is a
+  review question.
 - `nix flake check` - flake evaluation AND the `checks` outputs under
   `flake/`, which assert wiring spanning two evaluations (the NixOS config and
   the standalone home config) that evaluating either one alone cannot catch.
   `flake/checks-skills.nix` carries BOTH halves of the skills gate:
-  `skills-conformance` runs `check.sh --self-test` and then `check.sh`, and
+  `skills-conformance` runs `check.sh`, and
   `skills-deployment-tree` proves every skill on disk actually reaches Claude
   Code, the AGENTS.md ecosystem and codex. Use the bare form before landing:
   `--no-build` evaluates the checks but does not RUN them, so it proves

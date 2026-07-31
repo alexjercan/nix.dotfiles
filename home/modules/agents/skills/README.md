@@ -22,8 +22,8 @@ skills alongside the managed ones.
 ```
 
 Skills are deployed from the explicit `localSkills` list in `../default.nix`,
-not by globbing this directory - `check.sh` and `fixtures/` live here too and
-are test assets, not skills. `checks.skills-deployment-tree` asserts the list
+not by globbing this directory - `check.sh` lives here too and is a test asset,
+not a skill. `checks.skills-deployment-tree` asserts the list
 and the directories on disk agree, so a new skill folder cannot be added
 without being deployed.
 
@@ -44,8 +44,8 @@ and pointed at from a `## Load on demand` section in this shape:
 - the task is a bug, crash, regression or falsification -> `bug.md`
 ```
 
-The condition text before the arrow is what the disclosure fixtures assert
-against, so it has to name the branch in words, on the arrow's own line.
+`check.sh` requires condition text before the arrow, so it has to name the
+branch in words, on the arrow's own line.
 
 A skill whose work comes in several shapes routes to them the same way. `spike`
 names four modes - research, logic prototype, UI prototype, and mixed evidence
@@ -76,7 +76,7 @@ sitting exactly on its number is conformant and has no headroom.
 A phase's `## Output` section is the single owner of BOTH its user-facing chat
 report and the handoff it returns to `flow`: they are the same text, so one
 budget governs both, and the durable records hold everything else. The report
-itself states its own word cap, which the output fixtures assert.
+itself states its own word cap.
 
 Budgets are a failure signal, not licence to drop a required guard. A rule that
 a tool or template can enforce belongs there instead, and the skill prose it
@@ -92,35 +92,24 @@ key, so the policy is declared once.
 ## Checks
 
 ```bash
-bash home/modules/agents/skills/check.sh                # conformance gate
-bash home/modules/agents/skills/check.sh --self-test    # prove the gate can fail
-bash home/modules/agents/skills/check.sh --fixture <case>  # one fixture case
-nix flake check                                         # both, plus deployment
+bash home/modules/agents/skills/check.sh   # conformance gate
+nix flake check                            # that, plus the deployment tree
 ```
-
-`--fixture <case>` runs the fixture whose `name:` matches and nothing else,
-printing `fixture <case>: ok` when it passes. The bare gate prints only
-findings, so a task whose Definition of Done rests on one fixture names that
-case as its `cmd:` proof.
 
 `check.sh` owns the skill TEXTS: budgets, the reference graph, substituted
 typographic glyphs (en/em dash, smart quotes, ellipsis, arrows - not every
 non-ASCII byte, since a skill may legitimately quote data containing one), the
-invocation policy, duplicated paragraphs, and the fixtures under `fixtures/`.
-`check.sh --rules` prints every rule it can report; `--self-test` proves each
-of them can fire.
+invocation policy, duplicated paragraphs, a present `## Output` contract, and
+`direct-state-edit` (no flow-family skill may ORDER a lifecycle marker or a
+ledger disposition written by hand - `tatr flow` and `tatr ledger` own those
+writes). `check.sh --rules` prints every rule it can report.
 tatr owns the task RECORD schemas (`tatr check`). The deployment check owns
 whether the files reach an agent.
 
-The fixtures are structural proofs over the skill texts: they show the suite is
-shaped so only the intended files are reachable on a branch and only the
-intended skills are implicitly invocable. Whether a given model then obeys that
-shape is a manual check, not something a deterministic gate can assert.
-
-There are four fixture kinds. `disclosure/` states what a phase may load on one
-branch and what it may not; `invocation/` states which skills the two agent
-tools may trigger implicitly; `output/` states what a phase's chat report must
-contain and its word cap; `content/` states which rules a reference file or one
-of its `##` sections must still say. The first three prove a file is reachable
-and bounded, which is exactly what a reference that kept its pointer while
-losing its rule would also pass - `content/` is what closes that gap.
+Every rule here is STRUCTURAL: a property of the files that a static read
+settles in about two seconds. The gate does not assert that a reference still
+STATES the rule it exists to carry. A fixture suite did that for a while and
+was removed - it cost more to iterate on than it caught, and it made every
+prose edit a two-file edit. Whether a skill says the right thing is a review
+question, and whether a model then obeys it was never something a deterministic
+gate could answer.

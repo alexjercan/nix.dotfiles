@@ -1,5 +1,0 @@
-name: spike-prototype
-skill: spike
-when: logic ui prototype runnable
-loads: prototype.md
-forbids: research.md

@@ -1,4 +1,0 @@
-name: compound-report
-skill: compound
-limit: 100
-requires: slugs, follow-up

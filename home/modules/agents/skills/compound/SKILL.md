@@ -48,12 +48,16 @@ it - that is the compounding.
    entry (`-> work skill`) at any count. Format and search order: the lessons
    skill's `ledger.md`.
 
-6. **Promotion is the user's call.** A lesson reaching three occurrences moves
-   to the ledger's `## Pending promotions` section. Do NOT self-promote it
-   into a tool, template, AGENTS.md or skill. Propose, with the promotion
-   order tool > template/format > skill prose - prose warns, tools prevent -
-   and let the user decide. Follow-up code work becomes a new tatr task;
-   one-off observations stay in the retro.
+6. **Record and count; decide nothing.** A lesson reaching three occurrences
+   moves to the ledger's `## Pending promotions` section with its count bare,
+   and that is where compound stops. Compound never records a disposition,
+   never self-promotes a lesson into a tool, template, AGENTS.md or skill, and
+   does not ask for the decision either - the gate belongs to `lessons`, which
+   flow's Finish and a release pass both run. Name the
+   promotion order in the proposal (tool > template/format > skill prose -
+   prose warns, tools prevent) so the eventual decision has it to hand.
+   Follow-up code work becomes a new tatr task; one-off observations stay in
+   the retro.
 
 7. **Commit.** On the feature branch, from inside its worktree, when the work
    has not landed yet, so the retro travels with the task and the squash folds

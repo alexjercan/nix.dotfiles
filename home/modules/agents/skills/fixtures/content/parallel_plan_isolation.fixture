@@ -1,5 +1,0 @@
-name: parallel_plan_isolation
-skill: plan
-file: lanes.md
-section: The context packet
-requires: identical, tatr context, read-only, no other lane's, never sees, 400 words

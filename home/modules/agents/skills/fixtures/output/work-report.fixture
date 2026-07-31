@@ -1,4 +1,0 @@
-name: work-report
-skill: work
-limit: 150
-requires: worktree path, branch, task ID, proof

@@ -1,4 +1,0 @@
-name: parallel_lane_selection
-skill: review
-when: infrastructure
-loads: lanes.md

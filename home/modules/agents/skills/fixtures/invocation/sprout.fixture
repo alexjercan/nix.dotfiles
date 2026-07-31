@@ -1,4 +1,0 @@
-name: sprout-explicit
-skill: sprout
-invocation: explicit
-triggers: sprout, worktrees, parallel branches

@@ -1,5 +1,0 @@
-name: spike-research
-skill: spike
-when: research
-loads: research.md
-forbids: prototype.md

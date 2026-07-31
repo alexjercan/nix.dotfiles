@@ -1,5 +1,0 @@
-name: flow-landing
-skill: flow
-when: landing land approved branch
-loads: landing.md
-forbids: epic.md

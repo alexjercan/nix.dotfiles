@@ -1,5 +1,0 @@
-name: prototype_location_resolution
-skill: spike
-file: prototype.md
-section: Where a prototype lives
-requires: agents.md, examples/, scripts/, demos/, tasks/<id>/prototype/, ask, cache

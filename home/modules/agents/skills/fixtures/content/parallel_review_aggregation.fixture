@@ -1,5 +1,0 @@
-name: parallel_review_aggregation
-skill: review
-file: lanes.md
-section: Aggregation
-requires: re-verifies, deduplicat, one round, one verdict, severity, - reviewer:

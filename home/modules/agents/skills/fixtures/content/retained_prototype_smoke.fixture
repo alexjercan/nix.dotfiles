@@ -1,6 +1,0 @@
-name: retained_prototype_smoke
-skill: spike
-file: prototype.md
-section: Retained evidence
-requires: run command, observations, verdict, limitations, after the spike closes
-forbids: throwaway

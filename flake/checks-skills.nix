@@ -2,10 +2,11 @@
 #
 # `home/modules/agents/skills/check.sh` proves the skill TEXTS conform - budgets,
 # reference graph, invocation policy, output contracts. It says nothing about
-# whether those files reach an agent. That is this check's job, and the two
-# halves fail differently: a skill can be perfectly written and still invisible
-# because the home-manager module never listed it, or because a reference file
-# beside its SKILL.md was left out of the deployed tree.
+# whether those files reach an agent, nor about whether a reference still states
+# the rule it carries; the first is this check's job, the second is review's.
+# The two halves fail differently: a skill can be perfectly written and still
+# invisible because the home-manager module never listed it, or because a
+# reference file beside its SKILL.md was left out of the deployed tree.
 #
 # The seam is `localSkills` in home/modules/agents/default.nix: an explicit list
 # that must stay in step with the directories on disk. Adding a skill folder and
@@ -36,16 +37,13 @@
     # The text half of the gate, wired into `nix flake check` so the budgets
     # and the reference graph cannot rot between hand runs. It is pure bash
     # plus coreutils and GNU grep, so it needs no repository and no network.
-    # `--self-test` runs first: a gate that cannot fail would make the green
-    # run below meaningless.
     checks.skills-conformance =
       pkgs.runCommand "skills-conformance" {
         inherit source;
-        nativeBuildInputs = [pkgs.bash pkgs.gnugrep pkgs.coreutils pkgs.gawk pkgs.gnused pkgs.perl];
+        nativeBuildInputs = [pkgs.bash pkgs.gnugrep pkgs.coreutils pkgs.gawk pkgs.gnused];
       } ''
         cp -r "$source" skills
         chmod -R u+w skills
-        bash skills/check.sh --self-test
         bash skills/check.sh
         touch $out
       '';
@@ -81,9 +79,8 @@
       } ''
         fail() { echo "skills-deployment-tree: $1" >&2; exit 1; }
 
-        # 1. Every directory holding a SKILL.md is deployed, and every deployed
-        #    name is a real skill directory. `fixtures/` has no SKILL.md and
-        #    must NOT appear; it is a test asset, not a skill.
+        # 1. Every directory holding a SKILL.md is deployed, and every entry
+        #    deployed FROM this tree names a real skill directory.
         for d in "$source"/*/; do
           name="$(basename "$d")"
           [ -f "$d/SKILL.md" ] || continue
@@ -105,16 +102,33 @@
         if [ -s missing-agents ]; then
           fail "skills present on disk but not deployed to ~/.agents/skills: $(tr '\n' ' ' < missing-agents)"
         fi
-        if grep -qx fixtures deployed-claude || grep -qx fixtures deployed-agents; then
-          fail "the fixtures/ test assets are deployed as a skill"
-        fi
+
+        # The reverse direction. Until this task it was covered only by a guard
+        # naming `fixtures/` specifically, which went with the fixtures - so a
+        # typo in `localSkills`, or `check.sh` itself listed as a skill, built
+        # green.
+        #
+        # The test is on-disk PRESENCE, not the entry's source path: the module
+        # deploys `./skills + "/<name>"`, which nix copies to its own store path
+        # per skill, so nothing in `deployedDetail` still points inside this
+        # tree and a source-prefix filter would match nothing at all. A name
+        # with no path here is a tool-owned skill (tatr) and is legitimate; a
+        # name whose path EXISTS but is not a directory holding a SKILL.md is
+        # the drift.
+        while IFS= read -r name; do
+          [ -n "$name" ] || continue
+          if [ -e "$source/$name" ] && [ ! -f "$source/$name/SKILL.md" ]; then
+            fail "$name is deployed but $source/$name is not a skill directory"
+          fi
+        done < deployed-claude
+
+        printf '%s' "$deployedDetail" > detail.json
 
         # 2. Each deployed entry points at ITS OWN source directory and is
         #    recursive. A `recursive = false` entry becomes a single directory
         #    symlink, which the agent tools can no longer merge their own
         #    skills into; a mismatched `source` deploys one skill's files under
         #    another skill's name. Both build cleanly.
-        printf '%s' "$deployedDetail" > detail.json
         for root in .claude/skills .agents/skills; do
           while IFS= read -r name; do
             entry="$(jq -r --arg k "$root/$name" '.[$k] // empty' detail.json)"

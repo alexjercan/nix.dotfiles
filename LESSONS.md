@@ -10,6 +10,22 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   break it is unfalsifiable - two rules here passed green while checking
   nothing (a hardcoded skill list, a self-test branch that bumped a counter
   nothing read). Write one sabotage case per rule BEFORE the rule. 20260730-142533
+- `test-the-quiet-direction` (x1): a checker suite that only ever proves rules
+  CAN fire says nothing about what they flag wrongly - `direct-state-edit`
+  passed five sabotage cases while being blind to 17 of 39 real sentences and
+  flagging ordinary descriptive prose. Pair every rule with a case asserting
+  the gate stays CLEAN on correct input. 20260730-154955
+- `measure-must-survive-recording` (x1): a number written into the file it
+  measures is invalidated by writing it - a close-out diff stat moved three
+  times, twice because the block quoting it grew and once because the review
+  round verifying it was committed. Pick a scope the act of recording cannot
+  change (here: exclude `tasks/`), and name the command so a reader
+  re-derives instead of trusting. 20260730-154955
+- `exempt-on-structure-not-on-a-token` (x1): an exemption keyed on a bare word
+  anywhere in the scope inverts itself - exempting any clause containing
+  `tatr` or `never` excused "if `tatr flow` is unavailable, set FLOW STEP by
+  hand", the likeliest real violation. Key it on the token's ROLE (subject,
+  instrument, attached negation), not its presence. 20260730-154955
 - `degenerate-case-before-real-cases` (x1): a new checker or assertion FORMAT
   gets designed from the cases its author is about to write, so the degenerate
   ones stay invisible - a content fixture with no assertions printed `ok`, and
@@ -44,11 +60,12 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `task-close-contracts-must-compose` (x1): a task-specific workflow that
   closes a task must also produce the generic records required by `tatr check`;
   spike currently omits review and retro from its close path. 20260730-142052
-- `out-of-context-review-pass` (x5, PROMOTED 2026-07-20 -> review skill
+- `out-of-context-review-pass` (x6, PROMOTED 2026-07-20 -> review skill
   round-1 default): the fresh-context reviewer found what the implementing
   session could not see (an unfailable test; a docs-only loophole; a
   whitespace hole in a validator; a conformance gate that checked a hardcoded
-  list; a record claiming more than its mechanism proves). 20260720-152433, 20260720-152438, 20260720-152503, 20260730-142533, 20260730-154958
+  list; a record claiming more than its mechanism proves; a new rule blind on
+  44% of its own corpus while passing every sabotage its author wrote). 20260720-152433, 20260720-152438, 20260720-152503, 20260730-142533, 20260730-154958, 20260730-154955
 - `commit-before-every-sabotage` (x1): the A/B commit-first rule applies per
   sabotage, not per task - a restore reverted uncommitted review fixes. 20260720-152433
 - `scripted-replace-asserts-match` (x1): str.replace edits silently no-op on a
@@ -166,20 +183,25 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 
 ## Pending promotions (3+ occurrences, user decides)
 
-- `counts-come-from-the-diff` (x3, 20260720-171843, 20260720-171836,
-  20260730-142540) -> tatr (tool), falling back to the close-out template:
-  work reports and close records must cite the diff's numbers, not the
-  narrative's. Three cycles have hand-copied a diff stat into a record and got
-  it wrong, most recently by reading it before appending the block that quotes it,
-  then "correcting" it into a triple no diff produces (20260730-142540 R1.6,
-  R2.1). Prose has not held it because the failure is a MOMENT, not a source.
+- `counts-come-from-the-diff` (x5, PROMOTE 2026-07-31 -> 20260731-094524)
+  -> tatr (tool), falling back to the close-out template: work reports and
+  close records must cite the diff's numbers, not the narrative's. Five cycles
+  have hand-copied a diff stat into a record and got it wrong, three times in
+  the close-out that NARRATES this lesson: twice by reading the number before
+  appending the block quoting it (496, then 593 against a real 596), and once
+  by reading the wrong command entirely - `git diff --cached --shortstat`
+  measures the index against the previous commit, not the branch against its
+  base. Prose has not held it because the failure is a MOMENT, not a source,
+  and three review rounds were needed to catch three instances of it.
   Proposed: `tatr` renders the stat itself - e.g. `tatr stat <id> --since
   <base>` emitting the `git diff --shortstat` line for the task's branch - so
   the record cites generated output instead of a retyped number. If that is
-  more tool than it is worth, the weaker form is a close-out template that
-  carries the command rather than its result.
+  more tool than it is worth, the weaker form is a close-out template carrying
+  the command rather than its result.
+  20260720-171843, 20260720-171836, 20260730-142540, 20260730-154955
 
-- `dod-grep-excludes-task-records` (x6) -> plan skill DoD guidance (WIDEN an
+- `dod-grep-excludes-task-records` (x6, PROMOTE 2026-07-31 -> 20260731-094537)
+  -> plan skill DoD guidance (WIDEN an
   existing promotion): the 2026-07-20 promotion tells absence-proving greps to
   exclude `tasks/`, which is only half the self-match. A diff that removes a
   mechanism usually also writes prose ABOUT the removal - a comment naming the

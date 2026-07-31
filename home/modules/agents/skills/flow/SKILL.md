@@ -15,7 +15,7 @@ their rules.
 asks for a sprint, release, epic or multi-feature goal.
 
 Load context with `tatr context <id> --phase <phase>`, not the whole task
-folder. Read the repository's `## Agent workflow` AGENTS.md cache first.
+folder. Read the repo's `## Agent workflow` AGENTS.md cache first.
 
 ## 2. Understand
 
@@ -24,8 +24,8 @@ authority. `tatr flow <id>` to UNDERSTANDING, then PLANNING once the concrete
 artifact is pinned down.
 
 Ask the user when the request underspecifies WHAT to build - the artifact or
-mechanism, not just its placement or look - naming the constraint that makes
-the candidates mutually exclusive. Record the answer in a DECISION.md.
+mechanism, not just its placement - naming the constraint that makes the
+candidates mutually exclusive. Record the answer in a DECISION.md.
 
 ## 3. Plan, then GATE
 
@@ -41,7 +41,7 @@ Per work task, highest priority first:
 2. Invoke `work`. It sprouts the worktree and moves the task to WORKING.
 3. Invoke `review`. Alternate it with `work` until the verdict is APPROVE;
    `tatr flow <id> --to WORKING` is the fix loop.
-4. On APPROVE invoke `compound` BEFORE landing, so the retro lands in the same
+4. On APPROVE invoke `compound` BEFORE landing, so the retro shares its
    commit.
 5. Land the branch, then report one line ending with `DONE <id>`.
 
@@ -51,8 +51,9 @@ wider diff. A mid-flow lesson re-audits the queued tasks it invalidates.
 ## 5. Finish
 
 Run the repository's canonical checks on the default branch, verify every
-`tatr proofs <id>` proof, run `tatr check --ledger <ledger>`, then invoke
-`lessons`.
+`tatr proofs <id>` proof, then invoke `lessons`, which settles every pending
+promotion with the user. `tatr check --ledger <ledger>` must exit 0, which it
+cannot while an entry lacks the user's disposition.
 
 ## Stop and ask when
 

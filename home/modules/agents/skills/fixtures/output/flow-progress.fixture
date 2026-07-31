@@ -1,4 +1,0 @@
-name: flow-progress
-skill: flow
-limit: 40
-requires: SPIKED, PLANNED, DONE, GOAL DONE, terminal status line

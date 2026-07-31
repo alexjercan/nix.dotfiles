@@ -1,5 +1,0 @@
-name: plan-proofs
-skill: plan
-when: definition of done proof
-loads: proofs.md
-forbids: decision.md

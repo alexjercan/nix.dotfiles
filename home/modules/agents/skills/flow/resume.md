@@ -11,9 +11,15 @@ tatr show <id>
 tatr context <id> --phase resume
 ```
 
-`FLOW STEP` in TASK.md is the program counter. `tatr context --phase resume`
-prints every artifact path with `present|missing`; read only the present ones
-the next phase needs.
+`tatr show` reports the structured state - flow step, status, plan status,
+dependencies, claim - and that state, not the previous conversation, decides
+which phase comes next. `tatr context --phase resume` prints every artifact
+path with `present|missing`.
+
+Read only that phase's packet: the present artifacts the next phase needs, and
+nothing else. Pulling the whole task folder in to orient yourself spends the
+context the phase itself is about to need, and a resume that reads everything
+is indistinguishable from never having split the files at all.
 
 ## 2. Find the branch
 

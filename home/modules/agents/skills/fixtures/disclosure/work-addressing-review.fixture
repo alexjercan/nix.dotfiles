@@ -1,5 +1,0 @@
-name: work-addressing-review
-skill: work
-when: review request_changes verdict
-loads: review-feedback.md
-forbids: bug.md

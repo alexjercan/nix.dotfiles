@@ -1,5 +1,0 @@
-name: review-writing-a-round
-skill: review
-when: round finding severity verdict
-loads: rounds.md
-forbids: dimensions.md

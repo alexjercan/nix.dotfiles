@@ -1,5 +1,0 @@
-name: work-on-a-bug
-skill: work
-when: bug crash regression falsification
-loads: bug.md
-forbids: review-feedback.md

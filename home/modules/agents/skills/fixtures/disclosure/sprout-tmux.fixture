@@ -1,5 +1,0 @@
-name: sprout-tmux
-skill: sprout
-when: interactive tmux design background
-loads: reference.md
-forbids:

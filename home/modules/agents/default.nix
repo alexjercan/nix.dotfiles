@@ -6,9 +6,9 @@
   ...
 }: let
   # The managed local skills, named explicitly. `skills/` also holds the
-  # conformance gate (`check.sh`) and its `fixtures/`, which are repository
-  # test assets, NOT skills: deploying the whole directory would hand codex a
-  # bogus `fixtures` skill and put the checker in every agent's skills root.
+  # conformance gate (`check.sh`), which is a repository test asset, NOT a
+  # skill: deploying the whole directory would put the checker in every
+  # agent's skills root.
   # An explicit list is also what `checks.skills-deployment-tree` asserts
   # against the directories on disk, so a new skill cannot be added without
   # being deployed.

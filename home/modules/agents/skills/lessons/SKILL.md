@@ -50,8 +50,21 @@ A clean scratch and a current ledger make this a no-op that says so.
    `tatr check --ledger <ledger>`: it reports any `(x3)`-or-more lesson still
    outside `## Pending promotions` as `promotion-stalled`.
 
-5. **Promotion is the user's decision.** Flag a lesson at the threshold;
-   never self-promote it.
+5. **Settle every pending promotion.** `tatr ledger` lists each entry and
+   whether it still awaits an answer. For every one that does, put the choice
+   to the user - PROMOTE, DEFER, RETIRE or ABSORBED - using the platform's own
+   user-input mechanism where it has one, and plain prose where it does not.
+   Give the lesson's sentence, its count, and what promoting it would cost.
+
+   Record the answer with `tatr ledger -s <slug> -D <disposition>` and its
+   payload; the tool owns the annotation. A DEFER, RETIRE or ABSORBED is then
+   cached in the ledger and is not raised again until the count moves past the
+   one the DEFER was taken at.
+
+   A PROMOTE becomes a normal planned tatr task, named by `-t <task-id>`, and
+   the change it authorizes takes the usual out-of-context review before it
+   lands. Never self-promote a lesson into a tool, template, AGENTS.md or
+   skill, and never answer on the user's behalf when they are reachable.
 
 6. **Clear the scratch.** Run the project's wipe mechanism if it has one,
    otherwise remove the distilled files by hand. Leave ONLY the durable ledger
@@ -73,8 +86,8 @@ A clean scratch and a current ledger make this a no-op that says so.
 ## Output
 
 New and bumped slugs, what migrated to the reference docs, what was cleared,
-any pruned RETIRED entries, and any lesson now awaiting the user's promotion
-decision - 100 words or fewer.
+any pruned RETIRED entries, and the disposition recorded for each pending
+promotion with the task any PROMOTE now points at - 100 words or fewer.
 
 ## Load on demand
 

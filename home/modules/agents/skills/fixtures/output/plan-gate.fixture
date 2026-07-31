@@ -1,4 +1,0 @@
-name: plan-gate
-skill: plan
-limit: 250
-requires: done-definition, steps, PLANNED

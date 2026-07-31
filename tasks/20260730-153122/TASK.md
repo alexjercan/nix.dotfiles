@@ -53,9 +53,16 @@ conditional parallel planning and review.
       20260730-154745.
       3 review rounds, 27 findings (1 withdrawn on scope); adds
       skills/check.sh, its --self-test, and two nix checks.
-- [ ] 20260730-154955 (p75, nix.dotfiles) Integrate guarded flow lifecycle and
+- [x] 20260730-154955 (p75, nix.dotfiles) Integrate guarded flow lifecycle and
       lesson decisions. Depends on: 20260730-154657, 20260730-154745,
       20260730-154756, 20260730-142533.
+      4 review rounds, 29 findings (4 BLOCKER, 4 MAJOR, 16 MINOR, 5 NIT) from
+      three out-of-context lanes; adds the `tatr ledger` disposition gate and
+      the `direct-state-edit` rule. Mid-cycle the user REMOVED the fixture
+      suite, so `skills/fixtures/`, `--fixture` and `--self-test` are gone and
+      check.sh is purely structural; `missing-output-contract` and
+      `stale-rule-inventory` were added in their place. Seeds 20260731-094524,
+      20260731-094537 and 20260731-104819.
 - [x] 20260730-142540 (p70, nix.dotfiles) Add tatr-native wayfinding, web
       research, and retained prototypes. Depends on: 20260730-153325,
       20260730-154657, 20260730-154740, 20260730-142533.
@@ -87,17 +94,23 @@ conditional parallel planning and review.
 
 ## Manual Acceptance
 
+- (pending) 20260730-154955: read `flow/SKILL.md` Finish, `lessons/SKILL.md`
+  step 5 and `compound/SKILL.md` step 6 together and confirm one actor asks
+  for the lesson disposition, one tool records it, and compound does neither.
+  Nothing automated checks that three prose files agree about an actor.
 - (pending) Confirm the final output budgets produce concise but sufficient
   reports on representative flow, spike, plan, work, review, and compound runs.
 - (pending) 20260730-154958: run one lane-selecting review and read the round,
   confirming the lanes stay inside their stated caps and the round reads as one
-  deduplicated review rather than three concatenated ones. The fixtures prove
-  the skill texts SAY this; nothing deterministic observes a live agent.
+  deduplicated review rather than three concatenated ones. (The fixtures that
+  proved the skill texts SAY this were removed in 20260730-154955, so this
+  item now covers both the text and the behavior.)
 - (pending) 20260730-142540: run one real spike that retains a prototype, then
   confirm the prototype still runs from its recorded command after the spike
-  closes. The `retained_prototype_smoke` fixture proves the record NAMES a
-  command, observations, a verdict and its limitations; nothing automated runs
-  that command. See tasks/20260730-142540/DECISION.md.
+  closes. The `retained_prototype_smoke` fixture that proved the record NAMES a
+  command, observations, a verdict and its limitations was removed in
+  20260730-154955, so this item now covers both. See
+  tasks/20260730-142540/DECISION.md.
 - (pending) 20260730-142533: confirm the live behavior the structural gate
   cannot observe - that a real session loads only the guarded branch files,
   selects the intended skill on both Claude Code and codex, and keeps its

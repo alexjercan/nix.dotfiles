@@ -3,22 +3,20 @@
 #
 # Enforces what tatr cannot see. tatr owns the TASK/SPIKE/DECISION/REVIEW/RETRO
 # record schemas; this owns the SKILL texts themselves - their context budgets,
-# their conditional-reference graph, their invocation policy, and their declared
-# output contracts.
+# their conditional-reference graph, and their invocation policy.
 #
 #   bash home/modules/agents/skills/check.sh
+#
+# Deliberately STRUCTURAL and cheap: every rule here is a property of the files
+# a static read can settle in a second. It does not assert that a reference
+# still STATES the rule it exists to carry - that was the fixture suite, and it
+# cost more to iterate on than it caught. Whether a skill's prose says the
+# right thing is a review question now, not a gate question.
 #
 # Findings print as "<scope>: <rule>: <detail>". Exit 0 clean, 1 with findings.
 set -uo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-# `--self-test` proves the gate can fail: it sabotages one rule at a time in a
-# scratch copy and asserts check.sh reports it. A gate nothing can trip is not
-# a gate.
-if [ "${1-}" = --self-test ]; then
-  exec bash "$root/fixtures/selftest.sh" "$root"
-fi
 
 # The flow family. `today` ships from this directory too but is a tool skill,
 # not part of the flow cycle, so it pays no share of the description budget.
@@ -51,44 +49,26 @@ IMPLICIT=(flow plan work review spike compound lessons today)
 
 # Every rule this gate can report. Declared rather than grepped, because two of
 # them (`router-body-budget`, `phase-body-budget`) are chosen at runtime and no
-# static scan can see them. `--self-test` checks BOTH directions: that every
-# literal slug in this file is declared here, and that every declared slug has
-# a sabotage case proving it can fire.
+# static scan can see them.
 RULES=(
   no-skills-found unclassified-skill missing-skill bad-frontmatter
   typographic-character
   description-budget descriptions-total-budget
   router-body-budget phase-body-budget reference-budget output-contract-budget
   broken-reference unreachable-reference empty-pointer-condition
-  no-disclosure-fixture reference-too-deep
+  reference-too-deep
   bad-invocation-policy missing-openai-metadata bad-openai-metadata
   duplicated-paragraph
-  not-loadable condition-misses-branch leaks-on-unrelated-branch bad-fixture
-  wrong-policy description-misses-trigger codex-parity
-  missing-output-contract missing-output-limit missing-output-element
-  missing-content-element forbidden-content-element
+  missing-output-contract stale-rule-inventory
+  direct-state-edit
 )
 
 if [ "${1-}" = --rules ]; then printf '%s\n' "${RULES[@]}"; exit 0; fi
 
-# `--fixture <name>` runs ONE fixture case and nothing else, so a task's
-# Definition of Done can name a single criterion as a runnable proof. The bare
-# gate prints only findings, so a passing case is invisible to it and could
-# never back a per-criterion `cmd:`.
-fixture_filter=
-if [ "${1-}" = --fixture ]; then
-  if [ "$#" -ne 2 ] || [ -z "${2-}" ]; then
-    printf '%s\n' 'usage: check.sh --fixture <case-name>' >&2
-    exit 2
-  fi
-  fixture_filter="$2"
-  set --
-fi
-
-# A typo like `--selftest` must not print `skills: clean` and exit 0, which
-# reads exactly like a passing self-test.
+# An unknown flag must not print `skills: clean` and exit 0, which reads
+# exactly like a passing run.
 if [ "$#" -gt 0 ]; then
-  printf 'unknown argument: %s (expected --self-test, --rules or --fixture)\n' "$1" >&2
+  printf 'unknown argument: %s (expected --rules)\n' "$1" >&2
   exit 2
 fi
 
@@ -96,8 +76,6 @@ findings=0
 fail() { printf '%s: %s: %s\n' "$1" "$2" "$3" >&2; findings=$((findings + 1)); }
 
 # --- helpers ----------------------------------------------------------------
-# Defined before the `--fixture` dispatch below, because the fixture runner
-# calls into them and that path skips the rest of the gate.
 
 # Body = everything after the closing --- of the frontmatter block.
 body_of() { awk 'NR==1&&$0=="---"{fm=1;next} fm==1&&$0=="---"{fm=2;next} fm==2' "$1"; }
@@ -120,49 +98,8 @@ pointer_condition() {
   pointer_lines "$1" | grep -F "\`$2\`" | sed 's/^[0-9]*://; s/->.*//' |
     tr 'A-Z' 'a-z' | tr -s ' '
 }
-# The body of one `## <heading>` section, up to the next `## `. A leading step
-# number is stripped before comparing, so `## 5. Route the result` is found by
-# `Route the result` and renumbering a workflow does not silently orphan a
-# fixture that named the step by its title.
-# Headings inside a fenced block belong to an ILLUSTRATION, not to the file's
-# own structure. Without the fence flag a content case can be satisfied by the
-# template a reference happens to show rather than by the rule it states.
-section_of() {
-  awk -v want="$2" '
-    /^```/ { fence = !fence; if (s) print; next }
-    !fence && /^## / {
-      h = substr($0, 4); sub(/^[0-9]+\. */, "", h); s = (h == want); next
-    }
-    s
-  ' "$1"
-}
-
-# A single named case runs the fixture harness alone: the surrounding rule
-# sections would report findings that have nothing to do with the criterion
-# being proved, and a proof that goes red for an unrelated reason is not a
-# proof of anything.
-if [ -n "$fixture_filter" ]; then
-  if [ ! -f "$root/fixtures/run.sh" ]; then
-    printf 'no fixture runner at %s\n' "$root/fixtures/run.sh" >&2
-    exit 2
-  fi
-  # shellcheck source=fixtures/run.sh
-  . "$root/fixtures/run.sh"
-  run_fixtures "$fixture_filter"
-  if [ "$fixtures_matched" -eq 0 ]; then
-    printf 'no fixture case named %s under %s\n' "$fixture_filter" "$root/fixtures" >&2
-    exit 2
-  fi
-  if [ "$findings" -gt 0 ]; then
-    printf '\nfixture %s: %d finding(s)\n' "$fixture_filter" "$findings" >&2
-    exit 1
-  fi
-  printf 'fixture %s: ok (%d case(s))\n' "$fixture_filter" "$fixtures_matched"
-  exit 0
-fi
-
 # Every directory holding a SKILL.md is a skill, whether or not anyone listed
-# it. `fixtures/` has no SKILL.md and is correctly not one.
+# it.
 ALL_SKILLS=()
 while IFS= read -r f; do
   ALL_SKILLS+=("$(basename "$(dirname "$f")")")
@@ -248,9 +185,21 @@ done < <(find "$root" -mindepth 2 -maxdepth 2 -name '*.md' ! -name SKILL.md | so
 # The `## Output` section is BOTH the user-facing report contract and the
 # handoff a phase returns to `flow`, so one budget covers both. A contract
 # longer than the report it governs is not a contract.
+# A MISSING section counts zero words, so the budget alone would wave it
+# through - silence reading as compliance is the one failure a budget check
+# cannot catch on its own.
+#
+# Scoped to the PHASES `flow` dispatches. `sprout` sits in the flow family for
+# its budgets but is a worktree CLI, not a phase: it returns nothing to the
+# orchestrator, so it owes no handoff contract.
 for skill in "${FLOW_FAMILY[@]}"; do
+  [ "$skill" = sprout ] && continue
   f="$root/$skill/SKILL.md"
   [ -f "$f" ] || continue
+  if ! grep -qx '## Output' "$f"; then
+    fail "$skill/SKILL.md" missing-output-contract "no '## Output' section"
+    continue
+  fi
   n="$(awk '/^## Output$/{o=1;next} /^## /{o=0} o' "$f" | wc -w | tr -d ' ')"
   [ "$n" -le "$BUDGET_OUTPUT_CONTRACT" ] ||
     fail "$skill/SKILL.md" output-contract-budget "$n words > $BUDGET_OUTPUT_CONTRACT"
@@ -284,26 +233,6 @@ for skill in "${ALL_SKILLS[@]}"; do
     cond="$(pointer_condition "$d/SKILL.md" "$ref" | tr -d '[:space:]-')"
     [ -n "$cond" ] || fail "$skill/SKILL.md" empty-pointer-condition \
       "-> $ref has no condition text before the arrow"
-  done
-
-  # Every reachable reference needs a disclosure fixture naming it, or the
-  # condition checks above are only as good as whoever remembered to write one.
-  # Scoped to THIS skill: reference basenames are generic (`proofs.md`,
-  # `bug.md`, `rounds.md`), so a global bag of names would let one skill's
-  # fixture vouch for another skill's file - and a falsely-covered reference
-  # then also escapes condition-misses-branch and leaks-on-unrelated-branch,
-  # which is the entire guarantee this rule exists to provide.
-  skill_loads="$(awk -v s="$skill" '
-      /^skill: /  { k = $2 }
-      /^loads: /  { if (k == s) { sub(/^loads: */, ""); print } }
-    ' "$root"/fixtures/disclosure/*.fixture 2>/dev/null | tr ' ' '\n' | sort -u)"
-  for ref in $reachable; do
-    covered=no
-    while IFS= read -r loaded; do
-      [ "$loaded" = "$ref" ] && covered=yes
-    done <<< "$skill_loads"
-    [ "$covered" = yes ] || fail "$skill/$ref" no-disclosure-fixture \
-      "no fixtures/disclosure case for $skill names it in loads:"
   done
 
   # One level deep: a reference may not point at another file to load.
@@ -376,17 +305,154 @@ done < <(awk -F'\t' '
 ' "$paragraphs")
 rm -f "$paragraphs"
 
-# --- 8. fixtures ------------------------------------------------------------
+# --- 8. direct state edits --------------------------------------------------
+# `tatr flow` is the only writer of a task's lifecycle markers and `tatr ledger`
+# the only writer of a lesson disposition. Prose telling the agent to type one
+# in by hand reintroduces exactly the drift those transactional commands exist
+# to remove. The content fixtures enumerate FILES, so an imperative added to a
+# file no fixture names is invisible to them; this rule quantifies over the
+# family, which is what the criterion actually claims.
+#
+# Scoped to a CLAUSE, not a file and not a line. A marker named in one clause
+# and an edit verb in another is description followed by a separate
+# instruction, and file-wide matching would flag every reference that explains
+# what the markers mean. Clause boundaries are sentence punctuation, the
+# semicolon, a blank line, and the start of a heading or list item - markdown
+# bullets and headings carry no terminal punctuation, so splitting on `. `
+# alone collapses a whole block into one pseudo-clause and reports the wrong
+# text. Lines are joined before splitting, because a marker and its verb
+# landing on either side of a line break is the realistic shape, not the
+# exception (`line-breaks-are-load-bearing`).
+#
+# A clause is a violation when it names a marker (or a disposition in ledger
+# context) AND an edit verb, is NOT attributed to the tool, is NOT a
+# prohibition, and shows AGENCY - an imperative-initial verb, or an explicit
+# by-hand phrase. Agency is what separates "Set FLOW STEP: DONE yourself" from
+# "`tatr flow` writes FLOW STEP". Location words like "in TASK.md" are NOT
+# agency: they say where the marker lives, not who typed it.
+#
+# One awk pass rather than a tr/sed/grep chain: it is the difference between
+# ~1.1s and ~0.1s over the tree, and it avoids `sed 's/x/\n/'`, whose newline
+# replacement is a GNU extension that silently yields a literal `n` on BSD -
+# which would turn this rule into a whole-file matcher instead of an error.
+#
+# A bare `STATUS:` is deliberately NOT a marker - DECISION.md and SPIKE.md both
+# carry their own `- STATUS:` field, and flagging those would make the rule
+# unusable. Only the flow lifecycle's own values count.
 
-if [ -f "$root/fixtures/run.sh" ]; then
-  # shellcheck source=fixtures/run.sh
-  . "$root/fixtures/run.sh"
-  run_fixtures
-fi
+direct_state_edit_hits() {
+  awk '
+    BEGIN {
+      EV = "(set|sets|write|writes|writing|change|changes|edit|edits|editing|type|types|put|puts|mark|marks|flip|flips|update|updates|add|adds|append|appends|record|records|replace|replaces|insert|inserts|bump|bumps|overwrite|overwrites|fill|fills|toggle|toggles|correct|corrects)"
+      # The BARE form is the imperative one. "sets FLOW STEP" is a third
+      # person describing the tool; "set FLOW STEP" is an order to the reader,
+      # and that inflection is the whole difference between the two.
+      EVB = "(set|write|change|edit|type|put|mark|flip|update|add|append|record|replace|insert|bump|overwrite|fill|toggle|correct)"
+      MARKER = "(flow step|plan status|status: *(open|in_progress|closed))"
+      DISPO = "(promote|defer|retire|absorbed)"
+      HAND = "(by hand|hand-edit|yourself|manually)"
+    }
+    function judge(s,   t) {
+      sub(/^[ \t]+/, "", s); sub(/[ \t]+$/, "", s)
+      if (s == "") return
+      t = " " tolower(s) " "
+      gsub(/`/, "", t)
+      # Subject: a lifecycle marker, or a disposition word in ledger context.
+      # The alternation is parenthesised - unwrapped, `(\(A|B|C\)?.*ledger)`
+      # binds so that bare `DEFER` matches with no ledger anywhere while a real
+      # `PROMOTE ... ledger` order slips past.
+      if (t !~ MARKER && !(t ~ "[^a-z]" DISPO "[^a-z]" && t ~ /ledger/)) return
+      if (t !~ "[^a-z]" EV "[^a-z]") return
+      # Attributed to the tool: `tatr <verb>` as the clause subject, or named
+      # as the instrument. Anchoring matters - a bare `tatr` anywhere would
+      # exempt "If `tatr flow` is unavailable, set FLOW STEP by hand", which is
+      # the single likeliest real violation.
+      if (t ~ "(^ |, )tatr [a-z-]+( [^ ]+){0,5} " EV "[^a-z]") return
+      if (t ~ "(with|via|using|through) tatr [a-z-]+") return
+      # A negated edit verb forbids the edit rather than ordering it.
+      if (t ~ "(do not|does not|never|dont|cannot|not) ([a-z-]+ ){0,3}" EV "[^a-z]") return
+      # Agency: an imperative bare verb at the head of the clause or chained
+      # onto one, or an explicit by-hand phrase. "directly" counts only
+      # adjacent to the verb - at a distance it times the action rather than
+      # naming who performed it.
+      if (t ~ "(^ |, |and |then |or )" EVB "[^a-z]" || t ~ HAND ||
+          t ~ EV "[a-z]* ([a-z]+ ){0,2}directly")
+        print s
+    }
+    function flush() { judge(seg); seg = "" }
+    {
+      line = $0
+      if (line ~ /^[ \t]*$/) { flush(); next }
+      if (line ~ /^[ \t]*(#+[ \t]|[-*][ \t]|[0-9]+\.[ \t])/) flush()
+      sub(/^[ \t]*(#+[ \t]+|[-*][ \t]+|[0-9]+\.[ \t]+)/, "", line)
+      sub(/^[ \t]+/, "", line); sub(/[ \t]+$/, "", line)
+      seg = (seg == "" ? line : seg " " line)
+      while (match(seg, /[.!?;] /)) {
+        judge(substr(seg, 1, RSTART))
+        seg = substr(seg, RSTART + RLENGTH)
+      }
+    }
+    END { flush() }
+  ' "$1"
+}
+
+for skill in "${FLOW_FAMILY[@]}"; do
+  [ -d "$root/$skill" ] || continue
+  while IFS= read -r f; do
+    rel="${f#"$root"/}"
+    # An unreadable file must not read as a clean one. The old form wrapped the
+    # whole pipeline in `|| true`, so a missing file produced no hits and
+    # passed silently.
+    if [ ! -r "$f" ]; then
+      fail "$rel" direct-state-edit "not readable, so the rule cannot clear it"
+      continue
+    fi
+    # Not head-truncated: the count is reported, so a file with several
+    # offending clauses cannot read as a single slip.
+    hits="$(direct_state_edit_hits "$f")"
+    [ -n "$hits" ] || continue
+    n="$(printf '%s\n' "$hits" | grep -c .)"
+    fail "$rel" direct-state-edit \
+      "$n clause(s) order a lifecycle marker or disposition written by hand, first: $(printf '%s' "$hits" | head -1 | cut -c1-100)"
+  done < <(find "$root/$skill" -name '*.md' | sort)
+done
+
+# --- 9. the rule inventory is honest ---------------------------------------
+# `RULES` and `--rules` claim to be the complete set this gate can report.
+# Without the removed self-test, nothing checked that claim, and a stale
+# inventory is worse than none: a rule deleted from the code but left in the
+# list reads as coverage that no longer exists.
+#
+# This is a SPELLING check, not a falsifiability one - it proves each declared
+# slug still appears in a reporting call, not that anything can trip it. The
+# two budget rules chosen at runtime are the documented exceptions.
+#
+# Comment lines are stripped first, and the messages below deliberately avoid
+# the words the extractor matches on - otherwise this rule reads its own
+# finding text as a rule name and reports a slug nobody declared.
+RUNTIME_SELECTED=(router-body-budget phase-body-budget)
+emitted="$(grep -v '^[[:space:]]*#' "$0" |
+  sed -e ':a' -e '/\\$/{N;s/\\\n[[:space:]]*/ /;ta}' |
+  grep -ohE '(^|[^_[:alnum:]])fail ("[^"]*"|[^ ]+) [a-z][a-z0-9-]*' |
+  awk '{print $NF}' | sort -u)"
+for rule in "${RULES[@]}"; do
+  skip=no
+  for r in "${RUNTIME_SELECTED[@]}"; do [ "$r" = "$rule" ] && skip=yes; done
+  [ "$skip" = yes ] && continue
+  printf '%s\n' "$emitted" | grep -qx "$rule" ||
+    fail check.sh stale-rule-inventory "$rule is declared in RULES but nothing reports it"
+done
+while IFS= read -r rule; do
+  [ -n "$rule" ] || continue
+  found=no
+  for r in "${RULES[@]}"; do [ "$r" = "$rule" ] && found=yes; done
+  [ "$found" = yes ] ||
+    fail check.sh stale-rule-inventory "$rule is reported but missing from RULES"
+done <<< "$emitted"
 
 if [ "$findings" -gt 0 ]; then
   printf '\n%d finding(s)\n' "$findings" >&2
   exit 1
 fi
-printf 'skills: clean (%d skills, %d flow-family description words)\n' \
-  "${#ALL_SKILLS[@]}" "$desc_total"
+printf 'skills: clean (%d skills, %d rules, %d flow-family description words)\n' \
+  "${#ALL_SKILLS[@]}" "${#RULES[@]}" "$desc_total"
