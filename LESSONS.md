@@ -6,10 +6,11 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 
 ## Process lessons
 
-- `write-the-sabotage-first` (x1): a checker written before anything that can
-  break it is unfalsifiable - two rules here passed green while checking
-  nothing (a hardcoded skill list, a self-test branch that bumped a counter
-  nothing read). Write one sabotage case per rule BEFORE the rule. 20260730-142533
+- `write-the-sabotage-first` (x2): a checker written before anything that can
+  break it is unfalsifiable, and SIZE is not an exemption - a one-line
+  `grep -c` DoD proof went unsabotaged beside a script sabotaged three ways,
+  and stayed green with five of six rows it checked deleted. Sabotage every
+  proof. 20260730-142533, 20260730-155003
 - `test-the-quiet-direction` (x1): a checker suite that only ever proves rules
   CAN fire says nothing about what they flag wrongly - `direct-state-edit`
   passed five sabotage cases while being blind to 17 of 39 real sentences and
@@ -37,11 +38,11 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   state the rule, because the phrase wrapped, and a pointer condition lost half
   its words to the same wrap. Normalize whitespace in the matcher; do not
   author prose around it. 20260730-154958
-- `fix-touches-its-neighbours` (x1): a prose fix that satisfies its finding can
-  contradict a section the finding never named - two consecutive rounds found
-  defects introduced by the previous round's fix (a lane told to judge a result
-  the closed handoff never supplies; a timing pinned against a section still
-  saying otherwise). Re-read every rule sharing the actor or ordering. 20260730-154958
+- `fix-touches-its-neighbours` (x2): a prose fix that satisfies its finding can
+  contradict a section the finding never named, and the sweep for the others
+  inherits the phrasing in front of you - `item already carries` could not match
+  the third copy saying `list already carries`. Re-read every rule sharing the
+  actor or ordering, and sweep the CONCEPT with alternatives. 20260730-154958, 20260730-155003
 - `narrow-the-guard-to-the-word` (x2): an assertion listing several acceptable
   alternatives proves only that ONE held - a fixture matched on `external`
   while the `research` clause it guarded could be deleted, and a disclosure
@@ -70,8 +71,10 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   sabotage, not per task - a restore reverted uncommitted review fixes. 20260720-152433
 - `scripted-replace-asserts-match` (x1): str.replace edits silently no-op on a
   one-char mismatch; assert the match and re-read the artifact. 20260720-152433
-- `baseline-dod-proofs` (x1): run each DoD cmd: proof against the base branch
-  at plan time - nix flake check was already broken on master. 20260720-152433
+- `baseline-dod-proofs` (x2): run each DoD cmd: proof against the base branch
+  at plan time - once it was already broken on master, once eight of nine were
+  already GREEN, which turned a planned re-do into a confirm-and-reconcile and
+  stopped the diff claiming another commit's work. 20260720-152433, 20260730-155003
 - `heredoc-splits-the-chain` (x1): commands after a heredoc block are not part
   of its && chain - commit in a separate call gated on success. 20260720-152438
 - `tick-against-the-literal-step` (x2): re-read a step's exact text before
@@ -176,6 +179,12 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `checkout-head-not-index` (x1): `git checkout -- <file>` restores from the
   INDEX, so a helper that runs `git add` first makes the restore a silent
   no-op and leaks the sabotage into the next test. Use `git checkout HEAD --`. 20260730-190929
+- `never-assert-anothers-confirmation` (x1) -> review skill: a record that
+  exists to hold another party's judgement must never be written on their
+  behalf - a review checkbox was ticked and REVIEW.md made to say the
+  out-of-context reviewer had confirmed the fix BEFORE it was asked; asked, it
+  refused, and the fix was in fact incomplete. Same defect class as
+  self-ticking a `manual:` proof. Ask; the round trip is cheap. 20260730-155003
 - `assert-the-seam-you-just-created` (x1): when a design's accepted cost is a
   value duplicated across two evaluations/configs, write the agreement as a
   build-failing check, not a "keep in sync" comment - here it then caught
@@ -183,9 +192,14 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 
 ## Pending promotions (3+ occurrences, user decides)
 
-- `counts-come-from-the-diff` (x5, PROMOTE 2026-07-31 -> 20260731-094524)
+- `counts-come-from-the-diff` (x6, PROMOTE 2026-07-31 -> 20260731-094524)
   -> tatr (tool), falling back to the close-out template: work reports and
-  close records must cite the diff's numbers, not the narrative's. Five cycles
+  close records must cite what the diff SHOWS - numbers and identifiers alike -
+  not what a summary of it says. The sixth occurrence was not a count but a
+  commit id: `495073f` was recorded as the commit that pinned the tatr input,
+  because its SUBJECT said "bump tatr to the v2 rev"; it bumped only to an
+  intermediate revision, and `git log -S<rev> -- flake.lock` names `456e3ec`.
+  One unverified fact written early propagated into four records. Five cycles
   have hand-copied a diff stat into a record and got it wrong, three times in
   the close-out that NARRATES this lesson: twice by reading the number before
   appending the block quoting it (496, then 593 against a real 596), and once
@@ -198,7 +212,7 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   the record cites generated output instead of a retyped number. If that is
   more tool than it is worth, the weaker form is a close-out template carrying
   the command rather than its result.
-  20260720-171843, 20260720-171836, 20260730-142540, 20260730-154955
+  20260720-171843, 20260720-171836, 20260730-142540, 20260730-154955, 20260730-155003
 
 - `dod-grep-excludes-task-records` (x6, PROMOTE 2026-07-31 -> 20260731-094537)
   -> plan skill DoD guidance (WIDEN an

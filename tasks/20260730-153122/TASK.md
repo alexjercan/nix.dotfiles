@@ -23,16 +23,19 @@ conditional parallel planning and review.
    measured description, body, reference, handoff, and output budgets.
    (cmd: `cd /home/alex/personal/nix.dotfiles && bash home/modules/agents/skills/check.sh`)
 3. Tatr-backed Epics expose an index and frontier while Stories remain sized
-   for one context. (test: `test_epic_frontier`)
+   for one context. (test: `test_epic_frontier`, defined in
+   `/home/alex/personal/tatr/checker.sh`)
 4. Spike supports cited web research plus retained UI/logic prototypes in the
-   repository-cached location. (manual: run one research spike and one retained
-   prototype fixture through the skill evaluation harness)
-5. High-risk planning and review can use bounded independent parallel lanes,
-   while ordinary work stays single-agent. (test: `parallel_lane_selection`)
-6. A lesson at the promotion threshold cannot pass the finish gate without an
+   repository-cached location. (manual: run one research spike and read its
+   SPIKE.md, confirming each external claim carries a citation; then run one
+   prototype-retaining spike and confirm the prototype still runs from its
+   recorded command after the spike closes)
+5. A lesson at the promotion threshold cannot pass the finish gate without an
    explicit user disposition, and an approved promotion uses the normal
-   plan/work/review/compound lifecycle. (test: `test_ledger_pending_requires_disposition`)
-7. nix.dotfiles adopts the released tatr skill/tool, migrates or explicitly
+   plan/work/review/compound lifecycle. (test:
+   `test_ledger_pending_requires_disposition`, defined in
+   `/home/alex/personal/tatr/checker.sh`)
+6. nix.dotfiles adopts the released tatr skill/tool, migrates or explicitly
    classifies every old task record, and both repositories pass their full
    suites. (cmd: `cd /home/alex/personal/nix.dotfiles && tatr check --ledger LESSONS.md && nix flake check --no-build`)
 
@@ -62,7 +65,8 @@ conditional parallel planning and review.
       suite, so `skills/fixtures/`, `--fixture` and `--self-test` are gone and
       check.sh is purely structural; `missing-output-contract` and
       `stale-rule-inventory` were added in their place. Seeds 20260731-094524,
-      20260731-094537 and 20260731-104819.
+      20260731-094537 and 20260731-104819 (the last was absorbed by
+      20260730-155003 and its record retired; `tatr show` will not resolve it).
 - [x] 20260730-142540 (p70, nix.dotfiles) Add tatr-native wayfinding, web
       research, and retained prototypes. Depends on: 20260730-153325,
       20260730-154657, 20260730-154740, 20260730-142533.
@@ -75,8 +79,14 @@ conditional parallel planning and review.
       3 review rounds, 11 findings (1 MAJOR in each of rounds 1 and 2, the
       rest MINOR/NIT); adds plan/lanes.md, review/lanes.md and 20 fixture
       cases. Seeds 20260731-084705.
-- [ ] 20260730-155003 (p50, nix.dotfiles) Adopt tatr v2 and revalidate nix
+- [x] 20260730-155003 (p50, nix.dotfiles) Adopt tatr v2 and revalidate nix
       task history. Depends on every Story above and published tatr default.
+      The adoption and the record migration had already landed (`456e3ec`
+      pinned the root `tatr` input to the published `cd8b33d`; every record
+      already carried its v2 fields), so this Story confirmed them with a
+      re-runnable proof and spent its diff on reconciling the records: it
+      rewrote this `## Done Means` onto proofs that still have a runner, and
+      folded 20260731-104819 in as superseded. Seeds 20260731-112502.
 - [ ] 20260731-010900 (p20, nix.dotfiles) Decide whether the live-agent skill
       behavior pass is worth automating. Depends on: 20260730-142533.
 
@@ -91,6 +101,10 @@ conditional parallel planning and review.
 - 20260730-142533 DECISION.md: prove the skill suite structurally, and treat
   live-agent behavior as a manual acceptance item here rather than building a
   credential-bound, non-deterministic harness into the gate (ACCEPTED).
+- 20260730-155003 DECISION.md: drop the two acceptance criteria whose runner
+  the fixture-suite removal took with it rather than rebuild one, and fold
+  20260731-104819 into that Story instead of running it as a second cycle over
+  this file (ACCEPTED).
 
 ## Manual Acceptance
 
@@ -104,7 +118,10 @@ conditional parallel planning and review.
   confirming the lanes stay inside their stated caps and the round reads as one
   deduplicated review rather than three concatenated ones. (The fixtures that
   proved the skill texts SAY this were removed in 20260730-154955, so this
-  item now covers both the text and the behavior.)
+  item now covers both the text and the behavior.) Since 20260730-155003
+  dropped the automated parallel-lanes criterion from `## Done Means`, this is
+  the Epic's ONLY remaining acceptance for bounded parallel lanes: it cannot be
+  waived without leaving that feature unaccepted.
 - (pending) 20260730-142540: run one real spike that retains a prototype, then
   confirm the prototype still runs from its recorded command after the spike
   closes. The `retained_prototype_smoke` fixture that proved the record NAMES a
@@ -125,3 +142,20 @@ conditional parallel planning and review.
 - The user explicitly permits breaking tatr compatibility. Prefer the clean
   target schema and migrate/revalidate old records rather than retaining a
   permanent compatibility layer.
+- `## Done Means` was rewritten by 20260730-155003 onto proofs that still have
+  a runner. Two criteria named fixture cases that the 20260730-154955 removal
+  of `home/modules/agents/skills/fixtures/` deleted: the parallel-lanes one was
+  dropped (its acceptance now lives in the 20260730-154958 item under
+  `## Manual Acceptance`), and criterion 4's "skill evaluation harness" clause
+  was restated as a manual read that states both the cited-research and the
+  retained-prototype halves itself, rather than delegating to the
+  20260730-142540 item, which covers prototypes only.
+  Criteria 3 and 5 kept their `test:` proofs - those runners were never in the
+  fixture suite, they live in `/home/alex/personal/tatr/checker.sh`. The
+  argument is in tasks/20260730-155003/DECISION.md.
+- Finish blocker: `tatr flow <epic-id> --to DONE` refuses while ANY child is
+  not CLOSED (verified in a scratch repo; it reports "child <id> is not
+  CLOSED"). 20260731-010900 is still OPEN, so before this Epic can close it
+  must either run its own cycle or be dropped from `## Child Tasks` with a
+  reason. The Epic also has to walk PLANNING -> PLANNED -> WORKING ->
+  REVIEWING -> COMPOUNDING -> DONE; there is no direct move to DONE.
