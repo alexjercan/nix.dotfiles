@@ -205,7 +205,7 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 
 ## Pending promotions (3+ occurrences, user decides)
 
-- `line-breaks-are-load-bearing` (x3): a checker that matches raw text sees the
+- `line-breaks-are-load-bearing` (x3, PROMOTE 2026-07-31 -> 20260731-152845): a checker that matches raw text sees the
   line breaks too, and an edit that changes a line's length leaves the rest of
   the paragraph ragged - two content assertions were red against a file that
   DID state the rule, a pointer condition lost half its words to a wrap, a
