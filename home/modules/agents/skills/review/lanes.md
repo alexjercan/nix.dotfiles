@@ -16,8 +16,9 @@ User may request lanes.
 
 Give each the same task ID, branch/worktree, default, dimensions, record
 format, and its lens. Exclude implementation context and other replies.
-Returns: findings by severity plus verified/skipped items; at most 400 words
-outside findings. No edits, commits, fixes, or verdict.
+Returns: findings by severity, any `Process signal:` bullets, plus
+verified/skipped items; at most 400 words outside findings. No edits, commits,
+fixes, or verdict.
 
 ## Aggregate
 

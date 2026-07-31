@@ -36,10 +36,10 @@ implementing conversation, its summary, or a description of what was built -
 those carry the implementer's assumptions, which are the whole thing the fresh
 context exists to exclude.
 
-What it RETURNS: findings only, in the shape above, most severe first, plus a
-short list of what it verified and what it could not. No narrative, no fixes,
-no writes to any file, no commits. 400 words or fewer outside the findings
-themselves.
+What it RETURNS: findings only, in the shape above, most severe first, plus any
+`Process signal:` bullets and a short list of what it verified and what it
+could not. No narrative, no fixes, no writes to any file, no commits. 400 words
+or fewer outside the findings themselves.
 
 The in-session pass then re-derives at least one load-bearing claim, runs the
 check suite itself, and writes and commits the round.
@@ -59,6 +59,10 @@ task lands.
 Verification notes, observations and "what I checked" prose are NOT findings.
 Write them as plain prose or a plain `-` bullet, and reserve the
 checkbox-finding shape for the four severities alone.
+
+Unexpected scope, a missed task split, or review-driven restructuring is one
+such bullet, prefixed `Process signal:` for the retro to mine. It is evidence
+about the plan, not a code finding, and never blocks a verdict.
 
 ## Required fields
 

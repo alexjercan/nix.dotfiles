@@ -10,8 +10,9 @@ Judge; do not patch. `work` owns fixes.
 ## Workflow
 
 1. Read `git diff <default>...<branch>` and
-   `tatr context <id> --phase review`. Story, Steps, and DoD are the spec. Run
-   checks from `cd "$(sprout show <feature>)"`.
+   `tatr context <id> --phase review`. Story, Steps, DoD and the applicable
+   `AGENTS.md` files are the spec. Run checks from
+   `cd "$(sprout show <feature>)"`.
 2. For substantive round 1, use a reviewer outside the implementation
    context. Its prompt contains only task ID, branch/worktree, dimensions, and
    record format. The primary reruns checks and independently re-derives at
@@ -32,7 +33,10 @@ Judge; do not patch. `work` owns fixes.
 
 - Review the diff, not pre-existing repository problems; create tasks for
   those.
-- Severity reflects impact, not effort. No invented nits.
+- Severity reflects impact, not effort. Ask the counterfactual: knowing
+  current constraints, would we build this route from scratch? An alternative
+  must preserve behavior and name the concepts, branches or indirection it
+  deletes; one you cannot state that way is an invented nit.
 - Re-derive out-of-context claims; shared assumptions survive summaries.
 
 ## Output

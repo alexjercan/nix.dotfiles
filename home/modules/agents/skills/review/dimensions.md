@@ -39,13 +39,22 @@ Run the full check suite yourself. Then ask of the new tests:
 ## Design
 
 Consistency with the repository's conventions, missed reuse, and scope the
-Story did not ask for. YAGNI is a finding: an abstraction with one caller, an
-unused parameter or option, a knob nobody requested, generality no Step names.
-Name the lines to delete. Refactoring, tests and records the plan asked for are
-not YAGNI findings. If the diff makes a load-bearing architectural choice a
-cold reader would need the *why* of, check it has a `DECISION.md`, and that a
-decision changing an earlier one carries the supersede link on BOTH records. A
-missing record for a genuinely load-bearing choice is MINOR, not BLOCKER.
+Story did not ask for. The applicable `AGENTS.md` files, global and per-path,
+are part of that spec - judged after correctness and evidence, never instead.
+
+Avoidable structural complexity is MAJOR: scattered special cases; a mode,
+branch, wrapper or option no requirement names; logic owned by the wrong
+module; control flow a cold reader cannot follow. YAGNI is the same finding -
+an abstraction with one caller, an unused parameter, a knob nobody requested,
+generality no Step names. Name the lines to delete. Refactoring, tests and
+records the plan asked for are not YAGNI findings.
+
+File and diff size open a cohesion question, never a line-count verdict.
+
+If the diff makes a load-bearing architectural choice a cold reader would need
+the *why* of, check it has a `DECISION.md`, and that a decision changing an
+earlier one carries the supersede link on BOTH records. A missing record for a
+genuinely load-bearing choice is MINOR, not BLOCKER.
 
 ## Docs
 
@@ -54,7 +63,9 @@ project's reference docs, and the doc-surface sweep ran. Spot-check it: pick
 one renamed or changed symbol, flag or path from the diff and grep README, the
 reference docs, AGENTS.md and the skill files for stale mentions. When the
 repository ships skills, an edit to what a skill describes invalidates that
-skill text - the sweep owed it an update in the same task.
+skill text - the sweep owed it an update in the same task. After a prose or
+contract edit, re-read the neighboring rules and sweep the changed concepts
+and their cross-references.
 
 The `tasks/` tree is exempt. It is append-only history, so an old record
 quoting the pre-rename name is correct, not stale.

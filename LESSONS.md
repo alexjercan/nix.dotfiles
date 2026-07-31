@@ -53,10 +53,13 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   whitespace hole in a validator; a conformance gate that checked a hardcoded
   list; a record claiming more than its mechanism proves; a new rule blind on
   44% of its own corpus while passing every sabotage its author wrote; a
-  routing legend that stated the opposite of what the tool it routed does).
-  20260720-152433, 20260720-152438, 20260720-152503, 20260730-142533, 20260730-154958, 20260730-154955, 20260731-142934
-- `commit-before-every-sabotage` (x1): the A/B commit-first rule applies per
-  sabotage, not per task - a restore reverted uncommitted review fixes. 20260720-152433
+  routing legend that stated the opposite of what the tool it routed does; a
+  DoD proof blind to half its own criterion).
+  20260720-152433, 20260720-152438, 20260720-152503, 20260730-142533, 20260730-154958, 20260730-154955, 20260731-142934, 20260731-142000
+- `commit-before-every-sabotage` (x2): the A/B commit-first rule applies per
+  sabotage, not per task - a restore reverted uncommitted review fixes, then a
+  sabotage loop run before committing round-1 fixes restored the FEATURE state
+  over them and reported three meaningless passes. 20260720-152433, 20260731-142000
 - `scripted-replace-asserts-match` (x1): str.replace edits silently no-op on a
   one-char mismatch; assert the match and re-read the artifact. 20260720-152433
 - `baseline-dod-proofs` (x2): run each DoD cmd: proof against the base branch
@@ -117,9 +120,12 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   uncommitted REVIEW.md is lost with it (had to be reconstructed once). The
   review skill's "in-session pass writes and commits the round" covers this
   when followed. 20260720-220044
-- `proof-must-cover-its-conjunct` (x1): a DoD proof for a two-part criterion
-  must fail if either part is deleted; a case-sensitive grep survived its
-  target's removal. 20260720-152519
+- `proof-must-cover-its-conjunct` (x2): a DoD proof for a criterion naming N
+  files needs N file-scoped conjuncts, each sabotaged on its own - a
+  case-sensitive grep survived its target's removal, and a directory-scoped
+  grep for a two-file criterion was satisfied by one file while the other's
+  clause was never delivered. Directory scope proves existence, never
+  coverage. 20260720-152519, 20260731-142000
 - `claim-only-verified-state` (x2): a REVIEW.md Response claimed a scripted
   fix that had silently aborted, and a close-out recorded `nix flake check` as
   unrunnable in this sandbox when it runs and passes; re-run the exposing
@@ -184,6 +190,10 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   records a hope - `validateSopsFiles` only hashes the file, and a flow legend
   called `--to` a non-default edge when a bare `tatr flow` walks those same
   edges. Run it, or write "should". 20260730-190929, 20260731-142934
+- `quote-a-gate-with-the-gates-own-rig` (x1): a measurement quoted against a
+  gate must come from the gate's extractor, not a plausible equivalent - a
+  close-out reported a skill body at 336/400 from `wc -w` on the whole file
+  while `check.sh` strips frontmatter first and measures 306. 20260731-142000
 - `test-harness-exit-code` (x1): the pipe-eats-the-exit-code rule applies to
   the SCAFFOLDING too - a helper ending in `| head` always returns 0, which
   reported two working assertions as broken. Capture `e=$?` on the producing
@@ -216,7 +226,7 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 
 ## Pending promotions (3+ occurrences, user decides)
 
-- `line-breaks-are-load-bearing` (x3, PROMOTE 2026-07-31 -> 20260731-152845): a checker that matches raw text sees the
+- `line-breaks-are-load-bearing` (x4, PROMOTE 2026-07-31 -> 20260731-152845): a checker that matches raw text sees the
   line breaks too, and an edit that changes a line's length leaves the rest of
   the paragraph ragged - two content assertions were red against a file that
   DID state the rule, a pointer condition lost half its words to a wrap, a
@@ -225,8 +235,11 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   in the matcher; reflow the paragraph you edited. Promotion order audit: a
   TOOL can own the second half - an 80-column check over the skill markdown in
   `home/modules/agents/skills/check.sh` would catch every ragged reflow with
-  no reviewer, which is strictly better than more prose asking for care.
-  20260730-154958, 20260731-125123, 20260731-150849
+  no reviewer, which is strictly better than more prose asking for care. A
+  fourth occurrence widens it past reflow: a DoD grep never matched its target
+  because the phrase it guarded wrapped mid-clause, so the line break silently
+  voided a proof.
+  20260730-154958, 20260731-125123, 20260731-150849, 20260731-142000
 
 - `refactor-by-rule-not-by-section` (x3, PROMOTE 2026-07-31 -> 20260731-150130): budget refactors need a
   source-faithful imperative inventory; section cuts dropped four rules once,
