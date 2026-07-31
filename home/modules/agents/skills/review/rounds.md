@@ -25,8 +25,10 @@ by hand - the file is the review history and is never rewritten - numbered from
 
 ## The round-1 subagent handoff
 
-The out-of-context reviewer is the suite's only subagent, so its handoff is
-bounded in both directions.
+One out-of-context reviewer is the default, and on most diffs the suite's only
+subagent, so its handoff is bounded in both directions. A high-risk diff may
+split that reader into lanes instead; the review skill's lanes reference states
+when, and each lane is held to the bounds below plus its own lane assignment.
 
 What it RECEIVES, and nothing else: the task ID, the branch, the worktree path,
 the default branch, the review dimensions, and this format. Never the

@@ -81,3 +81,4 @@ Read one ONLY when its condition holds. Never preload them.
 
 - judging a diff on correctness, spec, tests, design, docs, honesty -> `dimensions.md`
 - writing a round, a finding, a severity or a verdict -> `rounds.md`
+- the diff touches auth, secrets, migrations, concurrency, a public API, shared infrastructure or a broad contract -> `lanes.md`

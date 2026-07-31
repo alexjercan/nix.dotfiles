@@ -53,6 +53,14 @@ names four modes - research, logic prototype, UI prototype, and mixed evidence
 retention rule, so a file each would duplicate rather than separate them. One
 mode may reach two references, as mixed evidence does.
 
+A phase that can run several independent contexts keeps that material behind
+the same door. `plan/lanes.md` and `review/lanes.md` hold the lane-selection
+rules, the per-lane cap, and the synthesis or aggregation contract, so an
+ordinary single-context run never loads them. They are two files rather than
+one shared file because a pointer resolves inside its own skill directory and
+`duplicated-paragraph` rejects a rule pasted verbatim into both; each states
+its own phase's version. See `tasks/20260730-154958/DECISION.md`.
+
 | Surface | Budget |
 | --- | --- |
 | One description | at most 30 words |

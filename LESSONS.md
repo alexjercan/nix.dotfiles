@@ -16,11 +16,21 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   a section matcher accepted a heading inside a fenced example. Write the
   emptiest and the decoration-satisfied case first; this is separate from
   proving each rule can fire. 20260730-142540
-- `narrow-the-guard-to-the-word` (x1): an assertion listing several acceptable
-  alternatives proves only that ONE held - a fixture matched on `external` and
-  would have passed with the `research` clause it existed to guard deleted.
-  Narrow the list to the load-bearing token and assert the rest
-  separately. 20260730-142540
+- `line-breaks-are-load-bearing` (x1): a checker that matches raw text sees the
+  line breaks too - two content assertions were red against a file that DID
+  state the rule, because the phrase wrapped, and a pointer condition lost half
+  its words to the same wrap. Normalize whitespace in the matcher; do not
+  author prose around it. 20260730-154958
+- `fix-touches-its-neighbours` (x1): a prose fix that satisfies its finding can
+  contradict a section the finding never named - two consecutive rounds found
+  defects introduced by the previous round's fix (a lane told to judge a result
+  the closed handoff never supplies; a timing pinned against a section still
+  saying otherwise). Re-read every rule sharing the actor or ordering. 20260730-154958
+- `narrow-the-guard-to-the-word` (x2): an assertion listing several acceptable
+  alternatives proves only that ONE held - a fixture matched on `external`
+  while the `research` clause it guarded could be deleted, and a disclosure
+  `when:` list of seven triggers survived deleting six. One element per case
+  when the checker ORs them. 20260730-142540, 20260730-154958
 - `compute-coverage-dont-claim-it` (x1): "21 rules proven able to fail" was 20
   of 26, and "runs in CI" described a script nothing ran; derive a
   completeness claim from the artifact and fail on the gap. 20260730-142533
@@ -34,11 +44,11 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `task-close-contracts-must-compose` (x1): a task-specific workflow that
   closes a task must also produce the generic records required by `tatr check`;
   spike currently omits review and retro from its close path. 20260730-142052
-- `out-of-context-review-pass` (x4, PROMOTED 2026-07-20 -> review skill
+- `out-of-context-review-pass` (x5, PROMOTED 2026-07-20 -> review skill
   round-1 default): the fresh-context reviewer found what the implementing
   session could not see (an unfailable test; a docs-only loophole; a
   whitespace hole in a validator; a conformance gate that checked a hardcoded
-  list). 20260720-152433, 20260720-152438, 20260720-152503, 20260730-142533
+  list; a record claiming more than its mechanism proves). 20260720-152433, 20260720-152438, 20260720-152503, 20260730-142533, 20260730-154958
 - `commit-before-every-sabotage` (x1): the A/B commit-first rule applies per
   sabotage, not per task - a restore reverted uncommitted review fixes. 20260720-152433
 - `scripted-replace-asserts-match` (x1): str.replace edits silently no-op on a

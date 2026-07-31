@@ -1,0 +1,5 @@
+name: parallel_lane_selection
+skill: plan
+file: lanes.md
+section: When to open lanes
+requires: default is one planner, irreversible, independent domains, one context, asked for

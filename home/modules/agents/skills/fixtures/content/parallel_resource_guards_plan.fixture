@@ -1,0 +1,5 @@
+name: parallel_resource_guards
+skill: plan
+file: lanes.md
+section: Resources
+requires: read-only, never sprout, share the checkout

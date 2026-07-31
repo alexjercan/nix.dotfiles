@@ -1,0 +1,5 @@
+name: parallel_lane_selection
+skill: review
+file: lanes.md
+section: When to open lanes
+requires: default is one reviewer, secrets, migration, concurrency, public api, shared infrastructure, only the lanes that apply

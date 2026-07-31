@@ -84,3 +84,4 @@ Read one ONLY when its condition holds. Never preload them.
 
 - writing the Definition of Done, or judging a proof -> `proofs.md`
 - a load-bearing architectural or interface fork was made -> `decision.md`
+- an irreversible fork, independent domains, an oversized Epic, or a lanes request -> `lanes.md`

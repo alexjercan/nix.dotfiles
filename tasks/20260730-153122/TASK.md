@@ -62,9 +62,12 @@ conditional parallel planning and review.
       2 review rounds, 7 findings (all MINOR/NIT); adds the Epic index, the
       spike mode router over research.md/prototype.md, a `content` fixture
       kind and `check.sh --fixture <case>`.
-- [ ] 20260730-154958 (p65, nix.dotfiles) Add conditional parallel planning
+- [x] 20260730-154958 (p65, nix.dotfiles) Add conditional parallel planning
       and review lanes. Depends on: 20260730-154740, 20260730-154745,
       20260730-142533.
+      3 review rounds, 11 findings (1 MAJOR in each of rounds 1 and 2, the
+      rest MINOR/NIT); adds plan/lanes.md, review/lanes.md and 20 fixture
+      cases. Seeds 20260731-084705.
 - [ ] 20260730-155003 (p50, nix.dotfiles) Adopt tatr v2 and revalidate nix
       task history. Depends on every Story above and published tatr default.
 - [ ] 20260731-010900 (p20, nix.dotfiles) Decide whether the live-agent skill
@@ -86,6 +89,10 @@ conditional parallel planning and review.
 
 - (pending) Confirm the final output budgets produce concise but sufficient
   reports on representative flow, spike, plan, work, review, and compound runs.
+- (pending) 20260730-154958: run one lane-selecting review and read the round,
+  confirming the lanes stay inside their stated caps and the round reads as one
+  deduplicated review rather than three concatenated ones. The fixtures prove
+  the skill texts SAY this; nothing deterministic observes a live agent.
 - (pending) 20260730-142540: run one real spike that retains a prototype, then
   confirm the prototype still runs from its recorded command after the spike
   closes. The `retained_prototype_smoke` fixture proves the record NAMES a

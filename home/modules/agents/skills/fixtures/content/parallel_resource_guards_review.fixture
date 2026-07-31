@@ -1,0 +1,5 @@
+name: parallel_resource_guards
+skill: review
+file: lanes.md
+section: Resources
+requires: one worktree, serial, build output, sprout worktree
