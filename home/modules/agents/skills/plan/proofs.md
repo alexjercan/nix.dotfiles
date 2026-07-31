@@ -85,6 +85,20 @@ writing a proof, ask what would make it red. In particular:
 - Never write a `cmd:` proof that ends in a pipe or an echo. `cargo test |
   grep ...` reports grep's exit code and reads as success on a failed compile.
 
+## Sabotage every proof before accepting it
+
+Asking what would make a proof red is not proving it can go red. Before a proof
+enters a Definition of Done, delete or invert the clause it pins and confirm it
+goes red ALONE, every other proof still green. Do that at PLAN time, not at
+work: a proof that cannot die before a branch exists cannot judge one. Size is
+no exemption - a one-line `grep -c` is the shape that has failed twice. Two
+failure modes survive running the proof and only the mutation exposes them:
+
+- The proof matches MORE than the clause it pins - a pattern hitting both a
+  code fence and the prose beside it stays green after either half is deleted.
+- The proof is already green on the base branch, pinning something the change
+  does not alter, and it passes plan, work and review having tested nothing.
+
 ## Example
 
 ```markdown

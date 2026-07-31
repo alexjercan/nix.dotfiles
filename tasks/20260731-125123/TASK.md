@@ -1,10 +1,10 @@
 # Write the sabotage-at-plan-time rule into the proofs reference
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 55
 - TAGS: skills, lessons, docs
 - KIND: TASK
-- FLOW STEP: PLANNED
+- FLOW STEP: DONE
 - PLAN STATUS: APPROVED
 
 ## Story
@@ -22,7 +22,7 @@ merely run.
       fail`. See `DECISION.md`.
 - [x] Sabotage every DoD proof below at plan time, before any edit, and record
       which mutation reddens each one. Results in Notes.
-- [ ] Add `## Sabotage every proof before accepting it` to
+- [x] Add `## Sabotage every proof before accepting it` to
       `home/modules/agents/skills/plan/proofs.md`, between
       `## Proofs must be able to fail` and `## Example`. It states the rule
       (delete or invert the clause a proof pins, confirm it goes red ALONE
@@ -31,7 +31,7 @@ merely run.
       MORE than the clause it pins, and a proof already green on the base
       branch. Wording is drafted and budget-checked at 153 words; do not
       restate the rest of the lesson.
-- [ ] Fold the ledger entry: move `write-the-sabotage-first` out of
+- [x] Fold the ledger entry: move `write-the-sabotage-first` out of
       `## Pending promotions` in `LESSONS.md` into `## Process lessons`,
       rewriting its count annotation to the applied marker
       `(x3, PROMOTED 2026-07-31 -> plan skill proofs reference)` and keeping
@@ -39,7 +39,7 @@ merely run.
       disposition for this transition (`-D` takes only
       PROMOTE|DEFER|RETIRE|ABSORBED), so the move is a hand edit - confirm
       that before reaching for the CLI.
-- [ ] Run the four conformance commands from the repo root and record their
+- [x] Run the four conformance commands from the repo root and record their
       output in the task record.
 
 ## Definition of Done
@@ -54,9 +54,11 @@ merely run.
   (cmd: `grep -n 'already green on the base branch' home/modules/agents/skills/plan/proofs.md`).
 - The ledger entry sits outside `## Pending promotions` carrying its applied
   marker (cmd: `awk '/write-the-sabotage-first.*PROMOTED 2026-07-31/{print NR": "$0; f=1} /^## Pending promotions/{exit !f} END{exit !f}' LESSONS.md`).
-- The skill suite still conforms, budgets included
+- The skill suite still conforms, budgets included - a regression guard, green
+  on base, pinned by the budget mutation recorded in Notes
   (cmd: `bash home/modules/agents/skills/check.sh`).
-- Repository conformance passes with the ledger entry folded
+- Repository conformance passes with the ledger entry folded - a regression
+  guard, green on base; the fold itself is pinned by the `awk` proof above
   (cmd: `tatr check --ledger LESSONS.md`).
 
 ## Notes
@@ -97,3 +99,53 @@ and each mutation reddened its own proof ALONE, the other five staying green.
 they are regression guards, not criteria - which is why `check.sh` is pinned by
 its budget mutation above and the ledger fold has its own `awk` proof rather
 than leaning on `tatr check`.
+
+## Close-out
+
+**What changed.** `plan/proofs.md` gains
+`## Sabotage every proof before accepting it` between
+`## Proofs must be able to fail` and `## Example`: 14 lines stating the
+mutation rule, the PLAN-not-work timing, "size is no exemption", and the two
+failure modes as one bullet each. `LESSONS.md` moves
+`write-the-sabotage-first` out of `## Pending promotions` into
+`## Process lessons` carrying `(x3, PROMOTED 2026-07-31 -> plan skill proofs
+reference)`; `## Pending promotions` is now empty and `tatr check --ledger`
+accepts that. `proofs.md` ends at 943 of 1000 words.
+
+**Why this shape.** The two adjacent sections now read as rule and gate: the
+first says a proof must be ABLE to fail, the second says prove it by making it
+fail. See DECISION.md for the section-vs-clause fork.
+
+**Verification.** Every proof was watched RED in this worktree before the edit
+(all five change-pinning ones exited 1 on the untouched files), then green
+after. Full suite from the worktree root, run bare:
+
+| Check | Result |
+| --- | --- |
+| `nix flake check` | all checks passed (3 checks) |
+| `bash home/modules/agents/skills/check.sh` | clean (9 skills, 22 rules, 179 description words) |
+| `bash home/modules/scripts/sprout-test.sh` | passed: 14, failed: 0 |
+| `tatr check --ledger LESSONS.md` | exit 0 |
+| DoD proofs 1-7 | all exit 0 |
+
+**Doc-surface sweep.** `grep -rn "Proofs must be able to fail\|proofs.md"` over
+`*.md`/`*.nix`/`*.sh` outside `tasks/` returns two hits: the heading itself and
+`plan/SKILL.md:85`, a generic `-> proofs.md` pointer that needs no change. No
+file enumerates the reference's sections, so nothing else went stale.
+
+**Difficulties.** The two conformance commands the original DoD carried
+(`check.sh`, `tatr check --ledger`) are both green on master, so as written
+they were the very failure mode this task documents. Planning replaced them:
+`check.sh` is now pinned by a demonstrated budget-overflow mutation
+(`reference-budget: 1123 words > 1000`) and the ledger fold got its own `awk`
+proof, which stays red when the applied marker is present but the entry has
+not left `## Pending promotions`. The `tatr ledger` CLI turned out to have no
+disposition for PROMOTE -> PROMOTED (`-D` takes only
+PROMOTE|DEFER|RETIRE|ABSORBED), confirmed against `tatr ledger --help` before
+the hand edit, even though `lessons/ledger.md` describes the transition as
+happening "through `tatr ledger`". Recorded for the retro rather than fixed
+here - it is a CLI gap, not this task's diff.
+
+**Self-reflection.** The task asked its own DoD to be sabotaged at plan time,
+and doing so is what caught the two base-green proofs. The rule paid for
+itself before it was written.

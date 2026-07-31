@@ -28,11 +28,12 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   a section matcher accepted a heading inside a fenced example. Write the
   emptiest and the decoration-satisfied case first; this is separate from
   proving each rule can fire. 20260730-142540
-- `line-breaks-are-load-bearing` (x1): a checker that matches raw text sees the
+- `line-breaks-are-load-bearing` (x2): a checker that matches raw text sees the
   line breaks too - two content assertions were red against a file that DID
   state the rule, because the phrase wrapped, and a pointer condition lost half
-  its words to the same wrap. Normalize whitespace in the matcher; do not
-  author prose around it. 20260730-154958
+  its words to the same wrap, and a budget-tight rewrite left an article
+  orphaned at a line end. Normalize whitespace in the matcher; reflow the
+  paragraph you edited. 20260730-154958, 20260731-125123
 - `fix-touches-its-neighbours` (x2): a prose fix that satisfies its finding can
   contradict a section the finding never named, and the sweep for the others
   inherits the phrasing in front of you - `item already carries` could not match
@@ -195,12 +196,17 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   value duplicated across two evaluations/configs, write the agreement as a
   build-failing check, not a "keep in sync" comment - here it then caught
   three further defects that review would have had to find by reading. 20260730-190929
+- `workaround-invalidates-the-tool-doc` (x1): a step that hand-edits state a
+  tool is documented to own makes that documentation stale, and the diff's doc
+  sweep will not catch it - the sweep is scoped to the files being edited, and
+  the workaround by definition touches one that is not. `lessons/ledger.md`
+  claimed `tatr ledger` performs the PROMOTE -> PROMOTED transition; folding an
+  entry by hand proved it has no such flag. 20260731-125123
+- `write-the-sabotage-first` (x3, PROMOTED 2026-07-31 -> plan skill
+  proofs reference): a proof nothing has broken is unfalsifiable, and SIZE is
+  no exemption - a one-line `grep -c` stayed green with five of six rows
+  deleted, and two more blind proofs shipped (one matching two lines at once,
+  one already green on master). Sabotage at PLAN time; both would have died
+  before a branch existed. 20260730-142533, 20260730-155003, 20260731-094537
 
 ## Pending promotions (3+ occurrences, user decides)
-
-- `write-the-sabotage-first` (x3, PROMOTE 2026-07-31 -> 20260731-125123)
-  -> plan skill proofs reference: a proof nothing has broken is unfalsifiable,
-  and SIZE is no exemption - a one-line `grep -c` stayed green with five of six
-  rows deleted, and two more blind proofs shipped (one matching two lines at
-  once, one already green on master). Sabotage at PLAN time; both would have
-  died before a branch existed. 20260730-142533, 20260730-155003, 20260731-094537

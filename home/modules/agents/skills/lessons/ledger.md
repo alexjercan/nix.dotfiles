@@ -66,10 +66,11 @@ lifecycle event applies, the count stays bare: `(x3)`, never `(x3, note)`.
 
 A recorded disposition is an ANSWER, not a completion. `PROMOTE -> <task-id>`
 means a task now owns the change, and the entry stays in Pending until that
-task lands; the promoting task's own last step records the outcome through
-`tatr ledger`, which is what turns `PROMOTE` into the applied
-`PROMOTED <date> -> <target>` and moves the entry back to its section. A
-PROMOTE whose task never lands is therefore still visible as pending work,
+task lands; the promoting task's own last step hand-edits the entry out of
+`## Pending promotions`, rewriting `PROMOTE` to the applied
+`PROMOTED <date> -> <target>`. `tatr ledger` records dispositions only and has
+no flag for that transition.
+A PROMOTE whose task never lands is therefore still visible as pending work,
 which is the point.
 
 A DEFER records the count it was taken at, and until the count moves past that
