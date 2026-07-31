@@ -33,7 +33,7 @@
     };
 
     tatr = {
-      url = "github:alexjercan/tatr";
+      url = "github:alexjercan/tatr/v0.2.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     today = {
@@ -41,7 +41,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     macros-nvim = {
-      url = "github:alexjercan/macros.nvim";
+      url = "github:alexjercan/macros.nvim/v0.1.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     scufris = {
