@@ -87,8 +87,6 @@ conditional parallel planning and review.
       re-runnable proof and spent its diff on reconciling the records: it
       rewrote this `## Done Means` onto proofs that still have a runner, and
       folded 20260731-104819 in as superseded. Seeds 20260731-112502.
-- [ ] 20260731-010900 (p20, nix.dotfiles) Decide whether the live-agent skill
-      behavior pass is worth automating. Depends on: 20260730-142533.
 
 ## Decisions
 
@@ -101,6 +99,13 @@ conditional parallel planning and review.
 - 20260730-142533 DECISION.md: prove the skill suite structurally, and treat
   live-agent behavior as a manual acceptance item here rather than building a
   credential-bound, non-deterministic harness into the gate (ACCEPTED).
+- 20260731-010900 (no DECISION.md): the user answered the Story's own question
+  directly - do NOT automate the live-agent behavior pass. The fixture suite it
+  would have extended is gone, so the only thing to automate would be a new
+  credential-bound, non-deterministic runner, which 20260730-142533's DECISION
+  already rejected. The Story was dropped from `## Child Tasks` and its record
+  retired; `tatr show 20260731-010900` will not resolve it. Live-agent behavior
+  stays a manual acceptance item under `## Manual Acceptance` (ACCEPTED).
 - 20260730-155003 DECISION.md: drop the two acceptance criteria whose runner
   the fixture-suite removal took with it rather than rebuild one, and fold
   20260731-104819 into that Story instead of running it as a second cycle over
@@ -155,7 +160,6 @@ conditional parallel planning and review.
   argument is in tasks/20260730-155003/DECISION.md.
 - Finish blocker: `tatr flow <epic-id> --to DONE` refuses while ANY child is
   not CLOSED (verified in a scratch repo; it reports "child <id> is not
-  CLOSED"). 20260731-010900 is still OPEN, so before this Epic can close it
-  must either run its own cycle or be dropped from `## Child Tasks` with a
-  reason. The Epic also has to walk PLANNING -> PLANNED -> WORKING ->
+  CLOSED"). Every remaining child is CLOSED: 20260731-010900 was dropped, see
+  `## Decisions`. The Epic still has to walk PLANNING -> PLANNED -> WORKING ->
   REVIEWING -> COMPOUNDING -> DONE; there is no direct move to DONE.
