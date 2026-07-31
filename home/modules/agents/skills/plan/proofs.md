@@ -13,9 +13,12 @@ literally.
   change.
 - ``(cmd: `grep -n foo file`)`` - a command whose output shows the criterion
   holds. `work` and `review` run it verbatim.
-- `manual: <what the user confirms>` - a human judgement no test can make.
-  When the whole criterion IS the judgement, lead the item with a bare
-  `manual:` instead of trailing it; the criterion and its proof are one thing.
+- ``(manual: <what the user confirms>)`` - a human judgement no test can make.
+  When the whole criterion IS the judgement, put the whole sentence inside the
+  group and write nothing outside it; the criterion and its proof are one
+  thing. All three kinds are parenthesized - `tatr check` scans only for
+  `(<kind>: ...)` groups and rejects a bare leading marker as
+  `bad-proof-syntax`.
 
 An item with no nameable proof is a red flag. Rephrase it into something
 observable, or demote it to a Notes bullet. Do not ship acceptance criteria
@@ -66,6 +69,6 @@ writing a proof, ask what would make it red. In particular:
   (test: `ratelimit_returns_429_when_over_limit`).
 - The limit is read from config and its default is documented
   (cmd: `grep -n "req/min" docs/config.md`).
-- manual: under a real burst from one client, other clients' latency stays
-  flat.
+- (manual: under a real burst from one client, other clients' latency stays
+  flat).
 ```
