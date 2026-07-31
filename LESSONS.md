@@ -120,9 +120,11 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `proof-must-cover-its-conjunct` (x1): a DoD proof for a two-part criterion
   must fail if either part is deleted; a case-sensitive grep survived its
   target's removal. 20260720-152519
-- `claim-only-verified-state` (x1): a REVIEW.md Response claimed a scripted
-  fix that had silently aborted; re-run the exposing check before writing
-  the claim. 20260720-171836
+- `claim-only-verified-state` (x2): a REVIEW.md Response claimed a scripted
+  fix that had silently aborted, and a close-out recorded `nix flake check` as
+  unrunnable in this sandbox when it runs and passes; re-run the exposing
+  check before writing the claim, including a "could not run here" one.
+  20260720-171836, 20260731-163120
 - `sprout-inherits-committed-head` (x1): a new worktree contains only what is
   committed on HEAD - commit the plan before sprouting. 20260704-134842
 - `read-secret-keys-not-assume` (x1): derive a secret's variable NAMES from the
@@ -168,6 +170,15 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   active task instead of creating an umbrella/child pair, unless the user asks
   for an epic, sprint, version, release, or multi-feature container.
   20260725-110435
+- `run-the-new-rule-against-its-own-diff` (x1): a change that introduces a
+  rule is that rule's first test case - the commit adding "keep comments that
+  guard a value" deleted a header guarding a home-manager file collision.
+  20260731-163120
+- `a-rule-and-its-exception-ship-together` (x1) -> work skill: every surface
+  stating a rule states its exception, or the half-stated surface is the one
+  obeyed - AGENTS.md carried both the prune and guard clauses while
+  `work/SKILL.md`, the surface loaded during implementation, carried only
+  prune. 20260731-163120
 - `untested-guarantee-comment` (x2): prose asserting what a tool does is a
   testable claim, and one written from the design or from neighbouring docs
   records a hope - `validateSopsFiles` only hashes the file, and a flow legend
