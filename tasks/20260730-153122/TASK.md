@@ -46,7 +46,7 @@ conditional parallel planning and review.
       context. Depends on: 20260730-153325, 20260730-154657.
 - [x] 20260730-154745 (p85, tatr) Scaffold and validate flow artifact schemas.
       Depends on: 20260730-153325.
-- [ ] 20260730-154756 (p80, tatr) Require user disposition for lesson
+- [x] 20260730-154756 (p80, tatr) Require user disposition for lesson
       promotions. Depends on: 20260730-153325, 20260730-154745.
 - [x] 20260730-142533 (p80, nix.dotfiles) Refactor flow skills for bounded
       context and concise output. Depends on: 20260730-153325,
