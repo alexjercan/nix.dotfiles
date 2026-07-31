@@ -2,10 +2,10 @@
 
 - STATUS: OPEN
 - PRIORITY: 55
-- TAGS: skills,lessons,docs
+- TAGS: skills, lessons, docs
 - KIND: TASK
-- FLOW STEP: BACKLOG
-- PLAN STATUS: DRAFT
+- FLOW STEP: PLANNED
+- PLAN STATUS: APPROVED
 
 ## Story
 
@@ -15,31 +15,45 @@ merely run.
 
 ## Steps
 
-- [ ] Decide with the user where the rule lands: a clause inside
+- [x] Decide with the user where the rule lands: a clause inside
       `## Proofs must be able to fail` in
       `home/modules/agents/skills/plan/proofs.md`, or its own short section.
-      The file is 790 of its 1000-word `reference-budget`, so the wording has
-      to earn its space; prefer the clause unless the section reads as two
-      rules.
-- [ ] State the rule: before a proof is accepted into a Definition of Done,
-      delete or invert the clause it pins and confirm it goes red ALONE, with
-      the other proofs green. Size is no exemption - a one-line `grep -c` is
-      the shape that has failed twice.
-- [ ] State the two failure modes the three recurrences produced, because each
-      is invisible to running the proof: a proof matching MORE than the clause
-      it pins (green after either half is deleted), and a proof already green
-      on the base branch (it pins something the change does not alter).
-- [ ] Sabotage this task's own DoD proofs at plan time, before any edit, and
-      record which mutation reddens each one.
-- [ ] Record the promotion's completion: move the ledger entry back out of
-      `## Pending promotions` carrying its applied marker.
+      Answer: its own section, immediately after `## Proofs must be able to
+      fail`. See `DECISION.md`.
+- [x] Sabotage every DoD proof below at plan time, before any edit, and record
+      which mutation reddens each one. Results in Notes.
+- [ ] Add `## Sabotage every proof before accepting it` to
+      `home/modules/agents/skills/plan/proofs.md`, between
+      `## Proofs must be able to fail` and `## Example`. It states the rule
+      (delete or invert the clause a proof pins, confirm it goes red ALONE
+      with the others green), the timing (PLAN, not work), that size is no
+      exemption, and the two failure modes as two bullets: a proof matching
+      MORE than the clause it pins, and a proof already green on the base
+      branch. Wording is drafted and budget-checked at 153 words; do not
+      restate the rest of the lesson.
+- [ ] Fold the ledger entry: move `write-the-sabotage-first` out of
+      `## Pending promotions` in `LESSONS.md` into `## Process lessons`,
+      rewriting its count annotation to the applied marker
+      `(x3, PROMOTED 2026-07-31 -> plan skill proofs reference)` and keeping
+      its sentence and the three recurrence ids intact. `tatr ledger` has no
+      disposition for this transition (`-D` takes only
+      PROMOTE|DEFER|RETIRE|ABSORBED), so the move is a hand edit - confirm
+      that before reaching for the CLI.
+- [ ] Run the four conformance commands from the repo root and record their
+      output in the task record.
 
 ## Definition of Done
 
-- The proofs reference states the sabotage rule, both failure modes, and that
-  the timing is plan rather than work (manual: read the new clause in
-  `home/modules/agents/skills/plan/proofs.md`). Planning replaces this with
-  `cmd:` proofs once the wording is chosen, and sabotages each one first.
+- The reference states the rule, in a section of its own
+  (cmd: `grep -n 'goes red ALONE' home/modules/agents/skills/plan/proofs.md`).
+- It states the timing as plan rather than work
+  (cmd: `grep -n 'at PLAN time, not at' home/modules/agents/skills/plan/proofs.md`).
+- It states the first failure mode, a proof matching more than its clause
+  (cmd: `grep -n 'matches MORE than the clause it pins' home/modules/agents/skills/plan/proofs.md`).
+- It states the second failure mode, a proof already green on the base branch
+  (cmd: `grep -n 'already green on the base branch' home/modules/agents/skills/plan/proofs.md`).
+- The ledger entry sits outside `## Pending promotions` carrying its applied
+  marker (cmd: `awk '/write-the-sabotage-first.*PROMOTED 2026-07-31/{print NR": "$0; f=1} /^## Pending promotions/{exit !f} END{exit !f}' LESSONS.md`).
 - The skill suite still conforms, budgets included
   (cmd: `bash home/modules/agents/skills/check.sh`).
 - Repository conformance passes with the ledger entry folded
@@ -60,3 +74,26 @@ merely run.
   work and two review rounds.
 - Do not restate the whole lesson in the file. One rule, the two failure modes,
   and the timing (plan, not work) is the payload.
+- Budget: the drafted section is 153 words, taking `plan/proofs.md` from 790 to
+  943 of the 1000-word `reference-budget`. 57 words of headroom, so the wording
+  cannot grow much in work or review.
+
+### Plan-time sabotage of these proofs
+
+Run on the base branch against a scratch copy of the drafted file, before any
+edit to the repo. Every proof was RED on base first - none was already green -
+and each mutation reddened its own proof ALONE, the other five staying green.
+
+| Proof | Mutation that reddens it |
+| --- | --- |
+| `goes red ALONE` | delete that clause from the opening paragraph |
+| `at PLAN time, not at` | delete the timing sentence |
+| `matches MORE than the clause it pins` | delete the first failure-mode bullet |
+| `already green on the base branch` | delete the second failure-mode bullet |
+| ledger `awk` | leave the applied marker on the entry but keep it under `## Pending promotions` - the marker alone is not the fold |
+| `check.sh` | pad the new section past 1000 words: `reference-budget: 1123 words > 1000` |
+
+`tatr check --ledger LESSONS.md` and `check.sh` are both green on master, so
+they are regression guards, not criteria - which is why `check.sh` is pinned by
+its budget mutation above and the ledger fold has its own `awk` proof rather
+than leaning on `tatr check`.
