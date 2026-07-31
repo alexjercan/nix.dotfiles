@@ -45,8 +45,9 @@ and context failures into better future plans.
       `fix-touches-its-neighbours` promotion completed.
 - [ ] 20260731-174343 (p90, nix.dotfiles) Plan simple reviewable one-context
       changes. Depends on: 20260731-142000.
-- [ ] 20260731-174348 (p85, nix.dotfiles) Bound worker context with delegated
-      checkpoints.
+- [x] 20260731-174348 (p85, nix.dotfiles) Bound worker context with delegated
+      checkpoints. Landed 68fe066; review APPROVE round 1; seeded
+      20260731-202400 for the `baseline-dod-proofs` promotion.
 - [ ] 20260731-174352 (p80, nix.dotfiles) Make fresh-session handoff a flow
       contract. Depends on: 20260731-174348.
 - [ ] 20260731-174415 (p75, nix.dotfiles) Turn review and context overruns into
