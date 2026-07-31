@@ -35,17 +35,42 @@ watches it fail for the right reason. Phrase every proof so the implementer
 can encode it as the first artifact, not reverse-engineer it from finished
 code.
 
-## Absence proofs must exclude the records
+## Absence proofs must exclude prose about the code
 
 A repo-wide grep that proves an ABSENCE - no stale references to a renamed
-symbol, no leftover TODO - self-matches the DoD item that quotes the string,
-and can never go green. The `tasks/` tree is append-only history, not a doc
-surface, so scope the grep away from it from the start:
+symbol, no leftover TODO - matches talk about the code as readily as the code.
+It self-matches the DoD item that quotes the string, and it matches the prose
+the same diff writes ABOUT the removal: the comment naming the deleted module,
+the NOTE explaining why something is gone. Both are green states reported red,
+and the pressure that creates is to reword the prose until the matcher is
+happy. Scope BOTH out from the start - `tasks/` by directory, comments by
+pattern:
 
 ```
 (cmd: `grep -rn oldname src/ docs/`)
-(cmd: `grep -rn --exclude-dir=tasks oldname .`)
+(cmd: `grep -rn --exclude-dir=tasks --exclude-dir=.git --include='*.<ext>' -E '^[^#]*oldname' .`)
 ```
+
+`^[^#]*` keeps a hit only where the token appears before any `#`, so
+`# NOTE: oldname is gone` and `x = 1; # oldname was here` both drop out. It is
+a filter, not a rule:
+
+- It holds only where `#` STARTS a comment, which is why the command carries
+  `--include`: fill in every extension the mechanism could live in
+  (`*.nix`, `*.sh`), or the search skips the file still referencing it. A
+  markdown `# oldname` heading is a real hit the filter hides, and so is a
+  line whose earlier `#` sits in a string.
+- Cross-check it once with the bare token - same flags, but searching
+  `oldname` instead of the pattern - and confirm everything the filter drops
+  is prose. Deleting just the `-E` changes nothing: `^[^#]*oldname` means the
+  same thing as a BRE. If the cross-check shows a real hit dropped, the
+  pattern is wrong for that token: scope by directory and pin the proof on a
+  narrower token instead.
+- Scope doc trees by directory or `--include`, never by this pattern.
+- Do not invent the equivalent for another comment syntax. `^[^/]*` is not the
+  `//` form: it stops at the slash in any path or URL, hiding real code.
+- Keep it ONE command. A `| grep -v` tail hides a search that ran wrong - a
+  mistyped path also exits 1, and reads as absent.
 
 ## Proofs must be able to fail
 

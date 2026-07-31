@@ -6,11 +6,6 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 
 ## Process lessons
 
-- `write-the-sabotage-first` (x2): a checker written before anything that can
-  break it is unfalsifiable, and SIZE is not an exemption - a one-line
-  `grep -c` DoD proof went unsabotaged beside a script sabotaged three ways,
-  and stayed green with five of six rows it checked deleted. Sabotage every
-  proof. 20260730-142533, 20260730-155003
 - `test-the-quiet-direction` (x1): a checker suite that only ever proves rules
   CAN fire says nothing about what they flag wrongly - `direct-state-edit`
   passed five sabotage cases while being blind to 17 of 39 real sentences and
@@ -104,6 +99,17 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `rule-and-example-must-agree` (x2): re-read a rule and its examples together
   before committing - a format example has twice modeled the mistake its rule
   forbids. 20260720-152457, 20260720-152514
+- `run-every-documented-command` (x1): in a doc whose content IS commands, a
+  command reads as illustration and escapes the habit that would falsify it -
+  nine of thirteen findings were commands written by analogy and never run
+  (`^[^/]*` as the `//` twin of a tested `#` pattern; "re-run without `-E`",
+  which cannot filter differently since the ERE is a valid BRE). A FIX is a new
+  command and inherits the same untested status. 20260731-094537
+- `dry-run-cases-come-from-the-reader` (x1): a dry-run scoped to the example
+  that produced the rule only confirms the author - `#` comments in nix passed
+  while markdown headings, shell scripts, URLs and string literals each broke
+  the documented command. Enumerate the file types the READER will aim it at.
+  20260731-094537
 - `document-where-the-reader-reads` (x1): a convention that makes a mechanism
   reliable belongs in the doc its user loads, not the close-out that shipped
   it. 20260720-152508
@@ -139,10 +145,10 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `build-just-the-package` (x2): verify a script module by nix-building only
   its package via the flake's nixpkgs, not a full home-manager rebuild.
   20260703-104437, 20260720-152433
-- `dod-grep-excludes-task-records` (x6, PROMOTED 2026-07-20 -> plan skill DoD
-  guidance; see Pending promotions - the promoted rule covers tasks/ but not
-  COMMENTS): a blanket no-stale-references grep self-matches the task's own
-  record, and equally the prose the same diff writes about the thing removed.
+- `dod-grep-excludes-task-records` (x6, PROMOTED 2026-07-31 -> plan skill DoD
+  guidance): a blanket no-stale-references grep self-matches the task's own
+  record, and equally the prose the same diff writes about the thing removed;
+  the guidance now excludes `tasks/` by directory AND comments by pattern.
   20260720-171855, 20260720-171910, 20260720-171902, 20260720-171843, 20260720-171836, 20260720-220044, 20260730-190929
 - `edit-the-worktree-not-the-cwd` (x3, PROMOTED 2026-07-20 -> work skill sprout
   step): the shell cwd resets between Bash calls - drive edits/git by absolute
@@ -192,13 +198,11 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 
 ## Pending promotions (3+ occurrences, user decides)
 
-- `dod-grep-excludes-task-records` (x6, PROMOTE 2026-07-31 -> 20260731-094537)
-  -> plan skill DoD guidance (WIDEN an
-  existing promotion): the 2026-07-20 promotion tells absence-proving greps to
-  exclude `tasks/`, which is only half the self-match. A diff that removes a
-  mechanism usually also writes prose ABOUT the removal - a comment naming the
-  deleted module, a NOTE explaining the absence - and that prose necessarily
-  contains the token being proved absent. It cost two grep rewrites in
-  20260730-190929. Proposed: the guidance also excludes comment lines
-  (e.g. `| grep -vE ":[0-9]+: *#"`), so the proof distinguishes code from prose
-  about the code.
+- `write-the-sabotage-first` (x3): a proof written before anything that can
+  break it is unfalsifiable, and SIZE is no exemption - a one-line `grep -c`
+  stayed green with five of six rows deleted, and this cycle shipped two more
+  blind proofs (one matching two lines at once, one matching the OLD heading it
+  was meant to prove changed). Sabotage every proof, at PLAN time: both would
+  have died before a branch existed. Promotion order: no tool can sabotage a
+  proof for you, so this is plan-skill prose (`plan/proofs.md`), where the
+  proof is written. 20260730-142533, 20260730-155003, 20260731-094537
