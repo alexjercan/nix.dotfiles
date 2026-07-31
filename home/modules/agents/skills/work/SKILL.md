@@ -22,7 +22,8 @@ Ship the maintainable solution, not the smallest plausible diff.
    implement minimally, then refactor green. Prefer an integration/example
    boundary; use a unit test only for a unit-shaped seam. Never weaken a test.
    Keep `manual:` pending. Code comments are only for docstrings or essential
-   implementation notes; put explanatory prose in task records. Update
+   implementation notes; put explanatory prose in task records. Never prune a
+   comment that guards a value or explains a non-obvious setting. Update
    invalidated docs; record new load-bearing choices in DECISION.md.
 5. Run the full suite and every `tatr proofs <id>` proof.
 6. Tick a Step only after re-reading and completing every clause. Add TASK.md

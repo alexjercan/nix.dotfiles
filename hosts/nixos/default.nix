@@ -44,8 +44,10 @@ in {
 
     powerManagement.enable = false;
 
+    # Both are Turing+ only and experimental; upstream recommends false.
+    # finegrained powers the GPU down when idle; open is the NVIDIA open
+    # kernel module, not the third-party nouveau driver.
     powerManagement.finegrained = false;
-
     open = false;
 
     nvidiaSettings = true;
@@ -98,8 +100,6 @@ in {
   services.xserver = {
     enable = true;
     xkb.options = "caps:none";
-    displayManager.sessionCommands = ''
-    '';
   };
   services.xserver.videoDrivers = ["nvidia"];
   services.xserver.desktopManager.xterm.enable = false;

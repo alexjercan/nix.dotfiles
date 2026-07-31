@@ -4,7 +4,7 @@
 - PRIORITY: 70
 - TAGS: skills, flow, docs, refactor
 - KIND: TASK
-- FLOW STEP: REVIEWING
+- FLOW STEP: WORKING
 - PLAN STATUS: APPROVED
 
 ## Why
@@ -74,9 +74,7 @@ Evidence:
 - `tatr check 20260731-163120` passed.
 - `tatr check --ledger LESSONS.md` passed.
 - `bash home/modules/scripts/sprout-test.sh` passed: 14 passed, 0 failed.
-- `nix flake check` did not run in this sandbox:
-  `cannot connect to socket at '/nix/var/nix/daemon-socket/socket': Operation
-  not permitted`.
+- `nix flake check --no-build` passed: `all checks passed!`.
 
 Follow-up (user review of the working set):
 
@@ -92,12 +90,26 @@ Follow-up (user review of the working set):
 - Re-ran proofs after the restore: check.sh clean, `tatr check --ledger`
   clean, absence grep still empty.
 
+Round 1 review fixes:
+
+- `work/SKILL.md` step 4 now carries the guard half of the rule, not just the
+  prune half.
+- Restored the `packages/default.nix` collision invariant, the `_99`
+  `custom_rules` path contract and `md_files` cwd hazard, the `max_file_size`
+  unit, and the nvidia `finegrained`/`open` rationale.
+- Deleted `services.xserver.displayManager.sessionCommands`, which the first
+  pass had emptied to a bare `''`/`''` block.
+- Moved the comment rules from `## Writing` to `## Technical decisions` in
+  AGENTS.md; `## Writing` is about the character set.
+- Corrected the refuted `nix flake check` limitation above.
+
 Limitations:
 
 - The planned sprout worktree was never created: the first pass hit a
   read-only `.git/index.lock`, and the user then chose to commit on `master`
   directly. Landed as `e2d065d`.
-- `nix flake check` still unrun; the nix daemon socket is not reachable from
-  this sandbox.
+- `nix flake check --no-build` runs and passes at HEAD (`all checks
+  passed!`). The earlier close-out claimed the daemon socket was unreachable;
+  review round 1 refuted that.
 - Manual DoD remains user judgement: audit classification matches the removed
   comment set and retained constraint comments.

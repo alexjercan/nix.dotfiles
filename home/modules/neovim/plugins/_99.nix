@@ -33,13 +33,14 @@ in {
           completion = {
               -- cursor_rules = "<custom path to cursor rules>"
 
+              -- Each entry is a dir of <skill_name>/SKILL.md.
               custom_rules = {
                 "scratch/custom_rules/",
               },
 
               files = {
                   -- enabled = true,
-                  -- max_file_size = 102400,
+                  -- max_file_size = 102400, -- bytes
                   -- max_files = 5000,
                   -- exclude = { ".env", ".env.*", "node_modules", ".git", ... },
               },
@@ -47,7 +48,8 @@ in {
               source = "cmp",
           },
 
-          --- CWD-sensitive upstream lookup.
+          --- Walked up from the request's file to the project root.
+          --- WARNING: upstream breaks this if you change cwd.
           md_files = {
               "AGENT.md",
           },
