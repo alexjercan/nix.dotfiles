@@ -78,7 +78,8 @@ conditional parallel planning and review.
       20260730-142533.
       3 review rounds, 11 findings (1 MAJOR in each of rounds 1 and 2, the
       rest MINOR/NIT); adds plan/lanes.md, review/lanes.md and 20 fixture
-      cases. Seeds 20260731-084705.
+      cases. Seeded 20260731-084705, retired 2026-07-31 with the fixture suite
+      it was going to fix; see `## Notes`.
 - [x] 20260730-155003 (p50, nix.dotfiles) Adopt tatr v2 and revalidate nix
       task history. Depends on every Story above and published tatr default.
       The adoption and the record migration had already landed (`456e3ec`
@@ -144,6 +145,12 @@ conditional parallel planning and review.
 - Source review: tasks/20260730-142052/SPIKE.md
 - This is an explicit cross-repository Epic. Child task records live in the
   repository they modify.
+- 20260731-084705 (make `content` fixture matching insensitive to line breaks)
+  was retired on 2026-07-31 and its record removed, so `tatr show` will not
+  resolve it: every step and proof it named lived in
+  `home/modules/agents/skills/fixtures/run.sh`, which 20260730-154955 deleted.
+  Its `line-breaks-are-load-bearing` ledger lesson is a plain x1 process lesson
+  with no promotion pointing at the task, so it stays as written.
 - Two Stories seeded here were MOVED to /home/alex/personal/tatr on 2026-07-31,
   reworded for that repository, and removed from this tasks/ tree, so
   `tatr show` will not resolve them here: 20260731-112502 (an honest terminal
