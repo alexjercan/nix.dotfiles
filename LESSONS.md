@@ -99,15 +99,6 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   while markdown headings, shell scripts, URLs and string literals each broke
   the documented command. Enumerate the file types the READER will aim it at.
   20260731-094537
-- `sweep-for-restatement-not-just-contradiction` (x2): a doc sweep that only
-  asks "does anything now contradict this?" cannot see a second copy - the
-  same sizing rule shipped in `plan/SKILL.md` and `flow/epic.md` in two
-  vocabularies, and the author had ALIGNED them on purpose, which is why it
-  read as agreement. `check.sh`'s duplicated-paragraph rule is verbatim-only,
-  so the paraphrased case has no gate. Ask both questions, and fix a
-  restatement by DELETING the copy - shrinking it to a pointer stub is a
-  duplicate plus an extra hop, which review then rejected as a two-hop load.
-  20260731-174343, 20260731-174352
 - `document-where-the-reader-reads` (x1): a convention that makes a mechanism
   reliable belongs in the doc its user loads, not the close-out that shipped
   it. 20260720-152508
@@ -199,6 +190,17 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   stale references; review now re-reads the neighboring rules and sweeps
   changed concepts and cross-references after a prose or contract edit.
   20260730-154958, 20260730-155003, 20260731-133122
+- `a-content-shaped-step-is-a-criterion` (x1): a plan Step that spells out a
+  sentence ("Keep findings in REVIEW, change facts in TASK...") gets discharged
+  by PASTING that sentence, and the check that the file already satisfied it
+  never happens - the result was a restatement shipped into the very file that
+  forbids restatement. Ask what the Step wants to be TRUE, then check whether
+  it already is. 20260731-174415
+- `a-new-heading-reparents-what-follows` (x1): inserting a section heading
+  changes the scope of every paragraph below it up to the next heading, and the
+  diff shows nothing - a file-wide "do not duplicate prose across records" rule
+  silently became a Diagnose-only rule with its own lines untouched. Re-read
+  the whole section after adding a heading. 20260731-174415
 - `a-green-gate-licenses-only-what-it-inspects` (x1): citing a passing checker
   as evidence a convention holds requires reading the rule - `reference-too-deep`
   only tests nesting INSIDE one skill directory, so a cross-skill pointer chain
@@ -241,6 +243,21 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   before a branch existed. 20260730-142533, 20260730-155003, 20260731-094537
 
 ## Pending promotions (3+ occurrences, user decides)
+
+- `sweep-for-restatement-not-just-contradiction` (x3, PROMOTE 2026-07-31 -> 20260731-205300): a doc sweep that only
+  asks "does anything now contradict this?" cannot see a second copy - the
+  same sizing rule shipped in `plan/SKILL.md` and `flow/epic.md` in two
+  vocabularies, and the author had ALIGNED them on purpose, which is why it
+  read as agreement. `check.sh`'s duplicated-paragraph rule is verbatim-only,
+  so the paraphrased case has no gate. Ask both questions, and fix a
+  restatement by DELETING the copy - shrinking it to a pointer stub is a
+  duplicate plus an extra hop, which review then rejected as a two-hop load.
+  A third time the restatement landed in the file whose own subject is not
+  duplicating records, two screens from the rule it copied. Promotion order
+  audit: no tool can see a PARAPHRASE (duplicated-paragraph is verbatim-only)
+  and no template owns prose, so the candidate is a review/sweep rule - ask
+  what now RESTATES this, not only what contradicts it.
+  20260731-174343, 20260731-174352, 20260731-174415
 
 - `commit-before-every-sabotage` (x3, PROMOTE 2026-07-31 -> 20260731-202400): the A/B commit-first rule applies per
   sabotage, not per task - a restore reverted uncommitted review fixes, then a
