@@ -47,5 +47,5 @@ After children land, verify every Done Means proof, batch Manual Acceptance to
 the user, then `tatr flow <epic-id> --to DONE`. Report
 `GOAL DONE <epic-id>`.
 
-Each child must fit one understand-build-review context. Ask before splitting
-mid-cycle. Merge children that require throwaway shims to remain separate.
+Children are sized by the `plan` skill's reviewable-context and shim rules.
+Ask before splitting mid-cycle.

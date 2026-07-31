@@ -57,7 +57,8 @@ one as `dangling-supersede`.
 - `## Context` - the forces that make this a real choice: constraints,
   requirements, what already exists. One paragraph. Cite a `SPIKE.md` here if a
   spike fed it.
-- `## Decision` - the choice, in active voice.
+- `## Decision` - the choice, in active voice, and why you would build it from
+  scratch under today's constraints, not merely that it is what exists.
 - `## Alternatives considered` - each rejected option, how it would have worked
   HERE, and why it lost. "Do nothing" is always a candidate; say what deferring
   costs.

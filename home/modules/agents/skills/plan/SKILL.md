@@ -15,6 +15,11 @@ Output: `tasks/<id>/TASK.md` a cold session can execute top to bottom.
    constraint.
 2. Keep one cohesive change as one task. Split only independently
    implementable/committable pieces or an explicit multi-feature container.
+   Name the ownership boundaries each piece touches and size it to one
+   reviewable context: one understand-build-review pass over them. A cohesive
+   task needing a
+   throwaway shim or a broken intermediate state to split does not split -
+   record that reason and its breadth instead.
 3. Create with
    `tatr new "<imperative title>" -p <priority> -t <tags> -b <body-file>`.
    Run one creation per command. Priority is soft ordering; `-d` is hard
@@ -31,8 +36,12 @@ Output: `tasks/<id>/TASK.md` a cold session can execute top to bottom.
 ## Rules
 
 - No padding. Plan from the system, not a remembered model.
-- Plan the simplest design that satisfies the DoD. Generality, options, and
-  extension points need a caller in this task, or they are deferrals.
+- Plan the simplest design that satisfies the DoD: knowing the current
+  constraints, would we build this route from scratch? Keep a concept budget -
+  every mode, branch, option, wrapper, extension point, generality, or
+  abstraction needs a
+  named requirement, caller, or invariant in this task, or it is deferred.
+- File and line counts prompt an inspection, never a design verdict.
 - Run each `cmd:` proof on the base branch; it must be red for the intended
   missing change.
 - A new route into a state/mode requires a grep step listing all newly active

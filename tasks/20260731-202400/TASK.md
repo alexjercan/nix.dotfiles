@@ -1,4 +1,4 @@
-# Report DoD proofs already green on the base branch
+# Run a task's proofs safely: at-base reporting and a clean-tree sabotage guard
 
 - STATUS: OPEN
 - PRIORITY: 70
@@ -23,8 +23,11 @@ cheap to rewrite rather than after the Story ships behind it.
       is the finding: it cannot fail for the Story, so it proves nothing.
 - [ ] Decide the exit code: whether GREEN-AT-BASE is a warning or a failure,
       and whether the plan gate consumes it. Record the choice.
-- [ ] Update the plan skill's proof guidance to name the command, and delete
-      the prose the tool now enforces.
+- [ ] Add the sabotage guard: refuse to mutate a proof's target while
+      `git status --porcelain` is non-empty, and say why - a sabotage restore
+      targets HEAD, so uncommitted edits are what it would destroy.
+- [ ] Update the plan and work skills' proof guidance to name the commands,
+      and delete the prose the tool now enforces.
 
 ## Definition of Done
 
@@ -40,10 +43,15 @@ cheap to rewrite rather than after the Story ships behind it.
   directory of this repository. The implementing change lands in the tatr
   repository; this record exists so the ledger promotion has an ID in this
   tree, per the epic reference's cross-repo rule.
-- Promotion target for the `baseline-dod-proofs` lesson (x3), disposition
-  PROMOTE recorded 2026-07-31. The promotion-order audit chose a tool over
-  skill prose because classifying a proof as already-green is mechanical and
-  needs no judgement.
+- Promotion target for TWO lessons, both PROMOTE recorded 2026-07-31:
+  `baseline-dod-proofs` (x3) and `commit-before-every-sabotage` (x3). Both
+  audits chose a tool over skill prose - classifying a proof as already-green
+  and detecting a dirty tree are mechanical and need no judgement. They share
+  this task because both are "run a task's `cmd:` proofs against a known tree
+  state"; splitting them would split one seam.
+- `commit-before-every-sabotage` recurred three times in Epic 20260731-174333
+  alone, twice destroying committed-pending review fixes. Prose has failed to
+  prevent it three times, which is what moved it to a tool.
 - Third occurrence, 20260731-174348: a proof token that read as distinctive
   (`independent`) already matched `work/verify.md`, three directories from
   anything that Story would write, so the proof was green before the branch

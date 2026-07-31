@@ -47,19 +47,17 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `task-close-contracts-must-compose` (x1): a task-specific workflow that
   closes a task must also produce the generic records required by `tatr check`;
   spike currently omits review and retro from its close path. 20260730-142052
-- `out-of-context-review-pass` (x7, PROMOTED 2026-07-20 -> review skill
+- `out-of-context-review-pass` (x9, PROMOTED 2026-07-20 -> review skill
   round-1 default): the fresh-context reviewer found what the implementing
   session could not see (an unfailable test; a docs-only loophole; a
   whitespace hole in a validator; a conformance gate that checked a hardcoded
   list; a record claiming more than its mechanism proves; a new rule blind on
   44% of its own corpus while passing every sabotage its author wrote; a
   routing legend that stated the opposite of what the tool it routed does; a
-  DoD proof blind to half its own criterion).
-  20260720-152433, 20260720-152438, 20260720-152503, 20260730-142533, 20260730-154958, 20260730-154955, 20260731-142934, 20260731-142000
-- `commit-before-every-sabotage` (x2): the A/B commit-first rule applies per
-  sabotage, not per task - a restore reverted uncommitted review fixes, then a
-  sabotage loop run before committing round-1 fixes restored the FEATURE state
-  over them and reported three meaningless passes. 20260720-152433, 20260731-142000
+  DoD proof blind to half its own criterion; a rule the author had aligned
+  across two files, which reads as agreement to the aligner and as duplication
+  to a stranger).
+  20260720-152433, 20260720-152438, 20260720-152503, 20260730-142533, 20260730-154958, 20260730-154955, 20260731-142934, 20260731-142000, 20260731-174343
 - `scripted-replace-asserts-match` (x1): str.replace edits silently no-op on a
   one-char mismatch; assert the match and re-read the artifact. 20260720-152433
 - `heredoc-splits-the-chain` (x1): commands after a heredoc block are not part
@@ -100,6 +98,12 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   while markdown headings, shell scripts, URLs and string literals each broke
   the documented command. Enumerate the file types the READER will aim it at.
   20260731-094537
+- `sweep-for-restatement-not-just-contradiction` (x1): a doc sweep that only
+  asks "does anything now contradict this?" cannot see a second copy - the
+  same sizing rule shipped in `plan/SKILL.md` and `flow/epic.md` in two
+  vocabularies, and the author had ALIGNED them on purpose, which is why it
+  read as agreement. `check.sh`'s duplicated-paragraph rule is verbatim-only,
+  so the paraphrased case has no gate. Ask both questions. 20260731-174343
 - `document-where-the-reader-reads` (x1): a convention that makes a mechanism
   reliable belongs in the doc its user loads, not the close-out that shipped
   it. 20260720-152508
@@ -229,6 +233,18 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 
 ## Pending promotions (3+ occurrences, user decides)
 
+- `commit-before-every-sabotage` (x3, PROMOTE 2026-07-31 -> 20260731-202400): the A/B commit-first rule applies per
+  sabotage, not per task - a restore reverted uncommitted review fixes, then a
+  sabotage loop run before committing restored the FEATURE state over them and
+  reported three meaningless passes, then `git checkout HEAD --` wiped a fresh
+  edit a third time. The restore target is HEAD, so whatever is uncommitted is
+  exactly what the restore destroys, and the loop then reports green. Promotion
+  order audit: a TOOL owns this cleanly - any sabotage helper can refuse to run
+  while `git status --porcelain` is non-empty, which prevents the failure
+  instead of asking the operator to remember it. Skill prose has now failed to
+  prevent it three times.
+  20260720-152433, 20260731-142000, 20260731-174343
+
 - `baseline-dod-proofs` (x3, PROMOTE 2026-07-31 -> 20260731-202400): run each DoD cmd: proof against the base branch
   at plan time - once it was already broken on master, once eight of nine were
   already GREEN, and a third time a proof token that read as distinctive
@@ -256,11 +272,14 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   voided a proof.
   20260730-154958, 20260731-125123, 20260731-150849, 20260731-142000
 
-- `refactor-by-rule-not-by-section` (x3, PROMOTE 2026-07-31 -> 20260731-150130): budget refactors need a
+- `refactor-by-rule-not-by-section` (x4, PROMOTE 2026-07-31 -> 20260731-150130): budget refactors need a
   source-faithful imperative inventory; section cuts dropped four rules once,
   paraphrasing then reversed one and missed triggers, and compression to a word
   cap silently retired four rule words that only review caught. Promotion order
   audit: no tool can tell a rule word from a filler word, and no template owns
   prose, so the candidate is skill prose - a plan or work rule to inventory the
   imperatives before a size-driven rewrite and diff the inventory after.
-  20260730-142533, 20260731-133122, 20260731-142934
+  A fourth occurrence: compressing a rule to fit a word cap dropped
+  "Generality" from the plan's concept budget while `review/dimensions.md`
+  still fails a diff for "generality no Step names".
+  20260730-142533, 20260731-133122, 20260731-142934, 20260731-174343
