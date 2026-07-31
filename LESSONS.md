@@ -192,28 +192,6 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 
 ## Pending promotions (3+ occurrences, user decides)
 
-- `counts-come-from-the-diff` (x6, PROMOTE 2026-07-31 -> 20260731-094524)
-  -> tatr (tool), falling back to the close-out template: work reports and
-  close records must cite what the diff SHOWS - numbers and identifiers alike -
-  not what a summary of it says. The sixth occurrence was not a count but a
-  commit id: `495073f` was recorded as the commit that pinned the tatr input,
-  because its SUBJECT said "bump tatr to the v2 rev"; it bumped only to an
-  intermediate revision, and `git log -S<rev> -- flake.lock` names `456e3ec`.
-  One unverified fact written early propagated into four records. Five cycles
-  have hand-copied a diff stat into a record and got it wrong, three times in
-  the close-out that NARRATES this lesson: twice by reading the number before
-  appending the block quoting it (496, then 593 against a real 596), and once
-  by reading the wrong command entirely - `git diff --cached --shortstat`
-  measures the index against the previous commit, not the branch against its
-  base. Prose has not held it because the failure is a MOMENT, not a source,
-  and three review rounds were needed to catch three instances of it.
-  Proposed: `tatr` renders the stat itself - e.g. `tatr stat <id> --since
-  <base>` emitting the `git diff --shortstat` line for the task's branch - so
-  the record cites generated output instead of a retyped number. If that is
-  more tool than it is worth, the weaker form is a close-out template carrying
-  the command rather than its result.
-  20260720-171843, 20260720-171836, 20260730-142540, 20260730-154955, 20260730-155003
-
 - `dod-grep-excludes-task-records` (x6, PROMOTE 2026-07-31 -> 20260731-094537)
   -> plan skill DoD guidance (WIDEN an
   existing promotion): the 2026-07-20 promotion tells absence-proving greps to

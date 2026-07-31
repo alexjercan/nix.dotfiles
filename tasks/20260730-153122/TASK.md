@@ -144,6 +144,14 @@ conditional parallel planning and review.
 - Source review: tasks/20260730-142052/SPIKE.md
 - This is an explicit cross-repository Epic. Child task records live in the
   repository they modify.
+- Two Stories seeded here were MOVED to /home/alex/personal/tatr on 2026-07-31,
+  reworded for that repository, and removed from this tasks/ tree, so
+  `tatr show` will not resolve them here: 20260731-112502 (an honest terminal
+  state for retired tasks) and 20260731-094524 (`tatr stat`, promoted from
+  `counts-come-from-the-diff`). Both mechanisms only ever landed in tatr. The
+  ledger entry backing 094524 moved with it, because `tatr check --ledger`
+  resolves a PROMOTE target only inside its own `tasks/` tree - so a
+  cross-repository promotion cannot be recorded from this side.
 - The user explicitly permits breaking tatr compatibility. Prefer the clean
   target schema and migrate/revalidate old records rather than retaining a
   permanent compatibility layer.
