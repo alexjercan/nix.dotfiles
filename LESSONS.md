@@ -198,11 +198,9 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 
 ## Pending promotions (3+ occurrences, user decides)
 
-- `write-the-sabotage-first` (x3): a proof written before anything that can
-  break it is unfalsifiable, and SIZE is no exemption - a one-line `grep -c`
-  stayed green with five of six rows deleted, and this cycle shipped two more
-  blind proofs (one matching two lines at once, one matching the OLD heading it
-  was meant to prove changed). Sabotage every proof, at PLAN time: both would
-  have died before a branch existed. Promotion order: no tool can sabotage a
-  proof for you, so this is plan-skill prose (`plan/proofs.md`), where the
-  proof is written. 20260730-142533, 20260730-155003, 20260731-094537
+- `write-the-sabotage-first` (x3, PROMOTE 2026-07-31 -> 20260731-125123)
+  -> plan skill proofs reference: a proof nothing has broken is unfalsifiable,
+  and SIZE is no exemption - a one-line `grep -c` stayed green with five of six
+  rows deleted, and two more blind proofs shipped (one matching two lines at
+  once, one already green on master). Sabotage at PLAN time; both would have
+  died before a branch existed. 20260730-142533, 20260730-155003, 20260731-094537
