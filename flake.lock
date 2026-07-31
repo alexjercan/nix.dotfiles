@@ -571,15 +571,16 @@
         "uv2nix": "uv2nix_2"
       },
       "locked": {
-        "lastModified": 1784974977,
-        "narHash": "sha256-Oc79x/y9iuMk0sDFoDgbXlB6GnMT74N8WPqvtXj0ILM=",
+        "lastModified": 1785501654,
+        "narHash": "sha256-V9VmMUt16Ze8hDf3KnJHjB2613S2RWA5azekGfdPIe4=",
         "owner": "alexjercan",
         "repo": "today",
-        "rev": "ce9f28e0daad5395a65ebd69570f4224c6810d3b",
+        "rev": "b76548fa712aadeb3b5d814d86edb178bb8f6762",
         "type": "github"
       },
       "original": {
         "owner": "alexjercan",
+        "ref": "v0.1.0",
         "repo": "today",
         "type": "github"
       }

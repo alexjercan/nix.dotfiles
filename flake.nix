@@ -37,7 +37,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     today = {
-      url = "github:alexjercan/today";
+      url = "github:alexjercan/today/v0.1.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     macros-nvim = {
