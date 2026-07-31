@@ -4,7 +4,7 @@
 - PRIORITY: 70
 - TAGS: skills, flow, docs, refactor
 - KIND: TASK
-- FLOW STEP: WORKING
+- FLOW STEP: COMPOUNDING
 - PLAN STATUS: APPROVED
 
 ## Why
