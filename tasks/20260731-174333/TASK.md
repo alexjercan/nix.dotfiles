@@ -40,8 +40,9 @@ and context failures into better future plans.
 
 ## Child Tasks
 
-- [ ] 20260731-142000 (p100, nix.dotfiles) Make avoidable complexity block
-      review approval.
+- [x] 20260731-142000 (p100, nix.dotfiles) Make avoidable complexity block
+      review approval. Landed 20b88ec; review APPROVE round 1;
+      `fix-touches-its-neighbours` promotion completed.
 - [ ] 20260731-174343 (p90, nix.dotfiles) Plan simple reviewable one-context
       changes. Depends on: 20260731-142000.
 - [ ] 20260731-174348 (p85, nix.dotfiles) Bound worker context with delegated

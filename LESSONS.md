@@ -190,6 +190,11 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   records a hope - `validateSopsFiles` only hashes the file, and a flow legend
   called `--to` a non-default edge when a bare `tatr flow` walks those same
   edges. Run it, or write "should". 20260730-190929, 20260731-142934
+- `fix-touches-its-neighbours` (x3, PROMOTED 2026-07-31 -> review skill Docs
+  dimension): prose edits repeatedly broke neighboring contracts and left
+  stale references; review now re-reads the neighboring rules and sweeps
+  changed concepts and cross-references after a prose or contract edit.
+  20260730-154958, 20260730-155003, 20260731-133122
 - `quote-a-gate-with-the-gates-own-rig` (x1): a measurement quoted against a
   gate must come from the gate's extractor, not a plausible equivalent - a
   close-out reported a skill body at 336/400 from `wc -w` on the whole file
@@ -249,9 +254,3 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   prose, so the candidate is skill prose - a plan or work rule to inventory the
   imperatives before a size-driven rewrite and diff the inventory after.
   20260730-142533, 20260731-133122, 20260731-142934
-
-- `fix-touches-its-neighbours` (x3, PROMOTE 2026-07-31 -> 20260731-142000) -> review skill: prose edits repeatedly
-  broke neighboring contracts and stale references. Promotion order audit:
-  no reliable tool/template owner; add a review rule to sweep concepts and
-  cross-references after prose changes. 20260730-154958, 20260730-155003,
-  20260731-133122

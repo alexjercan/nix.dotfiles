@@ -1,10 +1,10 @@
 # Make avoidable complexity block review approval
 
-- STATUS: IN_PROGRESS
+- STATUS: CLOSED
 - PRIORITY: 100
 - TAGS: skills, review, lessons, docs, flow
 - KIND: STORY
-- FLOW STEP: COMPOUNDING
+- FLOW STEP: DONE
 - PLAN STATUS: APPROVED
 - PARENT: 20260731-174333
 
@@ -37,7 +37,7 @@ cannot follow.
 - [x] Keep the review body/reference budgets and every existing correctness,
       spec, test, docs, honesty, fresh-context, and round-ownership rule.
 - [x] Run the skill gate, task/ledger checks, and full flake checks.
-- [ ] After landing, use the lessons workflow to finish the recorded
+- [x] After landing, use the lessons workflow to finish the recorded
       `fix-touches-its-neighbours` promotion.
 
 ## Definition of Done
