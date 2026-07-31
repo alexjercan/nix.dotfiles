@@ -11,8 +11,8 @@ User may request lanes.
   Report mutating/building proofs as skipped for primary execution.
 - Correctness/security/concurrency: boundaries, errors, validation, races,
   hostile/corrupt inputs.
-- Design/standards/docs: conventions, reuse, complexity, decision records,
-  invalidated documentation.
+- Design/standards/docs: conventions, reuse, scope/YAGNI, complexity,
+  decision records, invalidated documentation.
 
 Give each the same task ID, branch/worktree, default, dimensions, record
 format, and its lens. Exclude implementation context and other replies.

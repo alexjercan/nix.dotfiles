@@ -38,11 +38,14 @@ Run the full check suite yourself. Then ask of the new tests:
 
 ## Design
 
-Consistency with the repository's conventions, needless complexity, missed
-reuse. If the diff makes a load-bearing architectural choice a cold reader
-would need the *why* of, check it has a `DECISION.md`, and that a decision
-changing an earlier one carries the supersede link on BOTH records. A missing
-record for a genuinely load-bearing choice is MINOR, not BLOCKER.
+Consistency with the repository's conventions, missed reuse, and scope the
+Story did not ask for. YAGNI is a finding: an abstraction with one caller, an
+unused parameter or option, a knob nobody requested, generality no Step names.
+Name the lines to delete. Refactoring, tests and records the plan asked for are
+not YAGNI findings. If the diff makes a load-bearing architectural choice a
+cold reader would need the *why* of, check it has a `DECISION.md`, and that a
+decision changing an earlier one carries the supersede link on BOTH records. A
+missing record for a genuinely load-bearing choice is MINOR, not BLOCKER.
 
 ## Docs
 

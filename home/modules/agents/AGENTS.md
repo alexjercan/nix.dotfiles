@@ -25,7 +25,12 @@ Global agent guidelines.
 ## Technical decisions
 
 - Optimize for correctness, maintainability, and design quality.
-- Ignore implementation time. More code, refactoring, or tests are valid costs.
+- Ignore implementation time. Refactoring and tests are valid costs.
+- YAGNI: build what is asked and what the code shows is needed. No
+  speculative parameter, hook, abstraction, or config knob.
+- KISS: the simplest design that meets the requirement. One caller is not an
+  abstraction.
+- Quality is a cost worth paying; scope is not.
 
 ## Testing
 

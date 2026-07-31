@@ -28,12 +28,6 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   a section matcher accepted a heading inside a fenced example. Write the
   emptiest and the decoration-satisfied case first; this is separate from
   proving each rule can fire. 20260730-142540
-- `line-breaks-are-load-bearing` (x2): a checker that matches raw text sees the
-  line breaks too - two content assertions were red against a file that DID
-  state the rule, because the phrase wrapped, and a pointer condition lost half
-  its words to the same wrap, and a budget-tight rewrite left an article
-  orphaned at a line end. Normalize whitespace in the matcher; reflow the
-  paragraph you edited. 20260730-154958, 20260731-125123
 - `narrow-the-guard-to-the-word` (x2): an assertion listing several acceptable
   alternatives proves only that ONE held - a fixture matched on `external`
   while the `research` clause it guarded could be deleted, and a disclosure
@@ -147,10 +141,13 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   record, and equally the prose the same diff writes about the thing removed;
   the guidance now excludes `tasks/` by directory AND comments by pattern.
   20260720-171855, 20260720-171910, 20260720-171902, 20260720-171843, 20260720-171836, 20260720-220044, 20260730-190929
-- `edit-the-worktree-not-the-cwd` (x3, PROMOTED 2026-07-20 -> work skill sprout
-  step): the shell cwd resets between Bash calls - drive edits/git by absolute
-  worktree path or `git -C`, never chain cross-repo git in one call (two GOAL
-  ticks committed from the wrong repo). 20260720-152451, 20260720-171902, 20260720-171843, 20260720-220130
+- `edit-the-worktree-not-the-cwd` (x4, PROMOTED 2026-07-20 -> work skill sprout
+  step): the shell cwd resets between Bash calls - drive edits/git/`tatr` by
+  absolute worktree path (`git -C`, `tatr -r`), never chain cross-repo git in
+  one call (two GOAL ticks committed from the wrong repo; then three
+  `tatr flow` calls run in the main checkout, which the promoted prose misses
+  because it says "edit/git" and a record command is neither).
+  20260720-152451, 20260720-171902, 20260720-171843, 20260720-220130, 20260731-150849
 - `dry-run-in-a-scratch-repo` (x3, PROMOTED 2026-07-20 -> plan skill verify-first
   guidance): verify load-bearing git/nix semantics in a throwaway scratch repo
   before writing a step on them. 20260703-104437, 20260704-105059, 20260704-134842, 20260720-220130, 20260722-220536
@@ -207,6 +204,18 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   before a branch existed. 20260730-142533, 20260730-155003, 20260731-094537
 
 ## Pending promotions (3+ occurrences, user decides)
+
+- `line-breaks-are-load-bearing` (x3): a checker that matches raw text sees the
+  line breaks too, and an edit that changes a line's length leaves the rest of
+  the paragraph ragged - two content assertions were red against a file that
+  DID state the rule, a pointer condition lost half its words to a wrap, a
+  budget-tight rewrite orphaned an article at a line end, and a one-line
+  rewrap left an 8-character orphan line mid-paragraph. Normalize whitespace
+  in the matcher; reflow the paragraph you edited. Promotion order audit: a
+  TOOL can own the second half - an 80-column check over the skill markdown in
+  `home/modules/agents/skills/check.sh` would catch every ragged reflow with
+  no reviewer, which is strictly better than more prose asking for care.
+  20260730-154958, 20260731-125123, 20260731-150849
 
 - `refactor-by-rule-not-by-section` (x3, PROMOTE 2026-07-31 -> 20260731-150130): budget refactors need a
   source-faithful imperative inventory; section cuts dropped four rules once,

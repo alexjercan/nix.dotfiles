@@ -31,6 +31,8 @@ Output: `tasks/<id>/TASK.md` a cold session can execute top to bottom.
 ## Rules
 
 - No padding. Plan from the system, not a remembered model.
+- Plan the simplest design that satisfies the DoD. Generality, options, and
+  extension points need a caller in this task, or they are deferrals.
 - Run each `cmd:` proof on the base branch; it must be red for the intended
   missing change.
 - A new route into a state/mode requires a grep step listing all newly active
