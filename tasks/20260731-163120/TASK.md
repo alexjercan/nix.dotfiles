@@ -4,7 +4,7 @@
 - PRIORITY: 70
 - TAGS: skills, flow, docs, refactor
 - KIND: TASK
-- FLOW STEP: WORKING
+- FLOW STEP: REVIEWING
 - PLAN STATUS: APPROVED
 
 ## Why
@@ -94,7 +94,10 @@ Follow-up (user review of the working set):
 
 Limitations:
 
-- Could not create the planned sprout worktree or commit because the sandbox
-  mounted `.git/index.lock` read-only. Changes are in the main workspace.
+- The planned sprout worktree was never created: the first pass hit a
+  read-only `.git/index.lock`, and the user then chose to commit on `master`
+  directly. Landed as `e2d065d`.
+- `nix flake check` still unrun; the nix daemon socket is not reachable from
+  this sandbox.
 - Manual DoD remains user judgement: audit classification matches the removed
   comment set and retained constraint comments.
