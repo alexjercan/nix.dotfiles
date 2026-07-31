@@ -208,7 +208,7 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 
 ## Pending promotions (3+ occurrences, user decides)
 
-- `refactor-by-rule-not-by-section` (x3): budget refactors need a
+- `refactor-by-rule-not-by-section` (x3, PROMOTE 2026-07-31 -> 20260731-150130): budget refactors need a
   source-faithful imperative inventory; section cuts dropped four rules once,
   paraphrasing then reversed one and missed triggers, and compression to a word
   cap silently retired four rule words that only review caught. Promotion order
