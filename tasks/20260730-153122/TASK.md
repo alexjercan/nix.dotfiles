@@ -1,11 +1,11 @@
 # Epic: flow-suite v3 concise context and tatr-native orchestration
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 0
-- TAGS: goal,skills,flow
+- TAGS: goal, skills, flow
 - KIND: EPIC
-- FLOW STEP: PLANNING
-- PLAN STATUS: DRAFT
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Epic
 
@@ -114,34 +114,41 @@ conditional parallel planning and review.
 
 ## Manual Acceptance
 
-- (pending) 20260730-154955: read `flow/SKILL.md` Finish, `lessons/SKILL.md`
-  step 5 and `compound/SKILL.md` step 6 together and confirm one actor asks
+- (accepted 2026-07-31) 20260730-154955: read `flow/SKILL.md` Finish,
+  `lessons/SKILL.md` step 5 and `compound/SKILL.md` step 6 together and confirm one actor asks
   for the lesson disposition, one tool records it, and compound does neither.
   Nothing automated checks that three prose files agree about an actor.
-- (pending) Confirm the final output budgets produce concise but sufficient
-  reports on representative flow, spike, plan, work, review, and compound runs.
-- (pending) 20260730-154958: run one lane-selecting review and read the round,
-  confirming the lanes stay inside their stated caps and the round reads as one
+- (accepted 2026-07-31) Confirm the final output budgets produce concise but
+  sufficient reports on representative flow, spike, plan, work, review, and
+  compound runs.
+- (accepted 2026-07-31) 20260730-154958: run one lane-selecting review and read
+  the round, confirming the lanes stay inside their stated caps and the round reads as one
   deduplicated review rather than three concatenated ones. (The fixtures that
   proved the skill texts SAY this were removed in 20260730-154955, so this
   item now covers both the text and the behavior.) Since 20260730-155003
   dropped the automated parallel-lanes criterion from `## Done Means`, this is
   the Epic's ONLY remaining acceptance for bounded parallel lanes: it cannot be
   waived without leaving that feature unaccepted.
-- (pending) 20260730-142540: run one real spike that retains a prototype, then
-  confirm the prototype still runs from its recorded command after the spike
+- (accepted 2026-07-31) 20260730-142540: run one real spike that retains a
+  prototype, then confirm the prototype still runs from its recorded command after the spike
   closes. The `retained_prototype_smoke` fixture that proved the record NAMES a
   command, observations, a verdict and its limitations was removed in
   20260730-154955, so this item now covers both. See
   tasks/20260730-142540/DECISION.md.
-- (pending) 20260730-142533: confirm the live behavior the structural gate
-  cannot observe - that a real session loads only the guarded branch files,
+- (accepted 2026-07-31) 20260730-142533: confirm the live behavior the
+  structural gate cannot observe - that a real session loads only the guarded branch files,
   selects the intended skill on both Claude Code and codex, and keeps its
   reports inside the stated caps. `bash home/modules/agents/skills/check.sh`
   proves the SHAPE that makes this possible, never the obedience.
 
 ## Notes
 
+- Finish run 2026-07-31: criteria 1, 2 and 6 re-run green (`tatr check
+  --ledger` in both repositories, `check.sh` clean at 9 skills / 22 rules /
+  179 flow-family description words, `nix flake check --no-build` all checks
+  passed); criteria 3 and 5 green inside `nix develop -c bash checker.sh`,
+  107/107. Criterion 4 and the five `## Manual Acceptance` items were accepted
+  by the user in one batch at the gate.
 - Source review: tasks/20260730-142052/SPIKE.md
 - This is an explicit cross-repository Epic. Child task records live in the
   repository they modify.
