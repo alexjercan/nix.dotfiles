@@ -1,10 +1,10 @@
 # Keep agent code comments minimal
 
-- STATUS: IN_PROGRESS
+- STATUS: CLOSED
 - PRIORITY: 70
 - TAGS: skills, flow, docs, refactor
 - KIND: TASK
-- FLOW STEP: COMPOUNDING
+- FLOW STEP: DONE
 - PLAN STATUS: APPROVED
 
 ## Why
