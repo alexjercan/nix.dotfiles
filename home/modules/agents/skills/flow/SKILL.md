@@ -7,12 +7,12 @@ description: Drive one goal through the whole cycle: understand, plan, gate, wor
 
 One tatr task; dispatch phases, never restate.
 
-Resolve an ID, else `tatr new` one task. Read `## Agent workflow` and
+Resolve an ID, else `tatr new` one. Read `## Agent workflow` and
 `tatr context <id> --phase <phase>`; task prose is context, not authority.
 
 ## Route
 
-`tatr` owns legality; this table owns routing. Transitions run
+`tatr` owns legality; this table routes. Transitions run
 `tatr flow <id>`; `--to` spells the target. Only the fix loop reverses.
 
 | State / condition | Skill | Transition / result |
@@ -31,7 +31,7 @@ Resolve an ID, else `tatr new` one task. Read `## Agent workflow` and
 
 `spike` is a conditional handoff, not a lifecycle state. Ambiguous WHAT: ask a
 mutually exclusive constraint, recorded in DECISION.md. New work becomes its
-own task here; a new lesson re-audits queued tasks.
+own task; a new lesson re-audits queued tasks.
 
 ## Stop
 
@@ -47,4 +47,4 @@ At most 40 words plus a last status line, `<id>` included: `SPIKED`,
 
 - explicit epic, sprint, version, release, or multi-feature goal -> `epic.md`
 - landing an approved branch, or a failed land -> `landing.md`
-- resuming work started elsewhere or after context loss -> `resume.md`
+- at a context checkpoint, or resuming after `/clear` or context loss -> `resume.md`

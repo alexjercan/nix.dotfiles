@@ -47,7 +47,7 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `task-close-contracts-must-compose` (x1): a task-specific workflow that
   closes a task must also produce the generic records required by `tatr check`;
   spike currently omits review and retro from its close path. 20260730-142052
-- `out-of-context-review-pass` (x9, PROMOTED 2026-07-20 -> review skill
+- `out-of-context-review-pass` (x10, PROMOTED 2026-07-20 -> review skill
   round-1 default): the fresh-context reviewer found what the implementing
   session could not see (an unfailable test; a docs-only loophole; a
   whitespace hole in a validator; a conformance gate that checked a hardcoded
@@ -56,8 +56,9 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   routing legend that stated the opposite of what the tool it routed does; a
   DoD proof blind to half its own criterion; a rule the author had aligned
   across two files, which reads as agreement to the aligner and as duplication
-  to a stranger).
-  20260720-152433, 20260720-152438, 20260720-152503, 20260730-142533, 20260730-154958, 20260730-154955, 20260731-142934, 20260731-142000, 20260731-174343
+  to a stranger; a de-duplication that left a pointer stub, which is a
+  duplicate plus an extra hop).
+  20260720-152433, 20260720-152438, 20260720-152503, 20260730-142533, 20260730-154958, 20260730-154955, 20260731-142934, 20260731-142000, 20260731-174343, 20260731-174352
 - `scripted-replace-asserts-match` (x1): str.replace edits silently no-op on a
   one-char mismatch; assert the match and re-read the artifact. 20260720-152433
 - `heredoc-splits-the-chain` (x1): commands after a heredoc block are not part
@@ -98,12 +99,15 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   while markdown headings, shell scripts, URLs and string literals each broke
   the documented command. Enumerate the file types the READER will aim it at.
   20260731-094537
-- `sweep-for-restatement-not-just-contradiction` (x1): a doc sweep that only
+- `sweep-for-restatement-not-just-contradiction` (x2): a doc sweep that only
   asks "does anything now contradict this?" cannot see a second copy - the
   same sizing rule shipped in `plan/SKILL.md` and `flow/epic.md` in two
   vocabularies, and the author had ALIGNED them on purpose, which is why it
   read as agreement. `check.sh`'s duplicated-paragraph rule is verbatim-only,
-  so the paraphrased case has no gate. Ask both questions. 20260731-174343
+  so the paraphrased case has no gate. Ask both questions, and fix a
+  restatement by DELETING the copy - shrinking it to a pointer stub is a
+  duplicate plus an extra hop, which review then rejected as a two-hop load.
+  20260731-174343, 20260731-174352
 - `document-where-the-reader-reads` (x1): a convention that makes a mechanism
   reliable belongs in the doc its user loads, not the close-out that shipped
   it. 20260720-152508
@@ -195,6 +199,11 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   stale references; review now re-reads the neighboring rules and sweeps
   changed concepts and cross-references after a prose or contract edit.
   20260730-154958, 20260730-155003, 20260731-133122
+- `a-green-gate-licenses-only-what-it-inspects` (x1): citing a passing checker
+  as evidence a convention holds requires reading the rule - `reference-too-deep`
+  only tests nesting INSIDE one skill directory, so a cross-skill pointer chain
+  cleared `check.sh` while breaking the "one level deep" convention the README
+  states. The gate proved shape, not the property assumed. 20260731-174352
 - `quote-a-gate-with-the-gates-own-rig` (x1): a measurement quoted against a
   gate must come from the gate's extractor, not a plausible equivalent - a
   close-out reported a skill body at 336/400 from `wc -w` on the whole file

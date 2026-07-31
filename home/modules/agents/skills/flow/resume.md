@@ -1,8 +1,36 @@
-# Resuming an interrupted flow
+# Checkpointing and resuming a flow
 
 Read this when picking up a task another session (or an earlier context)
-started. The files on disk are the whole state; the previous conversation is
-gone and must not be guessed at.
+started, and when this session must hand its own task off. The files on disk
+are the whole state; the previous conversation is gone and must not be guessed
+at.
+
+## 0. Hand off before you lose the context
+
+A checkpoint is a normal flow move, not a failure. `work` owns the trigger.
+At one, commit an atomic green step, then record the completed Step, the
+commit and check results, and the next Step in TASK.md. A checkpoint is not a
+lifecycle transition, so it runs no `tatr flow` - the phase you paused in is
+the phase you resume in.
+
+Then emit the fresh-session prompt. Its whole payload is:
+
+```
+/flow <id>
+```
+
+Add a line only for state the next session cannot discover from `tatr`, `git`
+and `sprout` - uncommitted work you chose to leave, or an external thing you
+started. Never a conversation summary: everything a summary would carry is
+either on disk already or was never durable.
+
+A checkpoint is not terminal, so the handoff report carries no status line -
+SKILL.md's four all end a goal.
+
+The agent records and verifies that state, then ASKS the user to run `/clear`.
+It cannot invoke `/clear` or `/compact` itself and must never claim it can.
+Automatic compaction by the runtime is not the handoff - the committed branch
+and the updated TASK.md are.
 
 ## 1. Read the state, not the history
 
@@ -38,8 +66,8 @@ The Route table in SKILL.md already names the skill and the transition for
 every recorded step; dispatch from it, not from the previous session's intent.
 Resuming adds three cautions to those rows:
 
-- WORKING: read the branch diff and TASK.md Steps first, then finish only the
-  unticked ones.
+- WORKING: read the worktree diff and the literal Steps in TASK.md first, then
+  finish only the unticked ones.
 - REVIEWING: read REVIEW.md before dispatching - an open BLOCKER or MAJOR
   finding is the fix row, not another review round.
 - DONE: the task is closed, which says nothing about whether it landed.

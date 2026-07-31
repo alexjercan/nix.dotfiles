@@ -1,13 +1,13 @@
-# Delegation and context checkpoints
+# Delegating a bounded Step
 
-Two ways to keep an implementation context bounded: hand one Step to a
-subagent, or checkpoint and hand the whole task to a fresh session. Neither
-weakens verification - the parent still proves everything itself.
+Handing one Step to a subagent keeps the implementation context bounded
+without weakening verification - the parent still proves everything itself.
+When the whole task must move instead, `flow/resume.md` owns that handoff.
 
 ## Thresholds
 
 120K visible context tokens is the soft checkpoint: finish the current step,
-commit, and decide whether to continue. 150K is the hard ceiling - hand off.
+commit, and decide whether to continue or delegate. 150K is the hard ceiling.
 When token usage is unavailable, the trigger is the first compaction warning,
 or an active working set that no longer fits one focused pass.
 
@@ -45,18 +45,3 @@ the final verification; a subagent never runs `tatr flow` and never lands.
 Truly parallel work becomes its own Story and its own sprout worktree. Do not
 add a second writer to one worktree, and do not build a multi-branch
 integration scheme for it.
-
-## Checkpointing for a fresh session
-
-At a checkpoint, finish an atomic green step if one is close, and commit it.
-Uncommitted work does not survive the handoff.
-
-Then record in TASK.md what the next session cannot re-derive: the Step just
-completed, the commit and check results, and the next Step to take. Tick only
-what is genuinely done.
-
-Then hand off. Leave the task at its current FLOW STEP, report the task ID,
-the branch and the next Step, and ask the user to clear the session. The agent
-cannot invoke `/clear` or `/compact` itself and must never claim it can.
-Automatic compaction by the runtime is not the contract - the committed branch
-and the updated TASK.md are.
