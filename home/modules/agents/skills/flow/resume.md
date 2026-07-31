@@ -34,15 +34,15 @@ before re-sprouting, because `sprout new` reuses an existing branch.
 
 ## 3. Re-enter at the FLOW STEP
 
-| FLOW STEP | Resume by |
-| --- | --- |
-| BACKLOG, UNDERSTANDING | resume the Understand route |
-| PLANNING | invoke `plan`, then the gate |
-| PLANNED | invoke `work` (plan is already approved) |
-| WORKING | read the branch diff and TASK.md Steps, finish the unticked ones |
-| REVIEWING | read REVIEW.md; open BLOCKER/MAJOR findings -> `work`, else `review` |
-| COMPOUNDING | invoke `compound`, then land |
-| DONE | the task is closed; check whether the branch actually landed |
+The Route table in SKILL.md already names the skill and the transition for
+every recorded step; dispatch from it, not from the previous session's intent.
+Resuming adds three cautions to those rows:
+
+- WORKING: read the branch diff and TASK.md Steps first, then finish only the
+  unticked ones.
+- REVIEWING: read REVIEW.md before dispatching - an open BLOCKER or MAJOR
+  finding is the fix row, not another review round.
+- DONE: the task is closed, which says nothing about whether it landed.
 
 A DONE task whose branch still exists in `sprout ls` did not land. Verify with
 `git log <default> --oneline` before assuming either way.

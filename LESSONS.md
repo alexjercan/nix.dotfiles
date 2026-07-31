@@ -42,22 +42,25 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `compute-coverage-dont-claim-it` (x1): "21 rules proven able to fail" was 20
   of 26, and "runs in CI" described a script nothing ran; derive a
   completeness claim from the artifact and fail on the gap. 20260730-142533
-- `refactor-by-rule-not-by-section` (x2): budget refactors need a
-  source-faithful imperative inventory; section cuts dropped four rules once,
-  then paraphrasing reversed one and missed triggers. Verify every old rule is
-  retained, moved, or explicitly retired. 20260730-142533, 20260731-133122
+- `measure-the-empty-structure` (x1): a formatting choice can dominate a size
+  budget - a markdown table costs four words per row in pipes alone, so the
+  first correct draft was 414 words against a 300-word cap and the cuts that
+  followed came out of rules, not padding. Price the empty structure before
+  concluding the content is what is over. 20260731-142934
 - `split-files-need-isolated-phases` (x2): progressive disclosure saves
   context only when unused branches remain unread or phases use fresh contexts;
   reading every split file in one session merely defers the same cost. 20260730-142052, 20260730-142533
 - `task-close-contracts-must-compose` (x1): a task-specific workflow that
   closes a task must also produce the generic records required by `tatr check`;
   spike currently omits review and retro from its close path. 20260730-142052
-- `out-of-context-review-pass` (x6, PROMOTED 2026-07-20 -> review skill
+- `out-of-context-review-pass` (x7, PROMOTED 2026-07-20 -> review skill
   round-1 default): the fresh-context reviewer found what the implementing
   session could not see (an unfailable test; a docs-only loophole; a
   whitespace hole in a validator; a conformance gate that checked a hardcoded
   list; a record claiming more than its mechanism proves; a new rule blind on
-  44% of its own corpus while passing every sabotage its author wrote). 20260720-152433, 20260720-152438, 20260720-152503, 20260730-142533, 20260730-154958, 20260730-154955
+  44% of its own corpus while passing every sabotage its author wrote; a
+  routing legend that stated the opposite of what the tool it routed does).
+  20260720-152433, 20260720-152438, 20260720-152503, 20260730-142533, 20260730-154958, 20260730-154955, 20260731-142934
 - `commit-before-every-sabotage` (x1): the A/B commit-first rule applies per
   sabotage, not per task - a restore reverted uncommitted review fixes. 20260720-152433
 - `scripted-replace-asserts-match` (x1): str.replace edits silently no-op on a
@@ -168,10 +171,11 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   active task instead of creating an umbrella/child pair, unless the user asks
   for an epic, sprint, version, release, or multi-feature container.
   20260725-110435
-- `untested-guarantee-comment` (x1): a comment claiming a tool VALIDATES or
-  REJECTS something is a testable claim, and one written while designing the
-  mechanism records a hope - sops-nix's `validateSopsFiles` only hashes the
-  file, it never checks keys. Test it in the same edit or write "should". 20260730-190929
+- `untested-guarantee-comment` (x2): prose asserting what a tool does is a
+  testable claim, and one written from the design or from neighbouring docs
+  records a hope - `validateSopsFiles` only hashes the file, and a flow legend
+  called `--to` a non-default edge when a bare `tatr flow` walks those same
+  edges. Run it, or write "should". 20260730-190929, 20260731-142934
 - `test-harness-exit-code` (x1): the pipe-eats-the-exit-code rule applies to
   the SCAFFOLDING too - a helper ending in `| head` always returns 0, which
   reported two working assertions as broken. Capture `e=$?` on the producing
@@ -203,6 +207,15 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   before a branch existed. 20260730-142533, 20260730-155003, 20260731-094537
 
 ## Pending promotions (3+ occurrences, user decides)
+
+- `refactor-by-rule-not-by-section` (x3): budget refactors need a
+  source-faithful imperative inventory; section cuts dropped four rules once,
+  paraphrasing then reversed one and missed triggers, and compression to a word
+  cap silently retired four rule words that only review caught. Promotion order
+  audit: no tool can tell a rule word from a filler word, and no template owns
+  prose, so the candidate is skill prose - a plan or work rule to inventory the
+  imperatives before a size-driven rewrite and diff the inventory after.
+  20260730-142533, 20260731-133122, 20260731-142934
 
 - `fix-touches-its-neighbours` (x3, PROMOTE 2026-07-31 -> 20260731-142000) -> review skill: prose edits repeatedly
   broke neighboring contracts and stale references. Promotion order audit:
