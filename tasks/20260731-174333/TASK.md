@@ -1,11 +1,11 @@
 # Epic: enforce ambitious simplicity and bounded-context flow
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 0
-- TAGS: goal,skills,flow
+- TAGS: goal, skills, flow
 - KIND: EPIC
-- FLOW STEP: BACKLOG
-- PLAN STATUS: DRAFT
+- FLOW STEP: DONE
+- PLAN STATUS: APPROVED
 
 ## Epic
 
