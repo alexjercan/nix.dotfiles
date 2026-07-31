@@ -3,80 +3,33 @@ name: compound
 description: Write a task retro after its review is APPROVEd and fold the lessons into the ledger. Use for `/compound` before landing.
 ---
 
-# Compound - Retro After the Cycle
+# Compound - Retro After Review
 
-The retro is about the PROCESS, not the change. TASK.md already records what
-changed and why; the retro records how the working went and what to do
-differently. Each cycle should leave the process a little better than it found
-it - that is the compounding.
+RETRO records process. TASK records the change; REVIEW records findings.
 
 ## Workflow
 
-1. **Check the cycle is done.** The latest REVIEW.md round says APPROVE and
-   `tatr check <id>` is clean. Under `flow` the task is in COMPOUNDING, which
-   `tatr flow` only grants on an APPROVE. Resolve its findings before
-   reflecting. If the cycle is not done, say so and stop, unless the user
-   explicitly wants a retro on unfinished work.
+1. Require latest REVIEW.md APPROVE and clean `tatr check <id>`. Under flow,
+   require COMPOUNDING. Otherwise stop unless the user explicitly requests an
+   unfinished retro.
+2. Re-read TASK.md, every review round, and branch log. Identify practices to
+   repeat, specific failures and root causes, and actionable improvements.
+3. Run `tatr scaffold <id> RETRO`; fill it briefly and blamelessly. Name the
+   failed decision and why it seemed sound then.
+4. Search the ledger. Append or bump each general lesson: slug, one sentence,
+   bare count, task IDs; two lines maximum. Mark skill-specific candidates
+   with `-> <skill> skill`.
+5. At occurrence three, move the bare-count entry to Pending promotions and
+   propose `tool > template/format > skill prose`. Record no disposition and
+   ask nothing here; `lessons` owns the user gate. Follow-up implementation
+   gets a new task. Keep one-offs only in RETRO.
+6. Commit retro and ledger on the feature branch before landing. If already
+   landed, first verify the main checkout branch, then commit there.
 
-2. **Gather the evidence.** Do not reflect from memory alone. Re-read TASK.md
-   (the plan as executed, the close-out), REVIEW.md (every finding escaped
-   implementation; every round cost a cycle), and the branch's git log (rework,
-   reverts and fix-ups are signals).
-
-3. **Reflect honestly** with specifics, not platitudes:
-   - What went well - practices worth repeating on purpose.
-   - What went wrong, and its ROOT CAUSE. "R1.1 happened because the
-     middleware was written before reading how server state is shared", not
-     "should have been more careful".
-   - What to improve, phrased as something a future session can act on.
-
-4. **Write the retro.**
-
-   ```bash
-   tatr scaffold <id> RETRO
-   ```
-
-   Fill `tasks/<id>/RETRO.md`. Blameless but specific: name the decision that
-   failed and why it seemed right at the time. Three sharp observations beat a
-   page of filler, and a smooth cycle deserves a short retro that says so.
-
-5. **Update the ledger.** Append or bump each generalizable lesson - slug, one
-   sentence, occurrence count, task IDs. Two lines is the cap; if the addition
-   needs more you are writing a variant, so sharpen the sentence instead.
-   Counts stay BARE - `(x3)`, never `(x3, note)` - until a lifecycle event
-   annotates them. When a lesson is really a rule for one skill, say so in the
-   entry (`-> work skill`) at any count. Format and search order: the lessons
-   skill's `ledger.md`.
-
-6. **Record and count; decide nothing.** A lesson reaching three occurrences
-   moves to the ledger's `## Pending promotions` section with its count bare,
-   and that is where compound stops. Compound never records a disposition,
-   never self-promotes a lesson into a tool, template, AGENTS.md or skill, and
-   does not ask for the decision either - the gate belongs to `lessons`, which
-   flow's Finish and a release pass both run. Name the
-   promotion order in the proposal (tool > template/format > skill prose -
-   prose warns, tools prevent) so the eventual decision has it to hand.
-   Follow-up code work becomes a new tatr task; one-off observations stay in
-   the retro.
-
-7. **Commit.** On the feature branch, from inside its worktree, when the work
-   has not landed yet, so the retro travels with the task and the squash folds
-   it into the same commit. Otherwise on the default branch in the main
-   checkout - and there, check `git branch --show-current` first, since
-   parallel sessions move the shared checkout's HEAD.
-
-## Guidelines
-
-- Do not restate the diff or duplicate TASK.md's close-out. Each file has a
-  lane: TASK.md is what changed and the evidence rig, REVIEW.md is findings,
-  RETRO.md is process, a seeding spike's `## Fix record` is a few lines of
-  family status pointing at the task, and the ledger is reusable learning.
-  Writing the same prose three times is the main cost of the documentation
-  habit.
-- Look for patterns in the ledger, not just in this cycle. A lesson appearing
-  for the third time is a rule waiting for a home.
+Do not duplicate prose across records. A recurring pattern belongs in the
+ledger, not every close-out.
 
 ## Output
 
-The new and bumped lesson slugs and any follow-up task IDs - 100 words or
-fewer. `tatr flow <id>` then moves COMPOUNDING -> DONE.
+New/bumped slugs and follow-up IDs; at most 100 words. Then `tatr flow <id>`
+moves COMPOUNDING to DONE.

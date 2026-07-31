@@ -1,6 +1,6 @@
 # Landing an approved branch
 
-Read this at flow step 4.5, once `review` returned APPROVE and `compound`
+Read this after `review` returns APPROVE and `compound` has
 committed the retro on the feature branch. Landing is PR-shaped: bring the
 branch up to date with its base, re-verify, then squash it back as ONE commit.
 

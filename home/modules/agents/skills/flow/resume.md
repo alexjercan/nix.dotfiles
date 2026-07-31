@@ -36,7 +36,7 @@ before re-sprouting, because `sprout new` reuses an existing branch.
 
 | FLOW STEP | Resume by |
 | --- | --- |
-| BACKLOG, UNDERSTANDING | flow step 2 |
+| BACKLOG, UNDERSTANDING | resume the Understand route |
 | PLANNING | invoke `plan`, then the gate |
 | PLANNED | invoke `work` (plan is already approved) |
 | WORKING | read the branch diff and TASK.md Steps, finish the unticked ones |

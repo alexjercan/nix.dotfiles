@@ -34,9 +34,11 @@ skills with their tool.
 ## Context budgets
 
 The flow family is `flow plan work review spike compound lessons sprout`.
-`flow` is a dispatcher; every other skill owns one phase. Branch-specific
-material lives in a conditional reference, read only when its condition holds
-and pointed at from a `## Load on demand` section in this shape:
+`flow` dispatches the plan, work, review, spike, compound, and lessons phases;
+`sprout` is the explicit worktree helper. The `today` tool pays the same body
+cap. Branch-specific material lives in a conditional reference, read only when
+its condition holds and pointed at from a `## Load on demand` section in this
+shape:
 
 ```markdown
 ## Load on demand
@@ -65,9 +67,9 @@ its own phase's version. See `tasks/20260730-154958/DECISION.md`.
 | --- | --- |
 | One description | at most 30 words |
 | All flow-family descriptions | at most 200 words |
-| `flow/SKILL.md` body | at most 500 words |
-| Any other `SKILL.md` body | at most 800 words |
-| One conditional reference | at most 1000 words, one level deep |
+| `flow/SKILL.md` body | at most 300 words |
+| Any other `SKILL.md` body | at most 400 words |
+| One conditional reference | at most 600 words, one level deep |
 | A phase's `## Output` contract | at most 150 words |
 
 Every row is the inclusive limit the gate compares against, so a surface

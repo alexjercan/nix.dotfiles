@@ -1,90 +1,37 @@
 # Parallel planning lanes
 
-Several planners answer the same question from different angles, and one of
-them synthesizes. Fresh perspectives are bought with context, so they are
-opened deliberately and closed the moment the plan is chosen.
+Default: one planner. Open two or three lanes only for an expensive or
+irreversible fork, independent domains, an Epic too large for one context, or
+an explicit request for alternatives.
 
-## When to open lanes
+## Lenses
 
-The default is one planner. Ordinary work - a change whose shape is already
-settled, a small addition inside an existing pattern, anything a three-line
-plan covers - gets one, and this file has nothing to add to it.
+Each lane plans the whole task with a distinct optimization:
 
-Open lanes only when at least one of these holds:
+- Minimal end to end: smallest landable Story; explicit deferrals/costs.
+- Deep interface: durable seams, names, and invariants.
+- Migration/risk: callers, data, rollback, and irreversible edges.
 
-- The plan turns on a fork that is expensive or irreversible to undo later: a
-  schema, a wire format, a public interface, a storage layout.
-- The work spans independent domains that a single planner would have to think
-  about serially anyway.
-- The task is an Epic whose material does not fit one context, so a single
-  planner would be planning from a summary.
-- The user asked for lanes, or asked to see alternatives compared.
+Drop irrelevant lenses. No fourth lane without a genuinely missing angle.
 
-Two or three lanes. Not one per idea, not one per file. If you cannot say what
-a fourth lane would look for that the first three would miss, there is no
-fourth lane.
+## Packet
 
-## The three lanes
+Give every lane the same read-only packet: task ID, verbatim request,
+`tatr context <id> --phase plan` artifacts, named files/commands, its lens,
+and output cap. Exclude other replies and the orchestrator's leanings.
 
-Each lane is a full plan for the whole task, differing in what it optimizes:
+Each returns at most 400 words: ordered Steps, DoD, and the likely blind spot
+of other lenses. No narrative, code, writes, or worktree.
 
-- **Minimal end to end.** The smallest thing that delivers the Story and can
-  land. What does it defer, and what does deferring cost?
-- **Deep interface.** The shape a cold reader would want in a year: the seams,
-  the naming, the invariants that stay true as the code grows.
-- **Migration and risk.** What breaks, what has to move, what is hard to
-  reverse. Existing data, existing callers, existing records, the rollback.
+## Synthesize
 
-Drop a lane whose angle the task does not have - a change with no existing
-callers and no stored state has no migration lane.
+The orchestrator:
 
-## The context packet
+1. Verifies claims, then selects or combines surviving parts.
+2. Writes one TASK.md plan.
+3. For a load-bearing choice, writes one DECISION.md with a short rejected
+   alternative per losing lane and the ruling constraint.
 
-Every lane receives an identical packet and nothing else:
-
-- the task ID and the request as the user stated it;
-- the artifacts `tatr context <id> --phase plan` lists, read-only;
-- the files and commands the packet names, for the lane to read itself;
-- this lane's angle, and its output cap.
-
-A lane never sees another lane's packet reply, and no other lane's conclusions
-reach it - not as a summary, not as "the other planner suggested". Lanes that
-compare notes produce one plan wearing three hats, which is the failure this
-whole shape exists to avoid. Neither does a lane receive the orchestrating
-session's own leanings; those are exactly the assumptions being tested.
-
-A lane returns at most 400 words: its ordered Steps, its Definition of Done,
-and the one thing it thinks the other angles will get wrong. No narrative, no
-code, no writes to any file.
-
-## Synthesis
-
-The orchestrating session, not a lane, chooses. Read all replies, then:
-
-1. Pick the lane that best fits the constraints, or assemble one plan from the
-   parts that survive scrutiny. Verify a claim before adopting it; a lane's
-   confidence is not evidence.
-2. Write one plan into the task's `TASK.md` - Steps and Definition of Done as
-   the plan skill specifies.
-3. Write one DECISION.md when the choice was load-bearing. Each losing lane
-   gets one rejected alternative paragraph: what it would have done here, and
-   the constraint that ruled it out. Two or three sentences each.
-
-Then discard the rest. Candidate replies are scratch: they are not committed,
-not stored under `tasks/`, and not pasted into the record. What survives is the
-chosen plan and the reasoning a cold reader needs, and nothing whose only
-function is to show that lanes ran.
-
-If two lanes disagree on a fact rather than a preference, that disagreement is
-the finding: check the fact yourself before choosing.
-
-## Resources
-
-Planning lanes are read-only. They read the repository and the task records,
-run nothing that writes, and never sprout a worktree. Every lane can therefore
-share the checkout that is already open, and no isolation is needed to keep
-them apart. A lane that wants to try something out is asking for a spike, not
-for write access.
-
-Nothing here changes when the branch is created: the chosen plan is
-implemented afterwards, in one worktree, by one implementer.
+Discard replies after synthesis; they are scratch, not task artifacts. If
+lanes disagree on fact, check it before choosing. A lane needing write access
+needs a spike instead.

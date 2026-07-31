@@ -26,13 +26,13 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FLOW_FAMILY=(flow plan work review spike compound lessons sprout)
 TOOL_SKILLS=(today)
 
-# Budgets, in words. Sourced from tasks/20260730-142052/SPIKE.md, the budget
-# table under `## Recommendation`.
+# Budgets, in words. Categories came from task 20260730-142052; compact caps
+# tightened in task 20260731-133122.
 BUDGET_DESCRIPTIONS_TOTAL=200   # every flow-family description, summed
 BUDGET_DESCRIPTION_EACH=30      # one description
-BUDGET_ROUTER_BODY=500          # flow/SKILL.md body
-BUDGET_PHASE_BODY=800           # every other SKILL.md body
-BUDGET_REFERENCE=1000           # one conditional reference
+BUDGET_ROUTER_BODY=300          # flow/SKILL.md body
+BUDGET_PHASE_BODY=400           # every other SKILL.md body
+BUDGET_REFERENCE=600            # one conditional reference
 BUDGET_OUTPUT_CONTRACT=150      # a phase's `## Output` contract, which is also
                                 # its handoff back to the orchestrator
 

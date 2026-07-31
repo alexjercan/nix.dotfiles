@@ -34,11 +34,6 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   its words to the same wrap, and a budget-tight rewrite left an article
   orphaned at a line end. Normalize whitespace in the matcher; reflow the
   paragraph you edited. 20260730-154958, 20260731-125123
-- `fix-touches-its-neighbours` (x2): a prose fix that satisfies its finding can
-  contradict a section the finding never named, and the sweep for the others
-  inherits the phrasing in front of you - `item already carries` could not match
-  the third copy saying `list already carries`. Re-read every rule sharing the
-  actor or ordering, and sweep the CONCEPT with alternatives. 20260730-154958, 20260730-155003
 - `narrow-the-guard-to-the-word` (x2): an assertion listing several acceptable
   alternatives proves only that ONE held - a fixture matched on `external`
   while the `research` clause it guarded could be deleted, and a disclosure
@@ -47,10 +42,10 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `compute-coverage-dont-claim-it` (x1): "21 rules proven able to fail" was 20
   of 26, and "runs in CI" described a script nothing ran; derive a
   completeness claim from the artifact and fail on the gap. 20260730-142533
-- `refactor-by-rule-not-by-section` (x1): cutting prose by heading or word
-  budget drops rules that merely shared a block with filler - four incident
-  rules went that way; extract every imperative first, then check each is
-  present, moved, or deliberately retired. 20260730-142533
+- `refactor-by-rule-not-by-section` (x2): budget refactors need a
+  source-faithful imperative inventory; section cuts dropped four rules once,
+  then paraphrasing reversed one and missed triggers. Verify every old rule is
+  retained, moved, or explicitly retired. 20260730-142533, 20260731-133122
 - `split-files-need-isolated-phases` (x2): progressive disclosure saves
   context only when unused branches remain unread or phases use fresh contexts;
   reading every split file in one session merely defers the same cost. 20260730-142052, 20260730-142533
@@ -100,12 +95,10 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
 - `rule-and-example-must-agree` (x2): re-read a rule and its examples together
   before committing - a format example has twice modeled the mistake its rule
   forbids. 20260720-152457, 20260720-152514
-- `run-every-documented-command` (x1): in a doc whose content IS commands, a
-  command reads as illustration and escapes the habit that would falsify it -
-  nine of thirteen findings were commands written by analogy and never run
-  (`^[^/]*` as the `//` twin of a tested `#` pattern; "re-run without `-E`",
-  which cannot filter differently since the ERE is a valid BRE). A FIX is a new
-  command and inherits the same untested status. 20260731-094537
+- `run-every-documented-command` (x2): run docs as written; analogy created
+  nine broken commands once, then compaction turned executable `sprout show`
+  guidance into a path-printing no-op. A fix is also untested until run.
+  20260731-094537, 20260731-133122
 - `dry-run-cases-come-from-the-reader` (x1): a dry-run scoped to the example
   that produced the rule only confirms the author - `#` comments in nix passed
   while markdown headings, shell scripts, URLs and string literals each broke
@@ -210,3 +203,9 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   before a branch existed. 20260730-142533, 20260730-155003, 20260731-094537
 
 ## Pending promotions (3+ occurrences, user decides)
+
+- `fix-touches-its-neighbours` (x3, PROMOTE 2026-07-31 -> 20260731-142000) -> review skill: prose edits repeatedly
+  broke neighboring contracts and stale references. Promotion order audit:
+  no reliable tool/template owner; add a review rule to sweep concepts and
+  cross-references after prose changes. 20260730-154958, 20260730-155003,
+  20260731-133122

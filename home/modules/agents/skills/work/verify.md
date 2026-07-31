@@ -1,75 +1,40 @@
 # Verification
 
-Read this at work step 5, before closing out. Do not report success on the
-strength of the diff; the checks must actually pass, and if some fail, say so
-with the output.
+Run, do not infer from the diff:
 
-## What to run
+1. Canonical checks from AGENTS.md: tests, lint, format, types, build.
+2. Every `tatr proofs <id>` proof, independently against its criterion.
+3. `tatr check <id>` and, when present, `tatr check --ledger <ledger>`.
 
-1. The repository's canonical check suite - its AGENTS.md `## Agent workflow`
-   cache names it. Tests, linter, formatter, type checker, build.
-2. Every proof from `tatr proofs <id>`, executed verbatim. Confirm each passes
-   on ITS OWN criterion, not a neighbouring one.
-3. `tatr check <id>`, and `tatr check --ledger <ledger>` when the repo has a
-   lessons ledger.
+Leave `manual:` pending for user confirmation. Replace any check that stays
+green with its mechanism removed.
 
-A `manual:` proof is not yours to tick. Report it as pending user confirmation
-and leave it for the reviewer to list and the user to accept. Self-ticking a
-manual item is the proxy verification the notation exists to prevent.
+## Failure traps
 
-## Every verification must be able to fail
+- Preserve exit codes: run bare, redirect then inspect, or use
+  `set -o pipefail`.
+- Shared observers/schedules require the whole affected suite.
+- New required fields require all-target builds and a constructor sweep.
+- Search tests for assertions/includes of changed data files; pin intent, not
+  incidental literals.
+- Commit before each sabotage; restore with `git checkout HEAD -- <file>`.
 
-If a check would still pass with the mechanism deleted, it proves nothing.
-Replace it with one that can fail.
+## Doc sweep
 
-## Pitfalls that have shipped breakage
+For every changed command, flag, type, path, or behavior, search live README,
+docs, AGENTS.md, and shipped skills. Fix stale surfaces in this task.
 
-- **Never pipe a check through a filter that eats its exit code.**
-  `cargo test | grep ...` reports grep's 0 on a failed compile. Run it bare,
-  or write the output to a file and grep the file, or `set -o pipefail`.
-- **Shared systems need the whole suite.** When the change touches a shared
-  observer, or adds to a shared schedule chain, run the whole affected
-  module's suite. Only the EXISTING tests catch a silently broken consumer.
-- **New required fields break what a plain check never compiles.** Exhaustive
-  constructors in tests and examples fail late. Build all targets (e.g.
-  `cargo check --all-targets`) and grep the repo for the type's literal.
-- **Fixture pins live far from the diff.** Before landing a content or data
-  change, grep for tests that assert on or `include_str!` the exact files
-  touched. Pin durable intents, not frozen literals a sibling will move.
-- **Sabotage-test in the right order.** To prove a regression test really
-  pins the bug, COMMIT the fix first, then sabotage, then
-  `git checkout <file>` to restore. A file-level checkout against an
-  uncommitted tree has destroyed finished work.
+Exclude `tasks/`: task history is append-only evidence, not current docs.
+Before removing a mechanism, search symbols, describing words, and all
+observers/queries across code, comments, docs, examples, tests, and changelog.
 
-## The doc-surface sweep
+## Sync base
 
-For every command, flag, type, path or behavior the diff renames, removes or
-changes, grep the repository's doc surfaces and fix every stale mention in the
-same task: README, the reference docs, AGENTS.md (its module maps and version
-claims especially), and the skill files when the repo ships skills.
+Before landing, merge local default into the feature inside its worktree,
+resolve/commit there, then rerun all verification. Require:
 
-Stale docs are not cosmetic - an outdated AGENTS.md module map has made a
-session invent API names a reviewer then had to catch.
+```bash
+git merge-base --is-ancestor <default> <branch>
+```
 
-**Task history is immutable.** The `tasks/` tree is the append-only record of
-what was true when each task ran, not a doc surface to correct. EXCLUDE it
-from the sweep (`--exclude-dir=tasks`, or scope the grep to code and doc
-paths) and never rewrite an old TASK/REVIEW/RETRO/NOTES to match a later
-rename. This is why absence-proving DoD greps also exclude `tasks/`: the
-record legitimately still quotes the old name. Fix the live doc surfaces;
-leave the history verbatim.
-
-## Before removing a mechanism
-
-Grep the workspace for its symbol names, its describing WORDS, and everything
-that observes or queries it - including comments, docs, examples, tests and
-the changelog. Silent consumers outlive clean symbol sweeps.
-
-## Syncing with the default branch
-
-A branch cannot land until it is up to date with its base. Merge the local
-default branch INTO the feature branch inside the worktree, resolve conflicts
-there, commit the merge, then re-run this whole verification. The branch is
-ready only when it is green and
-`git merge-base --is-ancestor <default> <branch>` succeeds. `work` never
-merges into the default branch; that is the caller's step.
+`work` never merges the feature into default.

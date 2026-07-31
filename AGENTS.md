@@ -74,9 +74,9 @@ flow itself) invalidates the skill texts in `home/modules/agents/skills/`;
 per the docs-sync rule, update those surfaces in the same task, and keep the
 skills generic - they run in every repo, not just this one.
 
-They are also budgeted. `flow/SKILL.md` is a dispatcher under 500 words; each
-phase body is under 800; branch-specific material goes in a conditional
-reference under 1000, pointed at from a `## Load on demand` section and read
+They are also budgeted. `flow/SKILL.md` is at most 300 words; each other skill
+body is at most 400; each conditional reference is at most 600, pointed at
+from a `## Load on demand` section and read
 only when its condition holds. A rule a tool or template can enforce belongs
 there, and the prose it replaces is deleted in the same change. See
 `home/modules/agents/skills/README.md`.
