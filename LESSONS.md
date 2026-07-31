@@ -62,10 +62,6 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   over them and reported three meaningless passes. 20260720-152433, 20260731-142000
 - `scripted-replace-asserts-match` (x1): str.replace edits silently no-op on a
   one-char mismatch; assert the match and re-read the artifact. 20260720-152433
-- `baseline-dod-proofs` (x2): run each DoD cmd: proof against the base branch
-  at plan time - once it was already broken on master, once eight of nine were
-  already GREEN, which turned a planned re-do into a confirm-and-reconcile and
-  stopped the diff claiming another commit's work. 20260720-152433, 20260730-155003
 - `heredoc-splits-the-chain` (x1): commands after a heredoc block are not part
   of its && chain - commit in a separate call gated on success. 20260720-152438
 - `tick-against-the-literal-step` (x2): re-read a step's exact text before
@@ -199,10 +195,12 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   gate must come from the gate's extractor, not a plausible equivalent - a
   close-out reported a skill body at 336/400 from `wc -w` on the whole file
   while `check.sh` strips frontmatter first and measures 306. 20260731-142000
-- `test-harness-exit-code` (x1): the pipe-eats-the-exit-code rule applies to
-  the SCAFFOLDING too - a helper ending in `| head` always returns 0, which
-  reported two working assertions as broken. Capture `e=$?` on the producing
-  line. 20260730-190929
+- `test-harness-exit-code` (x2): the pipe-eats-the-exit-code rule applies to
+  the SCAFFOLDING too, and to any command substitution between the command and
+  `$?` - a helper ending in `| head` reported two working assertions as broken,
+  then `echo "... $(basename $f) -> $?"` reported six sabotaged proofs as
+  surviving. Capture `e=$?` on the producing line, before any string that
+  interpolates. 20260730-190929, 20260731-174348
 - `checkout-head-not-index` (x1): `git checkout -- <file>` restores from the
   INDEX, so a helper that runs `git add` first makes the restore a silent
   no-op and leaks the sabotage into the next test. Use `git checkout HEAD --`. 20260730-190929
@@ -230,6 +228,18 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   before a branch existed. 20260730-142533, 20260730-155003, 20260731-094537
 
 ## Pending promotions (3+ occurrences, user decides)
+
+- `baseline-dod-proofs` (x3, PROMOTE 2026-07-31 -> 20260731-202400): run each DoD cmd: proof against the base branch
+  at plan time - once it was already broken on master, once eight of nine were
+  already GREEN, and a third time a proof token that read as distinctive
+  (`independent`) already matched a file three directories away, so the proof
+  was green before the Story existed. A token is distinctive in the
+  REPOSITORY, not in the sentence the planner is imagining. Promotion order
+  audit: a TOOL can own this outright - running each `cmd:` proof against the
+  base branch and reporting the already-green ones is mechanical, needs no
+  judgement, and belongs next to `tatr proofs`. Skill prose is the fallback if
+  the tool change is out of reach.
+  20260720-152433, 20260730-155003, 20260731-174348
 
 - `line-breaks-are-load-bearing` (x4, PROMOTE 2026-07-31 -> 20260731-152845): a checker that matches raw text sees the
   line breaks too, and an edit that changes a line's length leaves the rest of

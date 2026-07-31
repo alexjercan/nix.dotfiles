@@ -37,6 +37,9 @@ Ship the maintainable solution, not the smallest plausible diff.
 - Split work that materially exceeds the plan.
 - Before a shared-main commit, check its branch.
 - Never truncate a checklist grep. Reuse production helpers in test rigs.
+- Checkpoint at 120K visible context tokens, hand off at 150K. When token
+  usage is unavailable, trigger on the first compaction warning or a working
+  set that no longer fits one focused pass.
 
 ## Output
 
@@ -45,6 +48,7 @@ the worktree. Do not merge, remove, or push.
 
 ## Load on demand
 
+- at a context checkpoint, or a bounded Step a subagent could own -> `delegation.md`
 - bug, crash, regression, or falsification -> `bug.md`
 - running checks and the doc-surface sweep -> `verify.md`
 - review returned REQUEST_CHANGES -> `review-feedback.md`
