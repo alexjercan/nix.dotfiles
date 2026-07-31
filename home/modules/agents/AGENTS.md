@@ -17,6 +17,10 @@ Global agent guidelines.
 - ASCII-adjacent characters only: `-`, `--`, `...`, `->`, straight quotes.
 - No em dashes, smart quotes, typographic ellipses, or arrows.
 - Applies to chat, code, comments, docs, and commit messages.
+- Code comments: docstrings or essential implementation notes only. Put
+  explanatory prose in task records.
+- Keep comments that guard a value ("do not change this") or explain a
+  non-obvious setting. Never prune those as noise.
 
 ## Commits
 

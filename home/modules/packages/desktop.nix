@@ -1,5 +1,3 @@
-# Desktop / X11 utilities: WM helpers, theming, audio and network applets,
-# file manager, virtualization GUI.
 {pkgs, ...}: {
   home.packages = with pkgs; [
     dconf

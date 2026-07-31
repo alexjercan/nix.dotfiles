@@ -1,6 +1,5 @@
 {pkgs, ...}: let
   editor-handler = pkgs.writeShellScriptBin "kitty-editor-handler" ''
-    # Strip editor:// protocol from URL
     file_path="''${1#editor://}"
     exec kitty nvim "$file_path"
   '';
@@ -46,7 +45,6 @@ in {
       "ctrl+f" = "launch --type=overlay-main tmux neww sesh";
       "ctrl+shift+f" = "launch --type=overlay-main bash -c 'read -p \"Enter the name of the new project: \" -r input; echo -n \"$input\" | xargs tmux neww sesh --create'";
 
-      # Move Focus
       "ctrl+shift+h" = "neighboring_window left";
       "ctrl+shift+j" = "neighboring_window down";
       "ctrl+shift+k" = "neighboring_window up";
@@ -55,13 +53,11 @@ in {
       "ctrl+shift+z" = "toggle_layout stack";
       "ctrl+shift+g" = "goto_layout grid";
 
-      # Split
       "ctrl+shift+-" = "launch --location=hsplit";
       "ctrl+shift+=" = "launch --location=vsplit";
     };
 
     extraConfig = ''
-      # Protocol handler for editor:// URLs
       protocol_handler editor launch --type=overlay nvim {path}
     '';
 
@@ -72,7 +68,6 @@ in {
     };
   };
 
-  # Register kitty as the handler for editor:// URLs
   xdg.desktopEntries.kitty-editor = {
     name = "Kitty Editor";
     exec = "${editor-handler}/bin/kitty-editor-handler %u";

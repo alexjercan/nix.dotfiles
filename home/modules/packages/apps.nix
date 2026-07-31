@@ -1,4 +1,3 @@
-# GUI applications: browsers, chat, office.
 {pkgs, ...}: {
   home.packages = with pkgs; [
     brave

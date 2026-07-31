@@ -1,4 +1,3 @@
-# Audio / video / graphics creation and playback.
 {pkgs, ...}: {
   home.packages = with pkgs; [
     audacity

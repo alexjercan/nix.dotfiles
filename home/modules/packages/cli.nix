@@ -1,4 +1,3 @@
-# Terminal / command-line utilities.
 {pkgs, ...}: {
   home.packages = with pkgs; [
     hello

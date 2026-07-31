@@ -1,4 +1,3 @@
-# Development tooling and personal CLIs.
 {pkgs, ...}: {
   home.packages = with pkgs; [
     ast-grep
