@@ -1,61 +1,50 @@
 # AGENTS.md
 
-Global guidelines for agent sessions. Keep these in mind for all work.
+Global agent guidelines.
 
-## Writing style
+## Core rules
 
-- Do not use em dashes or other typographic characters (smart quotes, ellipsis chars, arrows, etc).
-- Stick to plain ASCII-adjacent programmer syntax: `-`, `--`, `...`, `->`, straight quotes.
-- This applies to code, comments, docs, commit messages, and chat output.
+- Brevity first. Sacrifice grammar for concision.
+- Fragments over full sentences.
+- Bullets over prose.
+- Flat structure. Tables instead of 3+ bullet levels.
+- Direct statements. No hedging or preambles.
+- Reference prior context instead of repeating it.
+- Prefer "User can...", "Handles...", and "Requires:".
+
+## Writing
+
+- ASCII-adjacent characters only: `-`, `--`, `...`, `->`, straight quotes.
+- No em dashes, smart quotes, typographic ellipses, or arrows.
+- Applies to chat, code, comments, docs, and commit messages.
 
 ## Commits
 
-- Do not add a Claude co-author trailer or any AI attribution to commits. Write plain commit messages authored by me only.
+- User authorship only. No AI attribution or co-author trailers.
 
 ## Technical decisions
 
-- Do not factor implementation time into technical decisions. Agents write code much faster than humans, so "this would take too long" is not a valid argument.
-- Choose the approach that is correct, maintainable, and well-designed, even if it means more code, more refactoring, or more tests.
+- Optimize for correctness, maintainability, and design quality.
+- Ignore implementation time. More code, refactoring, or tests are valid costs.
 
-## Testing and examples
+## Testing
 
-- Prefer integration tests and end-to-end example scripts over isolated unit tests where practical.
-- When building a substantial component, consider shipping a small runnable example that exercises it end to end:
-  - a parsing module can get its own example CLI
-  - an algorithm can get a small GUI or visualization
-  - a web-facing feature can get a demo HTML page
-- These are not mandatory. Treat them as easy wins: if the user wants one or it is cheap to add, do it.
+- Prefer integration tests and end-to-end examples over isolated unit tests when practical.
+- For substantial components, consider a small runnable example when useful or cheap.
 
 ## Shell and verification
 
-- Never end a build/test command with a pipe or echo that eats its exit code (`cargo test | grep ...` reports grep's 0 on a failed compile). Run it bare, or write output to a file and grep the file, or `set -o pipefail`.
-- Kill helper processes by recorded PID, never `pkill -f <pattern>` - the pattern can match your own shell's command line or an unrelated process.
-- An edit you believe you made is a hypothesis until the artifact shows it; re-read the produced text, not just the tool's success report.
+- Preserve build/test exit codes: run bare, redirect then inspect, or use `set -o pipefail`.
+- Kill helper processes by recorded PID. Never use `pkill -f <pattern>`.
+- Re-read edited artifacts. Tool success does not prove correct content.
 
 ## Agent workflow cache
 
-A repository's own `AGENTS.md` should carry a short `## Agent workflow`
-section answering, in one line each, the questions every session otherwise
-re-derives from scratch:
-
-- the issue tracker, and the epic/story convention;
-- where prototypes and runnable examples live, and whether they are retained;
-- where domain or glossary docs live, if the repo has any;
-- allowed research sources, or network constraints;
-- the canonical check command(s), and where records live.
-
-Keep it to answers, with detail behind ONE pointer. Resolve a prototype or
-example location in this order: the `## Agent workflow` section, an established
-repo-native `examples/` or `scripts/` convention, the task folder, then one
-question to the user - and cache the answer there so no later session asks
-again.
+- Repository `AGENTS.md`: one `## Agent workflow` line each for tracker/epics, examples/retention, domain docs, research/network, and checks/records.
+- Detail behind one pointer.
+- Example location: declared -> existing `examples/` or `scripts/` -> task folder -> ask once and cache.
 
 ## Documentation and reflection
 
-After meaningful changes, document:
-
-- What changed and why the decision was made (alternatives considered, tradeoffs).
-- Difficulties encountered and any bugs that came up along the way, including how they were diagnosed and fixed.
-- Self-reflected feedback: what could have gone better during the implementation, and what to do differently next time. This is for future sessions to learn from.
-
-Keep these notes where the repository's own AGENTS.md says records live (task folders, a wiki, a lessons ledger). Only default to the repository's `docs/` folder when it defines no convention of its own.
+- After meaningful changes, record what/why/tradeoffs, bugs/fixes, and next-time improvements.
+- Use the repository record location; otherwise `docs/`.
