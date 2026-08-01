@@ -655,11 +655,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1785617500,
-        "narHash": "sha256-5e6Bf5KbfjyvjZdSTBqvKh1rSehw4/xtjkQ8ZSsO+EQ=",
+        "lastModified": 1785617791,
+        "narHash": "sha256-E51V0lx+RlJqE52AgcWV6dXCiHHgjqZu/O38/GQcyTk=",
         "owner": "alexjercan",
         "repo": "tatr",
-        "rev": "a1eccc699fd53dbd129532031176d8333ea15c71",
+        "rev": "e9fdbdb0c01a1bec51a04523c18a0724ac220b28",
         "type": "github"
       },
       "original": {
