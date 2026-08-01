@@ -306,12 +306,11 @@ done < <(awk -F'\t' '
 rm -f "$paragraphs"
 
 # --- 8. direct state edits --------------------------------------------------
-# `tatr flow` is the only writer of a task's lifecycle markers and `tatr ledger`
-# the only writer of a lesson disposition. Prose telling the agent to type one
-# in by hand reintroduces exactly the drift those transactional commands exist
-# to remove. The content fixtures enumerate FILES, so an imperative added to a
-# file no fixture names is invisible to them; this rule quantifies over the
-# family, which is what the criterion actually claims.
+# `tatr flow` is the only writer of a task's lifecycle markers. Prose telling
+# the agent to type one in by hand reintroduces exactly the drift that
+# transactional command exists to remove. The content fixtures enumerate FILES,
+# so an imperative added to a file no fixture names is invisible to them; this
+# rule quantifies over the family, which is what the criterion actually claims.
 #
 # Scoped to a CLAUSE, not a file and not a line. A marker named in one clause
 # and an edit verb in another is description followed by a separate
@@ -324,12 +323,12 @@ rm -f "$paragraphs"
 # landing on either side of a line break is the realistic shape, not the
 # exception (`line-breaks-are-load-bearing`).
 #
-# A clause is a violation when it names a marker (or a disposition in ledger
-# context) AND an edit verb, is NOT attributed to the tool, is NOT a
-# prohibition, and shows AGENCY - an imperative-initial verb, or an explicit
-# by-hand phrase. Agency is what separates "Set FLOW STEP: DONE yourself" from
-# "`tatr flow` writes FLOW STEP". Location words like "in TASK.md" are NOT
-# agency: they say where the marker lives, not who typed it.
+# A clause is a violation when it names a marker AND an edit verb, is NOT
+# attributed to the tool, is NOT a prohibition, and shows AGENCY - an
+# imperative-initial verb, or an explicit by-hand phrase. Agency is what
+# separates "Set FLOW STEP: DONE yourself" from "`tatr flow` writes FLOW STEP".
+# Location words like "in TASK.md" are NOT agency: they say where the marker
+# lives, not who typed it.
 #
 # One awk pass rather than a tr/sed/grep chain: it is the difference between
 # ~1.1s and ~0.1s over the tree, and it avoids `sed 's/x/\n/'`, whose newline
@@ -349,7 +348,6 @@ direct_state_edit_hits() {
       # and that inflection is the whole difference between the two.
       EVB = "(set|write|change|edit|type|put|mark|flip|update|add|append|record|replace|insert|bump|overwrite|fill|toggle|correct)"
       MARKER = "(flow step|plan status|status: *(open|in_progress|closed))"
-      DISPO = "(promote|defer|retire|absorbed)"
       HAND = "(by hand|hand-edit|yourself|manually)"
     }
     function judge(s,   t) {
@@ -357,11 +355,7 @@ direct_state_edit_hits() {
       if (s == "") return
       t = " " tolower(s) " "
       gsub(/`/, "", t)
-      # Subject: a lifecycle marker, or a disposition word in ledger context.
-      # The alternation is parenthesised - unwrapped, `(\(A|B|C\)?.*ledger)`
-      # binds so that bare `DEFER` matches with no ledger anywhere while a real
-      # `PROMOTE ... ledger` order slips past.
-      if (t !~ MARKER && !(t ~ "[^a-z]" DISPO "[^a-z]" && t ~ /ledger/)) return
+      if (t !~ MARKER) return
       if (t !~ "[^a-z]" EV "[^a-z]") return
       # Attributed to the tool: `tatr <verb>` as the clause subject, or named
       # as the instrument. Anchoring matters - a bare `tatr` anywhere would
@@ -413,7 +407,7 @@ for skill in "${FLOW_FAMILY[@]}"; do
     [ -n "$hits" ] || continue
     n="$(printf '%s\n' "$hits" | grep -c .)"
     fail "$rel" direct-state-edit \
-      "$n clause(s) order a lifecycle marker or disposition written by hand, first: $(printf '%s' "$hits" | head -1 | cut -c1-100)"
+      "$n clause(s) order a lifecycle marker written by hand, first: $(printf '%s' "$hits" | head -1 | cut -c1-100)"
   done < <(find "$root/$skill" -name '*.md' | sort)
 done
 
