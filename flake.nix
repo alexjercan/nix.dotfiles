@@ -37,7 +37,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     agent-knowledge = {
-      url = "git+file:///home/alex/personal/agent-knowledge?rev=996fcb791eb4c146c9fb08b64aca8c8284b2067f";
+      url = "git+file:///home/alex/personal/agent-knowledge?rev=7726b1cfc62201d53c4378bf18baff0e1d3f2ab8";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     today = {

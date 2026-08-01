@@ -11,16 +11,16 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1785612448,
-        "narHash": "sha256-aKRbsGGKHHxf8o3uMZ2LNPmA/wvIUBmoaJzIDKZAeG0=",
+        "lastModified": 1785613192,
+        "narHash": "sha256-U4eZLOdM2uagIK9Vb1pMkDkNGzW322Qvto20eZAOmOc=",
         "ref": "refs/heads/master",
-        "rev": "996fcb791eb4c146c9fb08b64aca8c8284b2067f",
-        "revCount": 16,
+        "rev": "7726b1cfc62201d53c4378bf18baff0e1d3f2ab8",
+        "revCount": 19,
         "type": "git",
         "url": "file:///home/alex/personal/agent-knowledge"
       },
       "original": {
-        "rev": "996fcb791eb4c146c9fb08b64aca8c8284b2067f",
+        "rev": "7726b1cfc62201d53c4378bf18baff0e1d3f2ab8",
         "type": "git",
         "url": "file:///home/alex/personal/agent-knowledge"
       }
