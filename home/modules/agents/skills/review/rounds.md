@@ -25,10 +25,10 @@ by hand - the file is the review history and is never rewritten - numbered from
 
 ## The round-1 subagent handoff
 
-One out-of-context reviewer is the default, bounded in both directions like the
-implementation subagent in `work/delegation.md`. A high-risk diff may split
-that reader into lanes instead; the review skill's lanes reference states when,
-and each lane is held to the bounds below plus its own lane assignment.
+One out-of-context reviewer is the default. If the current session started at
+REVIEWING after `/clear`, it is already that reviewer. If it contains the
+implementation history, hand off to a bounded reviewer like the implementation
+subagent in `work/delegation.md`. A high-risk diff may split into lanes instead.
 
 What it RECEIVES, and nothing else: the task ID, the branch, the worktree path,
 the default branch, the review dimensions, and this format. Never the
@@ -41,7 +41,7 @@ What it RETURNS: findings only, in the shape above, most severe first, plus any
 could not. No narrative, no fixes, no writes to any file, no commits. 400 words
 or fewer outside the findings themselves.
 
-The in-session pass then re-derives at least one load-bearing claim, runs the
+The recording pass then re-derives at least one load-bearing claim, runs the
 check suite itself, and writes and commits the round.
 
 ## The four severities

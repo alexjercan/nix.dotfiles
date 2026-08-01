@@ -10,12 +10,12 @@ Output: `tasks/<id>/TASK.md` a cold session can execute top to bottom.
 ## Workflow
 
 1. Read the request, named task, `tatr context <id> --phase plan` artifacts,
-   relevant code, and `tatr ls --sort priority`. Invoke `spike` when WHAT is
+   relevant code, and `tatr ls --sort priority`. Use `spike` when WHAT is
    unknown. Ask only when code cannot answer; state the mutually exclusive
    constraint.
 2. Keep one cohesive change as one task. Split only independently
    implementable/committable pieces or an explicit multi-feature container.
-   Name the ownership boundaries each piece touches and size it to one
+   Name touched ownership boundaries and size it to one
    reviewable context: one understand-build-review pass over them. A cohesive
    task needing a
    throwaway shim or a broken intermediate state to split does not split -
@@ -27,7 +27,7 @@ Output: `tasks/<id>/TASK.md` a cold session can execute top to bottom.
 4. Write ordered, verifiable Steps naming touched files. Every DoD item names
    its proof. Notes hold discovered files/facts, assumptions, and questions.
    Cite evidence for mechanisms and ordering, or say `confirm X, then ...`.
-   Verify load-bearing git/Nix semantics in a scratch repo. Phrase conditional
+   Verify load-bearing git/Nix semantics in scratch. Phrase conditional
    work as `decide X: do, or defer with reason`. Record load-bearing choices
    in DECISION.md.
 5. Present IDs/titles, DoD, Steps, assumptions, and decisions. Under `flow`,
@@ -50,8 +50,9 @@ Output: `tasks/<id>/TASK.md` a cold session can execute top to bottom.
 ## Output
 
 `/plan`: IDs, titles, assumptions; offer to commit task files. No
-implementation. Under `/flow`: DoD, ordered Steps, decisions; at most 250
-words, ending `PLANNED <id>`.
+implementation. Under `/flow`: concise operator plan - what changes, ordered
+Steps, DoD proofs, assumptions, decisions, and inspection commands. Ask for
+approval; end `PLAN_READY <id>`.
 
 ## Load on demand
 

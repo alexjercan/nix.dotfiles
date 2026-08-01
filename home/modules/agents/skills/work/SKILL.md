@@ -29,7 +29,7 @@ Ship the maintainable solution, not the smallest plausible diff.
 6. Tick a Step only after re-reading and completing every clause. Add TASK.md
    close-out: what/why, alternatives, difficulties/diagnosis, evidence, and
    reflection. Commit implementation and records together. Run `tatr flow
-   <id>` to REVIEWING.
+   <id>` to REVIEWING, then STOP for a fresh review session.
 
 ## Rules
 
@@ -43,8 +43,10 @@ Ship the maintainable solution, not the smallest plausible diff.
 
 ## Output
 
-Worktree, branch, task ID, summary, proof results; at most 150 words. Leave
-the worktree. Do not merge, remove, or push.
+Worktree, branch, task ID, changed files, proof results, confidence/risk, and
+inspection commands; at most 150 words. Tell the user to `/clear` unless
+`/compact` is enough for a tiny diff, then `/flow <id>`. End `WORK_DONE <id>`.
+Leave the worktree. Do not merge, remove, or push.
 
 ## Load on demand
 

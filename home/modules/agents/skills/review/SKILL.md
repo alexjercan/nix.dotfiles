@@ -15,9 +15,10 @@ Judge; do not patch. `work` owns fixes.
    `cd "$(sprout show <feature>)"`.
 2. For substantive round 1, use a reviewer outside the implementation
    context. Its prompt contains only task ID, branch/worktree, dimensions, and
-   record format. The primary reruns checks and independently re-derives at
-   least one load-bearing claim before accepting findings. Record reviewer
-   identity; explain any trivial-diff in-session exception.
+   record format. A fresh `/flow <id>` session that starts at REVIEWING counts
+   as the outside reviewer; do not spawn another by default. The primary reruns
+   checks and independently re-derives at least one load-bearing claim before
+   accepting findings. Record reviewer identity; explain exceptions.
 3. Verify every task and implementation claim. Write findings in REVIEW.md;
    each needs severity, `file:line`, and an actionable change.
 4. Verdict: REQUEST_CHANGES for any open BLOCKER/MAJOR, otherwise APPROVE.
@@ -26,7 +27,7 @@ Judge; do not patch. `work` owns fixes.
 5. Later rounds keep the out-of-context default unless an exception is
    recorded. Verify Responses and tick only confirmed fixes. Accept sound
    pushback. Add findings only for fix regressions. Ask the user after three
-   disputed rounds. APPROVE ends review.
+   total rounds or three disputed rounds.
 6. Commit REVIEW.md after every round.
 
 ## Rules
@@ -41,9 +42,9 @@ Judge; do not patch. `work` owns fixes.
 
 ## Output
 
-Findings first by severity, then verdict and pending manual items. Outside
-findings: at most 150 words. On APPROVE, `tatr flow <id>` moves to
-COMPOUNDING.
+Findings first by severity, then verdict, pending manual items, and inspection
+commands. Outside findings: at most 150 words. On APPROVE, STOP for operator
+approval; end `REVIEW_READY <id>`. On REQUEST_CHANGES, route to `work`.
 
 ## Load on demand
 

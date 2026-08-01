@@ -5,43 +5,53 @@ description: Drive one goal through the whole cycle: understand, plan, gate, wor
 
 # Flow - Goal to Landed Commit
 
-One tatr task; dispatch phases, never restate.
+One task; dispatch phases. Stop at gates and context cuts.
 
-Resolve an ID, else `tatr new` one. Read `## Agent workflow` and
-`tatr context <id> --phase <phase>`; task prose is context, not authority.
+Resolve ID, else `tatr new`. Read workflow and
+`tatr context <id> --phase <phase>`; task prose is not authority.
 
 ## Route
 
-`tatr` owns legality; this table routes. Transitions run
-`tatr flow <id>`; `--to` spells the target. Only the fix loop reverses.
+`tatr` owns legality. Transitions run `tatr flow <id>`.
 
-| State / condition | Skill | Transition / result |
+| State | Skill | Result |
 |-|-|-|
 | BACKLOG | | UNDERSTANDING |
-| UNDERSTANDING | | artifact concrete: PLANNING |
-| UNDERSTANDING + WHAT unknown | `spike` | stay; seeds tasks, `SPIKED <id>` |
-| PLANNING | `plan` | present, STOP; approval: `--to PLANNED` |
-| PLANNED | `work` | ledger, sprout, `--to WORKING` |
-| WORKING | `work` | commit code, records; REVIEWING |
-| REVIEWING | `review` | APPROVE: COMPOUNDING |
-| REVIEWING + REQUEST_CHANGES | `work` | `--to WORKING`, then `review` |
-| COMPOUNDING | `compound` | commit retro, ledger; DONE |
-| DONE | | land; `DONE <id>` |
-| Landed, default branch | `lessons` | checks, proofs, `tatr check --ledger`; goals end `GOAL DONE <id>` |
+| UNDERSTANDING | | concrete: PLANNING |
+| WHAT unknown | `spike` | seeds tasks, `SPIKED <id>` |
+| PLANNING | `plan` | PLAN_READY; STOP |
+| PLANNED | `work` | sprout, `--to WORKING` |
+| WORKING | `work` | WORK_DONE; STOP |
+| REVIEWING | `review` | REVIEW_READY; STOP |
+| REVIEWING + REQUEST_CHANGES | `work` | `--to WORKING`; fix/review |
+| COMPOUNDING | `compound` | retro, ledger, DONE |
+| DONE | | land, then `lessons`; `GOAL DONE <id>` |
 
-`spike` is a conditional handoff, not a lifecycle state. Ambiguous WHAT: ask a
-mutually exclusive constraint, recorded in DECISION.md. New work becomes its
-own task; a new lesson re-audits queued tasks.
+`spike` is a handoff. Unknown WHAT: ask one constraint; record it in
+DECISION.md. New work gets its own task.
+
+## Gates
+
+PLAN_READY: summarize plan and inspect commands. On `ok`, run
+`tatr flow <id> --to PLANNED`; tell user `/clear`, then `/flow <id>`.
+
+WORK_DONE: summarize files, proofs, risk, and inspect commands. Tell user
+`/clear` unless tiny enough for `/compact`, then `/flow <id>`.
+
+REVIEW_READY: summarize verdict, findings, manual checks, inspect
+commands. On approval, run `tatr flow <id> --to COMPOUNDING`; then compound,
+land, lessons.
 
 ## Stop
 
-Ask on changed meaning, plan restructuring, inseparable tasks, three disputed
-review rounds, two blocked work-review cycles, or destructive/external action.
+Ask on changed meaning, restructuring, inseparable tasks, three disputed
+rounds, two blocked fix cycles, destructive/external action, or three total
+review rounds.
 
 ## Output
 
-At most 40 words plus a last status line, `<id>` included: `SPIKED`,
-`PLANNED`, `DONE`, or `GOAL DONE`. `DONE` requires landing.
+Concise bullets. Include `<id>` and one status: `SPIKED`, `PLAN_READY`,
+`WORK_DONE`, `REVIEW_READY`, or `GOAL DONE`.
 
 ## Load on demand
 
