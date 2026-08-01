@@ -23,6 +23,9 @@ in {
           config.allowUnfree = true;
           overlays = [
             inputs.tatr.overlays.default
+            (final: _prev: {
+              knowledge = inputs.agent-knowledge.packages.${final.system}.knowledge;
+            })
             inputs.today.overlays.default
             inputs.macros-nvim.overlays.default
           ];

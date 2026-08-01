@@ -4,7 +4,7 @@ Run, do not infer from the diff:
 
 1. Canonical checks from AGENTS.md: tests, lint, format, types, build.
 2. Every `tatr proofs <id>` proof, independently against its criterion.
-3. `tatr check <id>` and, when present, `tatr check --ledger <ledger>`.
+3. `tatr check <id>`.
 
 Leave `manual:` pending for user confirmation. Replace any check that stays
 green with its mechanism removed.

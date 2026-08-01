@@ -1,4 +1,0 @@
-interface:
-  display_name: "Lessons"
-  short_description: "Compile scratch into the ledger"
-  default_prompt: "Use $lessons to fold the loose scratch into the lessons ledger and clear it."

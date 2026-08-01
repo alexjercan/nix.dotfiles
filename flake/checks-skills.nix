@@ -12,10 +12,16 @@
 # that must stay in step with the directories on disk. Adding a skill folder and
 # forgetting the list leaves a skill nobody ever loads, and nothing else in the
 # build notices.
-{inputs, ...}: {
+{
+  inputs,
+  lib,
+  ...
+}: {
   perSystem = {pkgs, ...}: let
     home = inputs.self.homeConfigurations.alex.config;
     source = "${inputs.self}/home/modules/agents/skills";
+    knowledgeSource = inputs.agent-knowledge.skills.knowledge;
+    knowledgePackage = inputs.agent-knowledge.packages.${pkgs.system}.knowledge;
 
     # What the module actually deploys, read back out of the evaluated home
     # config rather than re-derived from the list - so this check cannot agree
@@ -168,6 +174,105 @@
             *) fail "the codex activation script never copies '$name'" ;;
           esac
         done < on-disk
+
+        touch $out
+      '';
+
+    checks.knowledge-deployment-tree =
+      pkgs.runCommand "knowledge-deployment-tree" {
+        nativeBuildInputs = [pkgs.jq];
+        knowledgeBin = "${knowledgePackage}/bin/knowledge";
+        packageInstalled =
+          if lib.elem knowledgePackage home.home.packages
+          then "yes"
+          else "no";
+        knowledgeSourcePath = knowledgeSource;
+        knowledgeSource = builtins.toString knowledgeSource;
+        codexScript = home.home.activation.codexSkills.data;
+        deployedDetail = builtins.toJSON (builtins.listToAttrs (map (
+            path: {
+              name = path;
+              value = {
+                inherit (home.home.file.${path}) recursive;
+                source = builtins.toString home.home.file.${path}.source;
+              };
+            }
+          )
+          [
+            ".claude/skills/knowledge"
+            ".agents/skills/knowledge"
+          ]));
+      } ''
+        fail() { echo "knowledge-deployment-tree: $1" >&2; exit 1; }
+
+        [ "$packageInstalled" = yes ] || fail "knowledge package is not installed"
+        [ -x "$knowledgeBin" ] || fail "knowledge executable missing: $knowledgeBin"
+        [ -f "$knowledgeSourcePath/SKILL.md" ] || fail "external skill has no SKILL.md"
+        [ -f "$knowledgeSourcePath/agents/openai.yaml" ] ||
+          fail "external skill has no agents/openai.yaml"
+
+        printf '%s' "$deployedDetail" > detail.json
+        for root in .claude/skills .agents/skills; do
+          entry="$(jq -r --arg k "$root/knowledge" '.[$k] // empty' detail.json)"
+          [ -n "$entry" ] || fail "$root/knowledge is not deployed"
+          [ "$(printf '%s' "$entry" | jq -r .recursive)" = true ] ||
+            fail "$root/knowledge is not recursive"
+          [ "$(printf '%s' "$entry" | jq -r .source)" = "$knowledgeSource" ] ||
+            fail "$root/knowledge does not use the external skill source"
+        done
+
+        case "$codexScript" in
+          *"\$codexSkills/knowledge"*) ;;
+          *) fail "codex activation script never copies knowledge" ;;
+        esac
+
+        touch $out
+      '';
+
+    checks.compound_observation_failure_is_non_blocking =
+      pkgs.runCommand "compound-observation-failure-is-non-blocking" {
+        compound = "${source}/compound/SKILL.md";
+        nativeBuildInputs = [pkgs.gnugrep];
+      } ''
+        fail() { echo "compound-observation-failure-is-non-blocking: $1" >&2; exit 1; }
+
+        grep -q 'knowledge add .*--project .*--task .*--note .*--body' "$compound" ||
+          fail "compound does not call the structured knowledge add interface"
+        grep -q 'failed observation writes' "$compound" ||
+          fail "compound does not keep failed observation writes in RETRO"
+        grep -q 'Do not search' "$compound" ||
+          fail "compound still owns lifecycle lookup decisions"
+        grep -q 'block DONE when the central checkout is[[:space:]]*unavailable' "$compound" ||
+          fail "compound does not state unavailable knowledge writes are non-blocking"
+        ! grep -nE 'LESSONS\.md|tatr ledger|--ledger|Pending promotions|PROMOTE|DEFER|RETIRE|ABSORBED' "$compound" ||
+          fail "compound still contains local ledger or disposition vocabulary"
+
+        touch $out
+      '';
+
+    checks.knowledge_workflow_conformance =
+      pkgs.runCommand "knowledge-workflow-conformance" {
+        flow = "${source}/flow";
+        compound = "${source}/compound/SKILL.md";
+        readme = "${source}/README.md";
+        rootAgents = "${inputs.self}/AGENTS.md";
+        globalAgents = "${inputs.self}/home/modules/agents/AGENTS.md";
+        nativeBuildInputs = [pkgs.gnugrep];
+      } ''
+        fail() { echo "knowledge-workflow-conformance: $1" >&2; exit 1; }
+
+        ! grep -R -nE 'land, then lessons|DONE \+ landed|Run .*lessons|including land and lessons|PROMOTE|DEFER|RETIRE|ABSORBED' "$flow" ||
+          fail "flow still contains post-land lessons or disposition vocabulary"
+        ! grep -nE 'LESSONS\.md|tatr ledger|--ledger|Pending promotions|PROMOTE|DEFER|RETIRE|ABSORBED' "$compound" ||
+          fail "compound still contains local ledger or disposition vocabulary"
+        grep -q 'knowledge add .*--project .*--task .*--note .*--body' "$compound" ||
+          fail "compound does not document structured knowledge add"
+        grep -q 'Knowledge repository: /home/alex/personal/agent-knowledge' "$globalAgents" ||
+          fail "global AGENTS.md does not name the central knowledge path"
+        grep -q '^[-] Knowledge: .*project=nix\.dotfiles.*tags=' "$rootAgents" ||
+          fail "repo AGENTS.md does not declare project ID and tags"
+        grep -q 'knowledge' "$readme" ||
+          fail "skills README does not name the tool-owned knowledge skill"
 
         touch $out
       '';

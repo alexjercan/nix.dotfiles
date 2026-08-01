@@ -59,7 +59,7 @@ No gate gets a lifecycle marker. Recompute evidence, then use `gates.md`:
   a clean tree, and green verification. Latest round divisible by three means
   WORK_DONE; otherwise transition to REVIEWING and dispatch review.
 - DONE with its branch in `sprout ls` -> LAND_READY. Without the branch, use
-  the default log: landed runs lessons; missing diagnoses branch loss.
+  the default log to distinguish landed work from branch loss.
 
 Missing evidence resumes the phase. `manual:` stays pending; never self-confirm
 it. A committed APPROVE still in REVIEWING is an interrupted handoff: move to

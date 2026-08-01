@@ -1,4 +1,4 @@
 interface:
   display_name: "Compound"
   short_description: "Write a task retro"
-  default_prompt: "Use $compound to write this task retro and update the lessons ledger."
+  default_prompt: "Use $compound to write this task retro and submit reusable knowledge observations."

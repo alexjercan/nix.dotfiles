@@ -59,8 +59,7 @@ the user's call.
 
 Under an epic, tick the task in the container TASK.md `## Child Tasks` and
 move its open `manual:` DoD items into the container's `## Manual Acceptance`.
-Run `lessons`, then report its results, final verification, and usage guidance.
-End `GOAL DONE <id>`.
+Report final verification and usage guidance. End `GOAL DONE <id>`.
 
 ## Failure modes
 

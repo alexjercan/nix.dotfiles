@@ -52,6 +52,8 @@ Global agent guidelines.
 - Repository `AGENTS.md`: one `## Agent workflow` line each for tracker/epics, examples/retention, domain docs, research/network, and checks/records.
 - Detail behind one pointer.
 - Example location: declared -> existing `examples/` or `scripts/` -> task folder -> ask once and cache.
+- Knowledge repository: /home/alex/personal/agent-knowledge. Advisory only;
+  failed writes remain in RETRO.
 
 ## Documentation and reflection
 

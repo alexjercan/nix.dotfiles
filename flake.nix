@@ -36,6 +36,10 @@
       url = "github:alexjercan/tatr/v0.2.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    agent-knowledge = {
+      url = "git+file:///home/alex/personal/agent-knowledge?rev=996fcb791eb4c146c9fb08b64aca8c8284b2067f";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     today = {
       url = "github:alexjercan/today/v0.1.0";
       inputs.nixpkgs.follows = "nixpkgs";

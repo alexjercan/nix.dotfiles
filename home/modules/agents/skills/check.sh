@@ -23,7 +23,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # These are CLASSIFICATION lists only - the set of skills to check is read off
 # disk below, so a directory nobody remembered to list is still checked, and is
 # reported as unclassified rather than silently skipped.
-FLOW_FAMILY=(flow plan work review spike compound lessons sprout)
+FLOW_FAMILY=(flow plan work review spike compound sprout)
 TOOL_SKILLS=(today)
 
 # Budgets, in words. Categories came from task 20260730-142052; compact caps
@@ -45,7 +45,7 @@ BUDGET_OUTPUT_CONTRACT=150      # a phase's `## Output` contract, which is also
 # so what this check really enforces is that the policy is declared ONCE, in the
 # SKILL.md both tools read, rather than diverging into two places. If codex turns
 # out to ignore it, the fix is one frontmatter key, not two policies.
-IMPLICIT=(flow plan work review spike compound lessons today)
+IMPLICIT=(flow plan work review spike compound today)
 
 # Every rule this gate can report. Declared rather than grepped, because two of
 # them (`router-body-budget`, `phase-body-budget`) are chosen at runtime and no

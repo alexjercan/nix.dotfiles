@@ -9,8 +9,8 @@ My NixOS and home-manager configuration (flake at the root, hosts under
 `hosts/`, home modules under `home/modules/`). It is also the SOURCE of most
 agent tooling: the flow-family skills live in `home/modules/agents/skills/`
 and the sprout/daily/today CLIs live in `home/modules/scripts/`. Tool-owned
-skills can come from their own flakes; the tatr skill is imported from
-`inputs.tatr.skills.tatr` when the locked input exposes it. The home-manager
+skills can come from their own flakes; `tatr` and `knowledge` are imported
+from their locked inputs when exposed. The home-manager
 agents module deploys each managed skill to `~/.claude/skills` (Claude Code),
 `~/.agents/skills` (the AGENTS.md ecosystem) and `~/.codex/skills` (codex, as
 real file copies - its scanner ignores a symlinked SKILL.md), and deploys the
@@ -27,10 +27,8 @@ global `home/modules/agents/AGENTS.md` to `~/AGENTS.md`.
 - Research: local sources first; no network is required by any check.
 - Canonical checks: `nix flake check`,
   `bash home/modules/agents/skills/check.sh`,
-  `bash home/modules/scripts/sprout-test.sh`, `tatr check --ledger LESSONS.md`.
-- Lessons ledger: `LESSONS.md` at the repo root; a pending promotion blocks
-  `tatr check --ledger` until the user's disposition is recorded with
-  `tatr ledger` (grammar: `skills/lessons/ledger.md`).
+  `bash home/modules/scripts/sprout-test.sh`, `tatr check`.
+- Knowledge: central repo `/home/alex/personal/agent-knowledge`; project=nix.dotfiles; tags=agents,nix,flow,skills. Advisory only; failed writes stay in RETRO.
 
 Detail: the Check suite section below.
 
@@ -39,11 +37,9 @@ Detail: the Check suite section below.
 - `/flow` drives development here: plan/work/review/compound as tatr tasks
   under `tasks/`, each task implemented in a sprout worktree, round-1 reviews
   by an out-of-context reviewer, DoD items with test:/cmd:/manual: proofs.
-- `LESSONS.md` at the repo root is the lessons ledger. Read it before
-  starting any task; /compound and /lessons maintain it. Records live in
-  the task folders (`tasks/<id>/`) and the ledger.
-- The conformance gate is `tatr check` plus
-  `tatr check --ledger LESSONS.md`; both must exit 0.
+- Records live in the task folders (`tasks/<id>/`). `/compound` writes RETRO
+  and submits reusable observations through `knowledge add`.
+- The conformance gate is `tatr check`; it must exit 0.
 
 ## Check suite
 
@@ -52,8 +48,8 @@ Detail: the Check suite section below.
   gate: context budgets, the conditional-reference graph, the invocation
   policy, duplicated rules, a present `## Output` contract, and
   `direct-state-edit` (no flow-family skill may tell an agent to write a
-  lifecycle marker or a ledger disposition by hand - `tatr flow` and
-  `tatr ledger` own those). `--rules` prints the rule inventory. Runs in about
+  lifecycle marker by hand - `tatr flow` owns those). `--rules` prints the
+  rule inventory. Runs in about
   two seconds; every rule is structural, so it proves the files have the right
   SHAPE and never that a reference still states the rule it carries. That is a
   review question.
@@ -62,8 +58,9 @@ Detail: the Check suite section below.
   the standalone home config) that evaluating either one alone cannot catch.
   `flake/checks-skills.nix` carries BOTH halves of the skills gate:
   `skills-conformance` runs `check.sh`, and
-  `skills-deployment-tree` proves every skill on disk actually reaches Claude
-  Code, the AGENTS.md ecosystem and codex. Use the bare form before landing:
+  `skills-deployment-tree` proves every local skill on disk and external
+  tool-owned skill actually reaches Claude Code, the AGENTS.md ecosystem and
+  codex. Use the bare form before landing:
   `--no-build` evaluates the checks but does not RUN them, so it proves
   nothing about their assertions.
 

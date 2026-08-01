@@ -1,12 +1,12 @@
 ---
 name: compound
-description: Write a task retro after its review is APPROVEd and fold the lessons into the ledger. Use for `/compound` before landing.
+description: Write a task retro after its review is APPROVEd and submit reusable observations. Use for `/compound` before landing.
 ---
 
 # Compound - Retro After Review
 
-RETRO records one-off process, LESSONS recurring lessons. TASK records the
-change; REVIEW records findings.
+RETRO records one-off process and failed observation writes. TASK records the
+change; REVIEW records findings. Reusable observations go through `knowledge`.
 
 ## Workflow
 
@@ -19,20 +19,17 @@ change; REVIEW records findings.
    specific failures and root causes, and actionable improvements.
 3. Run `tatr scaffold <id> RETRO`; fill it briefly and blamelessly. Name the
    failed decision and why it seemed sound then.
-4. Search the ledger. Append or bump each general lesson: slug, one sentence,
-   bare count, task IDs; two lines maximum. Mark skill-specific candidates
-   with `-> <skill> skill`.
-5. At occurrence three, move the bare-count entry to Pending promotions and
-   propose `tool > template/format > skill prose`. Record no disposition and
-   ask nothing here; `lessons` owns the user gate. Follow-up implementation
-   gets a new task. Keep one-offs only in RETRO.
-6. Under flow, run `tatr flow <id> --to DONE`, then commit retro, ledger, and
-   close together. DONE -> LAND_READY without landing. Outside flow, commit
-   retro and ledger on the feature branch. If already landed, first verify the
-   main checkout branch, then commit there.
+4. Submit reusable observations with `knowledge add <lesson-id> --project <project-id> --task <id> --tag <tag> --note "<occurrence note>" --body "<durable lesson>"`.
+   Repeat `--tag` for retrieval tags. Do not search, promote, ask disposition,
+   or block DONE when the central checkout is unavailable; keep that signal in
+   RETRO.
+5. Under flow, run `tatr flow <id> --to DONE`, then commit retro and close
+   together. DONE -> LAND_READY without landing. Outside flow, commit retro on
+   the feature branch. If already landed, first verify the main checkout
+   branch, then commit there.
 
 Do not duplicate prose across records. A recurring pattern belongs in the
-ledger, not every close-out.
+central knowledge repository, not every close-out.
 
 ## Diagnose
 

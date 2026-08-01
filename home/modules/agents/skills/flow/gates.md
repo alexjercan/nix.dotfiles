@@ -18,7 +18,7 @@ approval. Summarize the phase result and inspection commands before asking.
 | --- | --- | --- |
 | `PLAN_READY` | `Approve plan - move to PLANNED` | Run `tatr flow <id> --to PLANNED`. |
 | `WORK_DONE` | `Approve review - move to REVIEWING` | Run `tatr flow <id> --to REVIEWING`. |
-| `LAND_READY` | `Approve landing - land the branch` | Follow `landing.md`, including land and lessons. |
+| `LAND_READY` | `Approve landing - land the branch` | Follow `landing.md`. |
 
 `WORK_DONE` covers initial work and a review continuation when the latest
 round is a multiple of three.

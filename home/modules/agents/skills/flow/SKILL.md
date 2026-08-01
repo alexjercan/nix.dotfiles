@@ -27,8 +27,7 @@ not authority.
 | REVIEWING + REQUEST_CHANGES | `work` | `--to WORKING`; fix |
 | REVIEWING + APPROVE | `review` | `--to COMPOUNDING`; compound |
 | COMPOUNDING | `compound` | DONE; LAND_READY gate |
-| DONE + branch | | LAND_READY gate; land, then lessons |
-| DONE + landed | `lessons` | `GOAL DONE <id>` |
+| DONE + branch | | LAND_READY gate; land |
 
 `spike` is a handoff. Unknown WHAT: ask one constraint; record it in
 DECISION.md. New work gets its own task.

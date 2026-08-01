@@ -27,15 +27,16 @@ not a skill. `checks.skills-deployment-tree` asserts the list
 and the directories on disk agree, so a new skill folder cannot be added
 without being deployed.
 
-Tool-owned skills come from their own flake: the tatr skill is imported as
-`inputs.tatr.skills.tatr` when the locked input exposes it. Keep tool-owned
-skills with their tool.
+Tool-owned skills come from their own flakes: `tatr` from
+`inputs.tatr.skills.tatr`, and `knowledge` from
+`inputs.agent-knowledge.skills.knowledge`, when the locked inputs expose them.
+Keep tool-owned skills with their tools.
 
 ## Context budgets
 
-The flow family is `flow plan work review spike compound lessons sprout`.
-`flow` dispatches the plan, work, review, spike, compound, and lessons phases;
-`sprout` is the explicit worktree helper. The `today` tool pays the same body
+The flow family is `flow plan work review spike compound sprout`. `flow`
+dispatches the plan, work, review, spike, and compound phases; `sprout` is the
+explicit worktree helper. The `today` and `knowledge` tools pay the same body
 cap. Branch-specific material lives in a conditional reference, read only when
 its condition holds and pointed at from a `## Load on demand` section in this
 shape:
@@ -102,9 +103,9 @@ nix flake check                            # that, plus the deployment tree
 typographic glyphs (en/em dash, smart quotes, ellipsis, arrows - not every
 non-ASCII byte, since a skill may legitimately quote data containing one), the
 invocation policy, duplicated paragraphs, a present `## Output` contract, and
-`direct-state-edit` (no flow-family skill may ORDER a lifecycle marker or a
-ledger disposition written by hand - `tatr flow` and `tatr ledger` own those
-writes). `check.sh --rules` prints every rule it can report.
+`direct-state-edit` (no flow-family skill may ORDER a lifecycle marker written
+by hand - `tatr flow` owns those writes). `check.sh --rules` prints every rule
+it can report.
 tatr owns the task RECORD schemas (`tatr check`). The deployment check owns
 whether the files reach an agent.
 

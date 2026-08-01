@@ -15,7 +15,6 @@
   localSkills = [
     "compound"
     "flow"
-    "lessons"
     "plan"
     "review"
     "spike"
@@ -32,9 +31,13 @@
   # keep the module-relative form.
   skillsDir = "${inputs.self}/home/modules/agents/skills";
 
-  externalSkills = lib.optionalAttrs (inputs.tatr ? skills && inputs.tatr.skills ? tatr) {
-    tatr = inputs.tatr.skills.tatr;
-  };
+  externalSkills =
+    lib.optionalAttrs (inputs.tatr ? skills && inputs.tatr.skills ? tatr) {
+      tatr = inputs.tatr.skills.tatr;
+    }
+    // lib.optionalAttrs (inputs.agent-knowledge ? skills && inputs.agent-knowledge.skills ? knowledge) {
+      knowledge = inputs.agent-knowledge.skills.knowledge;
+    };
 
   # Each skill deploys as ONE recursive entry, so its whole tree travels: the
   # SKILL.md body, the conditional reference files beside it, and the
@@ -101,6 +104,7 @@ in {
   home.packages = with pkgs; [
     agent-browser
     claude-code
+    knowledge
     opencode
     codex
   ];
