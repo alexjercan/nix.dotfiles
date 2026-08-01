@@ -19,10 +19,9 @@ change; REVIEW records findings. Reusable observations go through `knowledge`.
    specific failures and root causes, and actionable improvements.
 3. Run `tatr scaffold <id> RETRO`; fill it briefly and blamelessly. Name the
    failed decision and why it seemed sound then.
-4. Submit reusable observations with `knowledge add <lesson-id> --project <project-id> --task <id> --tag <tag> --note "<occurrence note>" --body "<durable lesson>"`.
-   Repeat `--tag` for retrieval tags. Do not search, promote, ask disposition,
-   or block DONE when the central checkout is unavailable; keep that signal in
-   RETRO.
+4. Submit reusable observations through the `knowledge` skill with project and
+   task provenance. Do not search, promote, ask disposition, or block DONE when
+   the central checkout is unavailable; keep that signal in RETRO.
 5. Under flow, run `tatr flow <id> --to DONE`, then commit retro and close
    together. DONE -> LAND_READY without landing. Outside flow, commit retro on
    the feature branch. If already landed, first verify the main checkout

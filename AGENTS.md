@@ -38,7 +38,7 @@ Detail: the Check suite section below.
   under `tasks/`, each task implemented in a sprout worktree, round-1 reviews
   by an out-of-context reviewer, DoD items with test:/cmd:/manual: proofs.
 - Records live in the task folders (`tasks/<id>/`). `/compound` writes RETRO
-  and submits reusable observations through `knowledge add`.
+  and routes reusable observations through the `knowledge` skill.
 - The conformance gate is `tatr check`; it must exit 0.
 
 ## Check suite

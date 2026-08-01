@@ -236,13 +236,13 @@
       } ''
         fail() { echo "compound-observation-failure-is-non-blocking: $1" >&2; exit 1; }
 
-        grep -q 'knowledge add .*--project .*--task .*--note .*--body' "$compound" ||
-          fail "compound does not call the structured knowledge add interface"
+        grep -q 'through the `knowledge` skill with project and' "$compound" ||
+          fail "compound does not route observations through the knowledge skill"
         grep -q 'failed observation writes' "$compound" ||
           fail "compound does not keep failed observation writes in RETRO"
         grep -q 'Do not search' "$compound" ||
           fail "compound still owns lifecycle lookup decisions"
-        grep -q 'block DONE when the central checkout is[[:space:]]*unavailable' "$compound" ||
+        grep -zq 'block DONE when[[:space:]]*the central checkout is[[:space:]]*unavailable' "$compound" ||
           fail "compound does not state unavailable knowledge writes are non-blocking"
         ! grep -nE 'LESSONS\.md|tatr ledger|--ledger|Pending promotions|PROMOTE|DEFER|RETIRE|ABSORBED' "$compound" ||
           fail "compound still contains local ledger or disposition vocabulary"
@@ -265,8 +265,8 @@
           fail "flow still contains post-land lessons or disposition vocabulary"
         ! grep -nE 'LESSONS\.md|tatr ledger|--ledger|Pending promotions|PROMOTE|DEFER|RETIRE|ABSORBED' "$compound" ||
           fail "compound still contains local ledger or disposition vocabulary"
-        grep -q 'knowledge add .*--project .*--task .*--note .*--body' "$compound" ||
-          fail "compound does not document structured knowledge add"
+        grep -q 'through the `knowledge` skill with project and' "$compound" ||
+          fail "compound does not route observations through the knowledge skill"
         grep -q 'Knowledge repository: /home/alex/personal/agent-knowledge' "$globalAgents" ||
           fail "global AGENTS.md does not name the central knowledge path"
         grep -q '^[-] Knowledge: .*project=nix\.dotfiles.*tags=' "$rootAgents" ||
