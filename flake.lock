@@ -11,18 +11,18 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1785613192,
-        "narHash": "sha256-U4eZLOdM2uagIK9Vb1pMkDkNGzW322Qvto20eZAOmOc=",
-        "ref": "refs/heads/master",
-        "rev": "7726b1cfc62201d53c4378bf18baff0e1d3f2ab8",
-        "revCount": 19,
-        "type": "git",
-        "url": "file:///home/alex/personal/agent-knowledge"
+        "lastModified": 1785615949,
+        "narHash": "sha256-UuoFsTLGmKcWtJvNXLh8cOohEJ/sqwBAdPlyk8o9/DA=",
+        "owner": "alexjercan",
+        "repo": "agent-knowledge",
+        "rev": "58eef654b4bfd880e16837ca43bba7958a891e0a",
+        "type": "github"
       },
       "original": {
-        "rev": "7726b1cfc62201d53c4378bf18baff0e1d3f2ab8",
-        "type": "git",
-        "url": "file:///home/alex/personal/agent-knowledge"
+        "owner": "alexjercan",
+        "ref": "v0.1.0",
+        "repo": "agent-knowledge",
+        "type": "github"
       }
     },
     "flake-parts": {
