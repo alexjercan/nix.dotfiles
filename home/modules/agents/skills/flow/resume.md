@@ -1,88 +1,71 @@
-# Checkpointing and resuming a flow
+# Resuming a flow
 
-Read this when picking up a task another session (or an earlier context)
-started, and when this session must hand its own task off. The files on disk
-are the whole state; the previous conversation is gone and must not be guessed
-at.
+Read after a context cut or loss. Disk is the state; never guess chat history.
 
-## 0. Hand off before you lose the context
+## Checkpoint
 
-A checkpoint is a normal flow move, not a failure. `work` owns the trigger.
-At one, commit an atomic green step, then record the completed Step, the
-commit and check results, and the next Step in TASK.md. A checkpoint is not a
-lifecycle transition, so it runs no `tatr flow` - the phase you paused in is
-the phase you resume in.
+At `work`'s threshold, commit an atomic green step. Record the completed Step,
+commit and check results, and next Step in TASK.md. A checkpoint makes no
+lifecycle transition.
 
-Then emit the fresh-session prompt. Its whole payload is:
+Ask the user to run `/clear`; an agent cannot invoke it. The fresh prompt is:
 
 ```
 /flow <id>
 ```
 
-Add a line only for state the next session cannot discover from `tatr`, `git`
-and `sprout` - uncommitted work you chose to leave, or an external thing you
-started. Never a conversation summary: everything a summary would carry is
-either on disk already or was never durable.
+Add only state that tools cannot discover, such as intentionally uncommitted
+work or an external action. No conversation summary or phase status. Runtime
+compaction is not a durable handoff.
 
-A checkpoint is not terminal, so the handoff report carries no status line -
-SKILL.md's four all end a goal.
+## Inspect
 
-The agent records and verifies that state, then ASKS the user to run `/clear`.
-It cannot invoke `/clear` or `/compact` itself and must never claim it can.
-Automatic compaction by the runtime is not the handoff - the committed branch
-and the updated TASK.md are.
-
-## 1. Read the state, not the history
-
-```bash
-tatr show <id>
-tatr context <id> --phase resume
-```
-
-`tatr show` reports the structured state - flow step, status, plan status,
-dependencies, claim - and that state, not the previous conversation, decides
-which phase comes next. `tatr context --phase resume` prints every artifact
-path with `present|missing`.
-
-Read only that phase's packet: the present artifacts the next phase needs, and
-nothing else. Pulling the whole task folder in to orient yourself spends the
-context the phase itself is about to need, and a resume that reads everything
-is indistinguishable from never having split the files at all.
-
-## 2. Find the branch
+Run `sprout ls` before `tatr show`. For each worktree, compare its
+`tasks/<id>/TASK.md` with the default branch, including uncommitted changes.
+The changed copy identifies `<task-root>`; if none changed, use main. Stop and
+diagnose multiple changed copies instead of guessing.
 
 ```bash
 sprout ls
+tatr -r <task-root> show <id>
+tatr -r <task-root> context <id> --phase resume
 ```
 
-One line per worktree: `<feature> <branch> <path>`. A task in WORKING,
-REVIEWING or COMPOUNDING should have one. If it does not, the work never
-started or the worktree was removed - check `git branch --list` for the branch
-before re-sprouting, because `sprout new` reuses an existing branch.
+The selected `tatr show` is authoritative. Context lists artifact presence;
+read only the current phase's packet. A task in WORKING, REVIEWING, or
+COMPOUNDING should have a worktree. If absent, check `git branch --list`
+before re-sprouting.
 
-## 3. Re-enter at the FLOW STEP
+## Route
 
-The Route table in SKILL.md already names the skill and the transition for
-every recorded step; dispatch from it, not from the previous session's intent.
-Resuming adds three cautions to those rows:
+Dispatch from FLOW STEP, not old intent.
 
-- WORKING: read the worktree diff and the literal Steps in TASK.md first, then
-  finish only the unticked ones.
-- REVIEWING: read REVIEW.md before dispatching - an open BLOCKER or MAJOR
-  finding is the fix row, not another review round.
-- DONE: the task is closed, which says nothing about whether it landed.
+- WORKING: inspect the branch diff and literal Steps; finish only incomplete
+  work or re-emit a proven pending gate.
+- REVIEWING: read the latest REVIEW.md. Open BLOCKER/MAJOR findings route to
+  fixes, not another review.
+- DONE: determine landing separately. A branch in `sprout ls` is not landed;
+  without one, verify the default-branch log.
 
-A DONE task whose branch still exists in `sprout ls` did not land. Verify with
-`git log <default> --oneline` before assuming either way.
+## Reconstruct a pending gate
 
-## 4. Trust the records over the ticks
+No gate gets a lifecycle marker. Recompute evidence, then use `gates.md`:
 
-Unticked Steps with the work visibly done, or ticked Steps with nothing in the
-diff, mean the previous session lost its context mid-edit. Re-read each step's
-literal text against the branch diff and correct TASK.md before continuing.
-Never tick from intent.
+- PLANNING -> PLAN_READY only with executable Story, Steps, and DoD, plus
+  `cmd:` proofs red on the base for the intended missing change.
+- WORKING without review feedback -> WORK_DONE only with all Steps complete,
+  committed implementation and records, a clean tree, and green automation.
+- WORKING after REQUEST_CHANGES -> require answered findings, committed fixes,
+  a clean tree, and green verification. Latest round divisible by three means
+  WORK_DONE; otherwise transition to REVIEWING and dispatch review.
+- DONE with its branch in `sprout ls` -> LAND_READY. Without the branch, use
+  the default log: landed runs lessons; missing diagnoses branch loss.
 
-## 5. Report where you re-entered
+Missing evidence resumes the phase. `manual:` stays pending; never self-confirm
+it. A committed APPROVE still in REVIEWING is an interrupted handoff: move to
+COMPOUNDING. A committed retro in COMPOUNDING finishes DONE, then LAND_READY.
 
-State the task, the FLOW STEP you resumed at, and what the previous session
-left half-done. Then continue the normal cycle.
+## Reconcile and report
+
+Visible work outranks ticks. Correct unticked completed work or ticked missing
+work against the diff. State task, FLOW STEP, and half-done work; then continue.

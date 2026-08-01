@@ -26,9 +26,11 @@ Judge; do not patch. `work` owns fixes.
    APPROVE.
 5. Later rounds keep the out-of-context default unless an exception is
    recorded. Verify Responses and tick only confirmed fixes. Accept sound
-   pushback. Add findings only for fix regressions. Ask the user after three
-   total rounds or three disputed rounds.
-6. Commit REVIEW.md after every round.
+   pushback. Add findings only for fix regressions. Stop after three disputed
+   rounds; work owns every third-round continuation gate.
+6. Commit REVIEW.md after every round. APPROVE -> COMPOUNDING; run
+   `tatr flow <id> --to COMPOUNDING` and dispatch compound. REQUEST_CHANGES
+   dispatches work.
 
 ## Rules
 
@@ -43,8 +45,8 @@ Judge; do not patch. `work` owns fixes.
 ## Output
 
 Findings first by severity, then verdict, pending manual items, and inspection
-commands. Outside findings: at most 150 words. On APPROVE, STOP for operator
-approval; end `REVIEW_READY <id>`. On REQUEST_CHANGES, route to `work`.
+commands. Outside findings: at most 150 words. APPROVE proceeds directly to
+COMPOUNDING and `compound`; REQUEST_CHANGES routes to `work`.
 
 ## Load on demand
 

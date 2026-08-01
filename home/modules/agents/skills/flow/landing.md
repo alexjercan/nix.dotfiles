@@ -1,8 +1,8 @@
-# Landing an approved branch
+# Landing a reviewed branch
 
-Read this after `review` returns APPROVE and `compound` has
-committed the retro on the feature branch. Landing is PR-shaped: bring the
-branch up to date with its base, re-verify, then squash it back as ONE commit.
+Read this only after `compound` closes the task and the LAND_READY gate in
+`gates.md` approves landing. Landing is PR-shaped: bring the branch up to date
+with its base, re-verify, then squash it back as ONE commit.
 
 ## 1. Sync the branch
 
@@ -55,14 +55,12 @@ Write one clean summary of the finished task - a Conventional-Commit subject
 plus a short body - not the concatenated branch messages. Do not push; that is
 the user's call.
 
-## 5. Close out
+## 5. Finish
 
-`tatr flow <id>` to DONE before landing (it closes the task, and the closing
-edit belongs in the squash commit). Under an epic, also tick the task in the
-container TASK.md `## Child Tasks` and move its open `manual:` DoD items into
-the container's `## Manual Acceptance`.
-
-Report one line ending with `DONE <id>`.
+Under an epic, tick the task in the container TASK.md `## Child Tasks` and
+move its open `manual:` DoD items into the container's `## Manual Acceptance`.
+Run `lessons`, then report its results, final verification, and usage guidance.
+End `GOAL DONE <id>`.
 
 ## Failure modes
 

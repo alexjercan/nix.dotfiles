@@ -115,19 +115,14 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   uncommitted REVIEW.md is lost with it (had to be reconstructed once). The
   review skill's "in-session pass writes and commits the round" covers this
   when followed. 20260720-220044
-- `proof-must-cover-its-conjunct` (x2): a DoD proof for a criterion naming N
-  files needs N file-scoped conjuncts, each sabotaged on its own - a
-  case-sensitive grep survived its target's removal, and a directory-scoped
-  grep for a two-file criterion was satisfied by one file while the other's
-  clause was never delivered. Directory scope proves existence, never
-  coverage. 20260720-152519, 20260731-142000
 - `claim-only-verified-state` (x2): a REVIEW.md Response claimed a scripted
   fix that had silently aborted, and a close-out recorded `nix flake check` as
   unrunnable in this sandbox when it runs and passes; re-run the exposing
   check before writing the claim, including a "could not run here" one.
   20260720-171836, 20260731-163120
-- `sprout-inherits-committed-head` (x1): a new worktree contains only what is
-  committed on HEAD - commit the plan before sprouting. 20260704-134842
+- `sprout-inherits-committed-head` (x2): a new worktree contains only what is
+  committed on HEAD - commit the plan before sprouting. 20260704-134842,
+  20260801-155024
 - `read-secret-keys-not-assume` (x1): derive a secret's variable NAMES from the
   actual secret file's keys (names only), not from a nearby code comment/config -
   a dummy PoC used `SCUFRIS_OPENAI_API_KEY` from a comment when the real env held
@@ -144,13 +139,14 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   record, and equally the prose the same diff writes about the thing removed;
   the guidance now excludes `tasks/` by directory AND comments by pattern.
   20260720-171855, 20260720-171910, 20260720-171902, 20260720-171843, 20260720-171836, 20260720-220044, 20260730-190929
-- `edit-the-worktree-not-the-cwd` (x4, PROMOTED 2026-07-20 -> work skill sprout
+- `edit-the-worktree-not-the-cwd` (x5, PROMOTED 2026-07-20 -> work skill sprout
   step): the shell cwd resets between Bash calls - drive edits/git/`tatr` by
   absolute worktree path (`git -C`, `tatr -r`), never chain cross-repo git in
   one call (two GOAL ticks committed from the wrong repo; then three
   `tatr flow` calls run in the main checkout, which the promoted prose misses
   because it says "edit/git" and a record command is neither).
-  20260720-152451, 20260720-171902, 20260720-171843, 20260720-220130, 20260731-150849
+  20260720-152451, 20260720-171902, 20260720-171843, 20260720-220130,
+  20260731-150849, 20260801-155024
 - `dry-run-in-a-scratch-repo` (x3, PROMOTED 2026-07-20 -> plan skill verify-first
   guidance): verify load-bearing git/nix semantics in a throwaway scratch repo
   before writing a step on them. 20260703-104437, 20260704-105059, 20260704-134842, 20260720-220130, 20260722-220536
@@ -243,6 +239,13 @@ lines is the cap. At three occurrences a lesson moves to Pending promotions.
   before a branch existed. 20260730-142533, 20260730-155003, 20260731-094537
 
 ## Pending promotions (3+ occurrences, user decides)
+
+- `proof-must-cover-its-conjunct` (x3, PROMOTE 2026-08-01 -> 20260801-184046): one DoD item needs one independently
+  sabotageable claim; broad proof scopes have passed from neighboring files or
+  clauses three times. Promotion order audit: tools and templates cannot infer
+  semantic conjuncts safely, so sharpen `plan/proofs.md` to require splitting
+  them before writing file/section-scoped commands.
+  20260720-152519, 20260731-142000, 20260801-155024
 
 - `sweep-for-restatement-not-just-contradiction` (x3, PROMOTE 2026-07-31 -> 20260731-205300): a doc sweep that only
   asks "does anything now contradict this?" cannot see a second copy - the

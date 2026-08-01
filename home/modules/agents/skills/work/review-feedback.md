@@ -31,11 +31,12 @@ findings is the review equivalent of self-ticking a `manual:` proof.
 Re-run the whole verification (`verify.md`), including every proof, not just
 the tests near the fixes. A finding's fix has broken a neighbour before.
 
-Commit the code AND the updated REVIEW.md together, then `tatr flow <id>` to
-REVIEWING for the next round.
+Commit the code AND the updated REVIEW.md together.
 
-If this makes three total review rounds, stop after the commit and ask the
-user to `/clear` or `/compact` before review continues.
+- Latest round not a multiple of three -> REVIEWING; run
+  `tatr flow <id> --to REVIEWING` and dispatch review.
+- Latest round a multiple of three -> WORK_DONE without a transition; flow
+  owns the review-continuation approval gate.
 
 ## 5. When the dispute will not resolve
 

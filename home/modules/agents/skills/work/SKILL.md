@@ -28,8 +28,9 @@ Ship the maintainable solution, not the smallest plausible diff.
 5. Run the full suite and every `tatr proofs <id>` proof.
 6. Tick a Step only after re-reading and completing every clause. Add TASK.md
    close-out: what/why, alternatives, difficulties/diagnosis, evidence, and
-   reflection. Commit implementation and records together. Run `tatr flow
-   <id>` to REVIEWING, then STOP for a fresh review session.
+   reflection. Commit implementation and records together.
+   Initial work returns WORK_DONE without a transition.
+   Flow owns approval to REVIEWING; `review-feedback.md` owns later handoffs.
 
 ## Rules
 
@@ -44,9 +45,9 @@ Ship the maintainable solution, not the smallest plausible diff.
 ## Output
 
 Worktree, branch, task ID, changed files, proof results, confidence/risk, and
-inspection commands; at most 150 words. Tell the user to `/clear` unless
-`/compact` is enough for a tiny diff, then `/flow <id>`. End `WORK_DONE <id>`.
-Leave the worktree. Do not merge, remove, or push.
+inspection commands; at most 150 words. Return the gate status
+`WORK_DONE <id>` without changing lifecycle state. Leave the worktree. Do not
+merge, remove, or push.
 
 ## Load on demand
 

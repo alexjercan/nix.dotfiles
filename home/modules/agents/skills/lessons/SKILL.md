@@ -37,7 +37,8 @@ bumped and sharpened, never appended again. Terse beats complete.
 ## Output
 
 New/bumped slugs, migrated docs, cleared/pruned files, dispositions and
-PROMOTE task IDs; at most 100 words.
+PROMOTE task IDs; at most 100 words. At flow Finish, include the landed result,
+final verification, and brief usage guidance; end `GOAL DONE <id>`.
 
 ## Load on demand
 

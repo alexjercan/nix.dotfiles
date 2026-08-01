@@ -26,8 +26,10 @@ change; REVIEW records findings.
    propose `tool > template/format > skill prose`. Record no disposition and
    ask nothing here; `lessons` owns the user gate. Follow-up implementation
    gets a new task. Keep one-offs only in RETRO.
-6. Commit retro and ledger on the feature branch before landing. If already
-   landed, first verify the main checkout branch, then commit there.
+6. Under flow, run `tatr flow <id> --to DONE`, then commit retro, ledger, and
+   close together. DONE -> LAND_READY without landing. Outside flow, commit
+   retro and ledger on the feature branch. If already landed, first verify the
+   main checkout branch, then commit there.
 
 Do not duplicate prose across records. A recurring pattern belongs in the
 ledger, not every close-out.
@@ -49,5 +51,5 @@ Answer three questions, each only from what the records show:
 
 ## Output
 
-New/bumped slugs and follow-up IDs; at most 100 words. Then `tatr flow <id>`
-moves COMPOUNDING to DONE.
+New/bumped slugs and follow-up IDs; at most 100 words. Under flow, only after
+DONE return the gate status `LAND_READY <id>` without landing.
