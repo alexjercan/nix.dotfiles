@@ -96,12 +96,20 @@ reply() {
     } > "$file"
 }
 
+pause() {
+    # $1: invocation number  $2: seconds the fake claude holds the stream open
+    # before the LAST line of its transcript. Two things need that: a spinner
+    # is only visible while a session is quiet, and a kill is only observable
+    # in a session that has not already finished.
+    mkdir -p "$AFK_TEST_TMP/replies"
+    printf '%s\n' "$2" > "$AFK_TEST_TMP/replies/$1.slow"
+}
+
 reply_slow() {
     # $1: invocation number  $2: the AFK marker line  $3: seconds of silence
-    # between the assistant event and the result. A session that streams an
-    # event and then goes quiet is the only one a spinner is visible in.
+    # between the assistant event and the result.
     reply "$1" "$2"
-    printf '%s\n' "$3" > "$AFK_TEST_TMP/replies/$1.slow"
+    pause "$1" "$3"
 }
 
 reply_raw() {
@@ -307,7 +315,15 @@ fi
 if [[ -f "$AFK_TEST_TMP/replies/$n.jsonl" ]]; then
     if [[ -f "$AFK_TEST_TMP/replies/$n.slow" ]]; then
         head -n -1 "$AFK_TEST_TMP/replies/$n.jsonl"
-        sleep "$(cat "$AFK_TEST_TMP/replies/$n.slow")"
+        # The pause is a backgrounded sleep waited on under a trap, not a
+        # foreground one: bash defers a signal until the foreground child
+        # exits, which would make every kill look like it took the whole
+        # pause. Under the trap the last line is never printed, which is
+        # exactly what a killed session does.
+        trap 'exit 143' TERM INT
+        sleep "$(cat "$AFK_TEST_TMP/replies/$n.slow")" &
+        wait $!
+        trap - TERM INT
         tail -n 1 "$AFK_TEST_TMP/replies/$n.jsonl"
     else
         cat "$AFK_TEST_TMP/replies/$n.jsonl"
@@ -319,7 +335,7 @@ SHIM
     export PATH="$TMP/bin:$PATH"
 
     # Fixture helpers must also be callable from the side-effect scripts.
-    declare -f reply reply_raw side exit_rc plan_sections approved_review \
+    declare -f reply reply_raw pause side exit_rc plan_sections approved_review \
         gen_work_to_land > "$TMP/fixtures.sh"
 
     export AFK_HEARTBEAT_SECS=30
@@ -919,11 +935,185 @@ test_no_progress_fingerprint_stops() {
     check "it stops at the second identical fingerprint" test "$(invocations)" -eq 2
 }
 
+test_token_limit_rotation() {
+    # The context meter is also a governor. A session that grows past a limit
+    # is stopped and rotated, and because a killed session emits no marker,
+    # durable state alone routes what comes next - the same route ROTATE takes.
+    local id out rc t0 elapsed i
+
+    # Soft limit: armed by the assistant event, fired by the next completed
+    # tool call. The stop lands on that boundary, so neither the transcript's
+    # long pause nor the BLOCKED marker behind it is ever reached, and a fresh
+    # session carries the task the rest of the way.
+    id=$(seed_planned_task)
+    gen_work_to_land 1
+    reply_raw 1 << EOF
+{"type":"system","subtype":"init","session_id":"fake"}
+{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Bash","input":{}}],"usage":{"input_tokens":149994,"cache_creation_input_tokens":1,"cache_read_input_tokens":2,"output_tokens":3}}}
+{"type":"user","message":{"content":[{"type":"tool_result","content":"ok"}]}}
+{"type":"result","subtype":"success","is_error":false,"result":"phase summary\nAFK BLOCKED $id"}
+EOF
+    pause 1 10
+    t0=$SECONDS
+    out=$(AFK_SOFT_TOKENS=100000 AFK_HARD_TOKENS=900000 afk run "$id" 2>&1)
+    rc=$?
+    elapsed=$((SECONDS - t0))
+
+    check "a soft-limit stop still lands the run" test "$rc" -eq 0
+    check "the soft limit is named on the next line" \
+        str_contains "$out" "soft context limit crossed at 150.0K"
+    check "the stopped session still reports its count" \
+        str_contains "$out" "tokens  150.0K"
+    check "the stop rotates to a fresh session" str_contains "$out" "session 2"
+    check "the rotated run reaches the landing" str_contains "$out" "done  $id landed"
+    check "the stop happens at the tool boundary, not after the pause" \
+        test "$elapsed" -lt 8
+    check "the killed session's own marker never routes anything" \
+        not str_contains "$out" "the flow is blocked"
+
+    # Armed but never given a boundary: every one of these sessions is over the
+    # soft limit and none of them completes a tool call, so all four run to
+    # their own result event and their markers route the whole cycle.
+    restart_sandbox
+    id=$(seed_planned_task)
+    gen_work_to_land 0
+    out=$(AFK_SOFT_TOKENS=1000 AFK_HARD_TOKENS=900000 afk run "$id" 2>&1)
+    rc=$?
+
+    check "an armed session with no tool result runs to its own end" \
+        test "$rc" -eq 0
+    check "and is routed by its own marker" str_contains "$out" "done  $id landed"
+    check "every session was over the soft limit" \
+        str_contains "$out" "tokens  57.6K"
+    check "no session was stopped" not str_contains "$out" "context limit"
+    check "only the work-to-land sessions ran" test "$(invocations)" -eq 4
+
+    # Tools run in parallel, and each result comes back as its own user event,
+    # so the FIRST result is not the boundary - the last one is. The second
+    # result here is held behind the transcript's pause, so a stop that fired on
+    # the first would land before it.
+    restart_sandbox
+    id=$(seed_planned_task)
+    gen_work_to_land 1
+    reply_raw 1 << EOF
+{"type":"system","subtype":"init","session_id":"fake"}
+{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Read","input":{}},{"type":"tool_use","name":"Edit","input":{}}],"usage":{"input_tokens":149994,"cache_creation_input_tokens":1,"cache_read_input_tokens":2,"output_tokens":3}}}
+{"type":"user","message":{"content":[{"type":"tool_result","content":"read"}]}}
+{"type":"user","message":{"content":[{"type":"tool_result","content":"edited"}]}}
+EOF
+    pause 1 4
+    t0=$SECONDS
+    out=$(AFK_SOFT_TOKENS=100000 AFK_HARD_TOKENS=900000 afk run "$id" 2>&1)
+    rc=$?
+    elapsed=$((SECONDS - t0))
+
+    check "a parallel-tool session is still stopped and landed" test "$rc" -eq 0
+    check "the parallel-tool stop names the soft limit" \
+        str_contains "$out" "soft context limit crossed at 150.0K"
+    check "the stop waits for the outstanding sibling tool" test "$elapsed" -ge 3
+    check "the parallel-tool run continues in a fresh session" \
+        str_contains "$out" "done  $id landed"
+
+    # Hard limit: no boundary, no waiting. The transcript offers no tool result
+    # at all and the stop still fires on the assistant event that crossed it.
+    restart_sandbox
+    id=$(seed_planned_task)
+    gen_work_to_land 1
+    reply_raw 1 << EOF
+{"type":"system","subtype":"init","session_id":"fake"}
+{"type":"assistant","message":{"content":[{"type":"text","text":"phase running"}],"usage":{"input_tokens":299994,"cache_creation_input_tokens":1,"cache_read_input_tokens":2,"output_tokens":3}}}
+{"type":"result","subtype":"success","is_error":false,"result":"phase summary\nAFK BLOCKED $id"}
+EOF
+    pause 1 10
+    t0=$SECONDS
+    out=$(AFK_SOFT_TOKENS=100000 AFK_HARD_TOKENS=200000 afk run "$id" 2>&1)
+    rc=$?
+    elapsed=$((SECONDS - t0))
+
+    check "a hard-limit stop still lands the run" test "$rc" -eq 0
+    check "the hard limit is named" \
+        str_contains "$out" "hard context limit crossed at 300.0K"
+    check "the hard stop waits for no boundary" test "$elapsed" -lt 8
+    check "the run continues in a fresh session" str_contains "$out" "done  $id landed"
+
+    # A gate resume is one of the largest invocations afk makes, so it is
+    # stopped like any other. A half-answered gate is not an approved one: the
+    # run rotates, and a fresh /flow re-reaches the same gate from tatr.
+    restart_sandbox
+    id=$(seed_planned_task)
+    gen_work_to_land 0
+    reply_raw 2 << EOF
+{"type":"system","subtype":"init","session_id":"fake"}
+{"type":"assistant","message":{"content":[{"type":"text","text":"phase running"}],"usage":{"input_tokens":299994,"cache_creation_input_tokens":1,"cache_read_input_tokens":2,"output_tokens":3}}}
+{"type":"result","subtype":"success","is_error":false,"result":"phase summary\nAFK BLOCKED $id"}
+EOF
+    out=$(AFK_SOFT_TOKENS=100000 AFK_HARD_TOKENS=200000 afk run "$id" 2>&1)
+    rc=$?
+
+    check "a gate stopped on a limit does not fail the run" test "$rc" -eq 0
+    check "the stopped gate rotates" str_contains "$out" "hard context limit"
+    check "the rotated gate still reaches the landing" \
+        str_contains "$out" "done  $id landed"
+
+    # The landing gate has its own copy of that route. A stop there leaves the
+    # branch unlanded, so the run must rotate rather than die on the
+    # "produced no commit" check that guards an approved landing.
+    restart_sandbox
+    id=$(seed_planned_task)
+    gen_work_to_land 0
+    side 4 < /dev/null
+    reply_raw 4 << EOF
+{"type":"system","subtype":"init","session_id":"fake"}
+{"type":"assistant","message":{"content":[{"type":"text","text":"phase running"}],"usage":{"input_tokens":299994,"cache_creation_input_tokens":1,"cache_read_input_tokens":2,"output_tokens":3}}}
+{"type":"result","subtype":"success","is_error":false,"result":"phase summary\nAFK BLOCKED $id"}
+EOF
+    # The task is already DONE, so the fresh session only re-reports the gate;
+    # its resume is what finally lands.
+    reply 5 "AFK LAND_READY $id"
+    side 6 << 'EOF'
+set -e
+wt="$XDG_CACHE_HOME/sprouts/repo/feature/thing"
+git -C "$REPO" merge --squash feature/thing > /dev/null
+git -C "$REPO" commit -qm "feat: land thing"
+git -C "$REPO" worktree remove --force "$wt"
+git -C "$REPO" branch -qD feature/thing
+EOF
+    reply 6 ""
+    out=$(AFK_SOFT_TOKENS=100000 AFK_HARD_TOKENS=200000 afk run "$id" 2>&1)
+    rc=$?
+
+    check "a stopped landing gate does not fail the run" test "$rc" -eq 0
+    check "the stopped landing gate rotates" str_contains "$out" "hard context limit"
+    check "it does not die on the produced-no-commit check" \
+        not str_contains "$out" "produced no commit"
+    check "the rotated landing gate lands the branch" \
+        str_contains "$out" "done  $id landed"
+
+    # Two token rotations that change nothing durable is a run going nowhere,
+    # and the existing fingerprint check is what stops it.
+    restart_sandbox
+    id=$(seed_planned_task)
+    for i in 1 2; do
+        reply_raw "$i" << 'EOF'
+{"type":"system","subtype":"init","session_id":"fake"}
+{"type":"assistant","message":{"content":[{"type":"text","text":"phase running"}],"usage":{"input_tokens":299994,"cache_creation_input_tokens":1,"cache_read_input_tokens":2,"output_tokens":3}}}
+EOF
+    done
+    out=$(AFK_SOFT_TOKENS=100000 AFK_HARD_TOKENS=200000 afk run "$id" 2>&1)
+    rc=$?
+
+    check "two token stops with no progress fail the run" test "$rc" -ne 0
+    check "the lack of progress is named" str_contains "$out" "no durable progress"
+    check "it stops at the second token rotation" test "$(invocations)" -eq 2
+}
+
 test_usage() {
     local out
     check "help exits 0" quiet afk help
     out=$(afk help 2>&1)
     check "help documents run" str_contains "$out" "run <goal|task-id>"
+    check "help documents the soft limit" str_contains "$out" "AFK_SOFT_TOKENS"
+    check "help documents the hard limit" str_contains "$out" "AFK_HARD_TOKENS"
     check "an unknown command fails" not quiet afk frobnicate
     check "run without an argument fails" not quiet afk run
     check "run with two arguments fails" not quiet afk run a b
@@ -946,6 +1136,7 @@ run_test test_spinner_and_color_only_on_a_tty
 run_test test_spinner_never_wraps
 run_test test_interrupt_kills_recorded_pid
 run_test test_no_progress_fingerprint_stops
+run_test test_token_limit_rotation
 echo
 echo "passed: $PASS  failed: $FAIL"
 [[ $FAIL -eq 0 ]]

@@ -42,6 +42,10 @@ usage() {
     echo
     echo "Environment:"
     echo "  AFK_HEARTBEAT_SECS  Stall timeout between stream events (default 900)"
+    echo "  AFK_SOFT_TOKENS     Context size that arms a rotation, taken at the"
+    echo "                      next completed tool call (default 180000)"
+    echo "  AFK_HARD_TOKENS     Context size that rotates immediately, without"
+    echo "                      waiting for a boundary (default 200000)"
     echo "  AFK_MAX_SESSIONS    Maximum fresh Claude sessions (default 40)"
     echo "  AFK_VERBOSE         Set to 1 to echo Claude's assistant text"
 }
@@ -82,8 +86,9 @@ EOF
 # One content stream, decoration gated on the terminal. Every permanent line is
 # byte-identical whether or not stdout is a TTY; exactly two things are gated,
 # the color constants (empty strings otherwise) and the transient spinner line
-# (a no-op otherwise). That includes the `tokens` line: its VALUE is content,
-# only its band color is gated, and the spinner's copy of the count stays
+# (a no-op otherwise). That includes the `tokens` line: its VALUE is content -
+# and load-bearing content, since the same count drives the rotation limits in
+# the driver below - only its band color is gated, and the spinner's copy stays
 # uncolored because the spinner is a bounded, truncated write and a halved
 # escape sequence would bleed into the terminal. The spinner is written with
 # autowrap disabled, so it always occupies exactly one row and `spin_clear`
@@ -146,10 +151,11 @@ fmt_tokens() {
 }
 
 tok_color() {
-    # $1: a token count -> its band color against a 200K context window.
+    # $1: a token count -> its band color. The hot band IS the soft limit, so
+    # red never means "getting close": it means this session is being rotated.
     if [[ $1 -lt 120000 ]]; then
         printf '%s' "$C_TOK_OK"
-    elif [[ $1 -lt 180000 ]]; then
+    elif [[ $1 -lt $AFK_SOFT_TOKENS ]]; then
         printf '%s' "$C_TOK_WARN"
     else
         printf '%s' "$C_TOK_HOT"
@@ -324,8 +330,18 @@ fingerprint() {
 }
 
 # ------------------------------------------------------------ claude driver --
+#
+# A session ends one of three ways: it finishes and reports a marker, it fails
+# (and the run dies), or afk stops it on purpose because its context grew past
+# a limit. That third outcome is not a failure, so it leaves KILL_REASON rather
+# than RESULT_TEXT and the caller rotates instead of dying. The heartbeat kills
+# through the same teardown but is a failure and stays one: a silent session is
+# killed whether or not it is anywhere near a limit.
 
 CLAUDE_PID=""
+
+# Set when afk stopped the invocation in flight on purpose; empty otherwise.
+KILL_REASON=""
 
 on_signal() {
     # Kill ONLY the claude process this runner started - never the process
@@ -344,11 +360,28 @@ on_signal() {
     exit "$rc"
 }
 
+stop_claude() {
+    # $1: the signal to send. Kills the invocation in flight and drains
+    # everything run_claude opened for it - the stream fd, the child, the temp
+    # dir, the context meter - reading $sfd and $dir from run_claude's scope.
+    # This is that function's teardown, factored out so the heartbeat and both
+    # limits cannot drift apart and leave an fd or a temp dir behind.
+    exec {sfd}<&-
+    kill -"$1" "$CLAUDE_PID" 2> /dev/null
+    wait "$CLAUDE_PID" 2> /dev/null
+    CLAUDE_PID=""
+    rm -rf "$dir"
+    report_tokens
+}
+
 run_claude() {
     # $1: 'fresh' or 'resume'  $2: session UUID  $3: prompt.
-    # Streams the session, enforcing the heartbeat, and leaves the terminal
-    # result's text in RESULT_TEXT.
+    # Streams the session, enforcing the heartbeat and the context limits, and
+    # leaves the terminal result's text in RESULT_TEXT - or, when afk stopped
+    # the session itself, the reason in KILL_REASON and RESULT_TEXT empty.
     local mode=$1 uuid=$2 prompt=$3
+    KILL_REASON=""
+    RESULT_TEXT=""
     local args=(
         -p
         --output-format stream-json
@@ -365,19 +398,29 @@ run_claude() {
     args+=("$prompt")
 
     local dir fifo line typ text used result="" rc sfd partial="" started last_event
+    local soft_armed=0 pending_tools=0 drained
     dir=$(mktemp -d) || die "cannot create a temporary directory"
     fifo="$dir/stream"
     mkfifo "$fifo" || die "cannot create the event pipe"
 
+    # Monitor mode ONLY for the launch: a shell without job control starts async
+    # commands with SIGINT ignored, and an ignored disposition survives exec, so
+    # the hard limit's CTRL+C would be silently discarded. Under `set -m` the
+    # child gets its own process group with default dispositions. It is also no
+    # longer in afk's, so a terminal CTRL+C reaches it only through on_signal -
+    # which is exactly what on_signal already does.
+    set -m
     claude "${args[@]}" > "$fifo" 2> "$dir/err" &
     CLAUDE_PID=$!
+    set +m
     exec {sfd}< "$fifo"
 
     # The pipe is POLLED at spinner rate and the heartbeat is an explicit
     # budget since the last event - the same rule the old blocking read
     # expressed, separated from the read so the spinner can advance while the
     # model is silent. There is still no wall-clock cap: a long, productive
-    # turn keeps emitting events and only a genuinely silent one is killed.
+    # turn keeps emitting events and only a genuinely silent one is killed -
+    # what bounds a productive turn is its CONTEXT, on the limits below.
     started=$SECONDS
     last_event=$SECONDS
     SPIN_MSG=""
@@ -395,12 +438,7 @@ run_claude() {
                 last_event=$SECONDS
             fi
             if [[ $((SECONDS - last_event)) -ge $AFK_HEARTBEAT_SECS ]]; then
-                exec {sfd}<&-
-                kill "$CLAUDE_PID" 2> /dev/null
-                wait "$CLAUDE_PID" 2> /dev/null
-                CLAUDE_PID=""
-                rm -rf "$dir"
-                report_tokens
+                stop_claude TERM
                 die "claude produced no output for ${AFK_HEARTBEAT_SECS}s; session killed"
             fi
             spin $((SECONDS - started))
@@ -421,7 +459,29 @@ run_claude() {
                     # the LATEST count wins - after a compaction the context
                     # genuinely shrinks and the display should follow it down.
                     used=$(printf '%s' "$line" | jq -r 'try (if .message.usage then (.message.usage | (.input_tokens // 0) + (.cache_creation_input_tokens // 0) + (.cache_read_input_tokens // 0) + (.output_tokens // 0)) else empty end) catch empty' 2> /dev/null)
-                    [[ $used =~ ^[0-9]+$ ]] && SESSION_TOKENS=$used
+                    if [[ $used =~ ^[0-9]+$ ]]; then
+                        SESSION_TOKENS=$used
+                        # Past the hard limit there is nothing left to wait
+                        # for: stop the way CTRL+C would and let the rotation
+                        # reconstruct the phase from durable state. The soft
+                        # limit only ARMS a stop, and says nothing yet - the
+                        # boundary below is what decides whether it fires.
+                        if [[ $SESSION_TOKENS -ge $AFK_HARD_TOKENS ]]; then
+                            KILL_REASON="hard context limit crossed at $(fmt_tokens "$SESSION_TOKENS")"
+                            stop_claude INT
+                            return 0
+                        elif [[ $SESSION_TOKENS -ge $AFK_SOFT_TOKENS ]]; then
+                            soft_armed=1
+                        fi
+                    fi
+                    # A turn may issue several tools at once, so what is in
+                    # flight is a COUNT, not a flag. Each tool_use raises it and
+                    # each tool_result below lowers it; only zero means the
+                    # model, not a tool, holds the session.
+                    drained=$(printf '%s' "$line" | jq -r 'try ([.message.content[]? | select(.type=="tool_use")] | length) catch 0' 2> /dev/null)
+                    if [[ $drained =~ ^[0-9]+$ ]]; then
+                        pending_tools=$((pending_tools + drained))
+                    fi
                     text=$(printf '%s' "$line" | jq -r 'try ([.message.content[]? | select(.type=="text") | .text] | join("\n")) catch empty')
                     if [[ -n $text ]]; then
                         # CR and ESC are flattened alongside the whitespace: a
@@ -432,6 +492,28 @@ run_claude() {
                         if [[ ${AFK_VERBOSE:-0} == 1 ]]; then
                             spin_clear
                             printf '%s\n' "$text" | sed 's/^/| /'
+                        fi
+                    fi
+                    ;;
+                user)
+                    # The soft limit's safe boundary. Each tool_result arrives
+                    # as its own user event, so a single one proves nothing
+                    # while a parallel sibling is still writing: the boundary is
+                    # the tool_use count reaching ZERO, which is the only point
+                    # at which a SIGTERM cannot interrupt a half-written edit.
+                    # An armed session that reaches its own result event first,
+                    # or whose count never drains, is left alone and routed by
+                    # its marker: the soft limit is best-effort by construction.
+                    drained=$(printf '%s' "$line" | jq -r 'try ([.message.content[]? | select(.type=="tool_result")] | length) catch 0' 2> /dev/null)
+                    if [[ $drained =~ ^[0-9]+$ ]] && [[ $drained -gt 0 ]]; then
+                        pending_tools=$((pending_tools - drained))
+                        if [[ $pending_tools -lt 0 ]]; then
+                            pending_tools=0
+                        fi
+                        if [[ $soft_armed -eq 1 && $pending_tools -eq 0 ]]; then
+                            KILL_REASON="soft context limit crossed at $(fmt_tokens "$SESSION_TOKENS")"
+                            stop_claude TERM
+                            return 0
                         fi
                     fi
                     ;;
@@ -518,13 +600,38 @@ require_step() {
         die "$3 but $1 is in $actual, not $2"
 }
 
+require_progress() {
+    # $1: task ID. Every rotation passes through here: a session that left the
+    # whole fingerprint identical made no durable progress, and giving it a
+    # successor would only spend the session budget getting nowhere. Reads and
+    # updates cmd_run's prev_fp, which is what "consecutive" means.
+    local fp
+    fp=$(fingerprint "$1") || die "cannot fingerprint $1"
+    [[ -z $prev_fp || $fp != "$prev_fp" ]] ||
+        die "no durable progress across two consecutive sessions"
+    prev_fp=$fp
+}
+
+rotate_stopped() {
+    # $1: task ID. The route for a session afk stopped on a context limit. It
+    # emitted no marker, so durable state is all the next session gets - which
+    # is exactly what /flow reads anyway - and the fingerprint is the only
+    # thing standing between a stuck run and AFK_MAX_SESSIONS.
+    require_progress "$1"
+    line "$C_NEXT" next "$KILL_REASON; rotating to a fresh context"
+}
+
 gate() {
     # $1: task ID  $2: marker status  $3: the exact gates.md approve label
     # $4: the gate's human name.
     # One resume, one label. The session is disposable afterwards either way.
+    # Returns non-zero when the resume was stopped on a context limit: a
+    # half-answered gate is not an approved one, and a fresh /flow re-reaches
+    # the same gate from durable state.
     line "$C_GATE" gate \
         "$4 - approved automatically, starting an afk run approves the flow gates"
     run_claude resume "$SESSION_UUID" "$3"
+    [[ -z $KILL_REASON ]] || return 1
     if parse_marker && [[ $MARKER_ID != "$1" ]]; then
         die "the $4 gate answered for task $MARKER_ID, not $1"
     fi
@@ -535,12 +642,17 @@ lifecycle_gate() {
     # $3: the exact gates.md approve label  $4: the FLOW STEP it must produce
     # $5: the gate's human name.
     # Both ends are checked against tatr: a gate afk cannot see land in the
-    # record is a gate afk must not build on.
+    # record is a gate afk must not build on. Returns non-zero when the gate
+    # was stopped on a context limit, having reported what it did change.
     local before_main before_feat
     require_step "$TASK_ID" "$2" "the session reported $1"
     before_main=$(ref_head HEAD)
     before_feat=$(ref_head "refs/heads/$(feature_branch "$TASK_ID")")
-    gate "$TASK_ID" "$1" "$3" "$5"
+    if ! gate "$TASK_ID" "$1" "$3" "$5"; then
+        report_phase "$TASK_ID"
+        report_commits "$TASK_ID" "$before_main" "$before_feat"
+        return 1
+    fi
     require_step "$TASK_ID" "$4" "the $5 gate was approved"
     report_phase "$TASK_ID"
     report_commits "$TASK_ID" "$before_main" "$before_feat"
@@ -570,7 +682,7 @@ cmd_run() {
         head_line "$C_AFK" goal "$goal"
     fi
 
-    local session=0 prev_fp="" fp main_before feat_before branch landed step
+    local session=0 prev_fp="" main_before feat_before branch landed step
     while true; do
         session=$((session + 1))
         if [[ $session -gt ${AFK_MAX_SESSIONS} ]]; then
@@ -594,6 +706,15 @@ cmd_run() {
         feat_before=$(ref_head "refs/heads/$(feature_branch "${TASK_ID:-none}")")
         run_claude fresh "$SESSION_UUID" "$prompt"
 
+        if [[ -n $KILL_REASON ]]; then
+            [[ -n $TASK_ID ]] ||
+                die "$KILL_REASON, before the session recorded a task to resume from"
+            report_phase "$TASK_ID"
+            report_commits "$TASK_ID" "$main_before" "$feat_before"
+            rotate_stopped "$TASK_ID"
+            continue
+        fi
+
         parse_marker ||
             die "the session ended with no AFK control marker; last line: $(printf '%s\n' "$RESULT_TEXT" | tail -1)"
         if [[ -z $TASK_ID ]]; then
@@ -610,22 +731,24 @@ cmd_run() {
 
         case "$MARKER_STATUS" in
             ROTATE)
-                fp=$(fingerprint "$TASK_ID") || die "cannot fingerprint $TASK_ID"
-                if [[ -n $prev_fp && $fp == "$prev_fp" ]]; then
-                    die "no durable progress across two consecutive sessions"
-                fi
-                prev_fp=$fp
+                require_progress "$TASK_ID"
                 line "$C_NEXT" next "rotating to a fresh context"
                 ;;
             PLAN_READY)
-                lifecycle_gate PLAN_READY PLANNING \
-                    "Approve plan - move to PLANNED" PLANNED "plan ready"
-                prev_fp=""
+                if lifecycle_gate PLAN_READY PLANNING \
+                    "Approve plan - move to PLANNED" PLANNED "plan ready"; then
+                    prev_fp=""
+                else
+                    rotate_stopped "$TASK_ID"
+                fi
                 ;;
             WORK_DONE)
-                lifecycle_gate WORK_DONE WORKING \
-                    "Approve review - move to REVIEWING" REVIEWING "work done"
-                prev_fp=""
+                if lifecycle_gate WORK_DONE WORKING \
+                    "Approve review - move to REVIEWING" REVIEWING "work done"; then
+                    prev_fp=""
+                else
+                    rotate_stopped "$TASK_ID"
+                fi
                 ;;
             LAND_READY)
                 require_step "$TASK_ID" DONE "the session reported LAND_READY"
@@ -633,7 +756,13 @@ cmd_run() {
                 [[ -n $branch ]] ||
                     die "$TASK_ID has no sprout worktree, so there is no branch to land"
                 main_before=$(ref_head HEAD)
-                gate "$TASK_ID" LAND_READY "Approve landing - land the branch" landing
+                feat_before=$(ref_head "refs/heads/$branch")
+                if ! gate "$TASK_ID" LAND_READY "Approve landing - land the branch" landing; then
+                    report_phase "$TASK_ID"
+                    report_commits "$TASK_ID" "$main_before" "$feat_before"
+                    rotate_stopped "$TASK_ID"
+                    continue
+                fi
                 landed=$(ref_head HEAD)
                 [[ $landed != "$main_before" ]] ||
                     die "the landing gate was approved but $branch produced no commit on $(git -C "$main_worktree" symbolic-ref --quiet --short HEAD)"
@@ -669,6 +798,10 @@ cmd_run() {
 }
 
 AFK_HEARTBEAT_SECS=${AFK_HEARTBEAT_SECS:-900}
+# The context window these sessions run in is 200K, so the hard limit is the
+# window itself and the soft limit leaves a turn's worth of room under it.
+AFK_SOFT_TOKENS=${AFK_SOFT_TOKENS:-180000}
+AFK_HARD_TOKENS=${AFK_HARD_TOKENS:-200000}
 AFK_MAX_SESSIONS=${AFK_MAX_SESSIONS:-40}
 trap on_signal INT TERM
 

@@ -18,11 +18,13 @@ sprout worktree.
 
 1. Two thresholds, both environment knobs: `AFK_SOFT_TOKENS` (180000) arms a
    stop, `AFK_HARD_TOKENS` (200000) stops immediately with `SIGINT`.
-2. The soft stop's safe boundary is the next `user` event carrying a
-   `tool_result`. A tool result is the only event that proves no tool is
-   mid-execution, so it is the only point at which a `SIGTERM` cannot
-   interrupt a half-written edit. An armed session that reaches its own
-   `result` event first is not stopped at all.
+2. The soft stop's safe boundary is the moment no tool is outstanding. A turn
+   can issue several `tool_use` blocks at once and each result comes back as
+   its own `user` event, so the runner counts tool calls up and results down
+   and stops only when the count reaches zero - the only point at which a
+   `SIGTERM` cannot interrupt a half-written edit. An armed session that
+   reaches its own `result` event first, or whose count never drains, is not
+   stopped at all.
 3. A token stop synthesizes no marker. It reuses the `ROTATE` ROUTE -
    `report_phase`, `report_commits`, the fingerprint no-progress check, a
    fresh session - because durable state, not model prose, is what the next
@@ -30,6 +32,13 @@ sprout worktree.
    never fabricates one.
 4. `tok_color`'s hot band becomes `$AFK_SOFT_TOKENS` rather than a second
    literal 180000, so red on the meter means "this session is being rotated".
+5. The claude child is launched under `set -m`. A shell without job control
+   starts async commands with `SIGINT` set to ignore, and an ignored
+   disposition survives `exec`, so the hard limit's `SIGINT` was discarded
+   silently - the session ran to its own end and only looked stopped. Monitor
+   mode gives the child its own process group with default dispositions. It is
+   then no longer in afk's group, so a terminal CTRL+C reaches it only through
+   `on_signal`, which already kills the recorded PID by hand.
 
 ## Alternatives considered
 
@@ -52,5 +61,7 @@ sprout worktree.
   fatal error, and `cmd_run`/`gate` must route it.
 - A stopped gate resume can re-run a phase's gate question; the fingerprint
   check is what keeps that from looping forever.
+- Every claude invocation now runs in its own process group. Nothing in afk
+  signals a group, so the only behavioural change is the one above.
 - The soft limit is best-effort by construction: a session that crosses it and
   then does nothing but talk runs to its own end. That is intended.
