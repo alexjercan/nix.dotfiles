@@ -1,9 +1,9 @@
 # make round-1 review unconditionally out-of-context and survive a gate overshoot in afk
 
 - PRIORITY: 60
-- TAGS: afk,scripts,agents
+- TAGS: afk, scripts, agents
 - KIND: TASK
-- ACTIVITY: -
+- ACTIVITY: PLANNING
 - GATES: -
 - RESOLUTION: -
 
@@ -132,3 +132,111 @@ part. The skill supplies the fact that satisfies the condition.
   whose `- REVIEWER:` is `in-session`. Deliberately NOT proposed here - it
   turns a default into a hard gate and would have failed this run over a sound
   review - but record the decision so it is not re-litigated.
+
+## Steps
+
+- [ ] `home/modules/scripts/afk.sh`: next to `phase_label`, add the lifecycle
+  order as a constant (`UNDERSTANDING PLANNING WORKING REVIEWING COMPOUNDING`,
+  confirmed against `tatr` in scratch) plus `activity_rank`, a lookup returning
+  a position and failing on an unknown word.
+- [ ] `home/modules/scripts/afk.sh`: add `require_activity_at_least` beside
+  `require_activity`, same three arguments, passing when the cursor's rank is
+  at or past the expected one. An unreadable or unknown actual activity still
+  dies, and the message names `<expected> or later`. Leave `require_activity`
+  itself untouched - `lifecycle_gate`'s precondition keeps the equality test.
+- [ ] `home/modules/scripts/afk.sh`: in `lifecycle_gate`, switch the
+  `activity)` postcondition arm to `require_activity_at_least`. Extend the
+  function comment to say why the two ends differ: the precondition is a
+  disagreement about where the session reported from, the postcondition is a
+  floor, because the lifecycle only guarantees at-or-past.
+- [ ] `home/modules/scripts/afk.sh`: in `PROTOCOL`, after the gate sentence,
+  state what to do once the runner answers - perform the transition, commit
+  the task records, then stop and report `ROTATE`, rather than continuing into
+  the next phase. Keep it to one or two sentences; `PROTOCOL` is injected into
+  every session.
+- [ ] `home/modules/scripts/afk-test.sh`: in `test_failure_paths`, extend the
+  existing "ineffective approval" case so the actual failure it names is
+  distinguishable, then add the overshoot case: a WORKING task, invocation 1
+  replies `AFK WORK_DONE <id>`, invocation 2's side script runs the transition
+  AND `review` + `compound` to leave the record at `COMPOUNDING` /
+  `PLAN REVIEW RETRO` / `RESOLUTION DONE`, and replies `AFK LAND_READY <id>`.
+  Assert the run does NOT die on the postcondition. Model the side script on
+  `gen_work_to_land`'s invocations 2 and 3, collapsed into one.
+- [ ] `home/modules/scripts/afk-test.sh`: add a case pinning the tightened
+  postcondition - a WORK_DONE gate whose resume leaves the cursor BEHIND
+  `REVIEWING` (still `WORKING`) still fails, naming `REVIEWING or later`. This
+  is the existing "ineffective approval" assertion, updated for the new
+  message.
+- [ ] `home/modules/agents/skills/review/SKILL.md` step 2: delete "A fresh
+  `/flow <id>` session that starts at REVIEWING counts as the outside
+  reviewer; do not spawn another by default". Replace with an unconditional
+  round-1 reviewer plus the authorization sentence - invoking this skill IS
+  the request for that reviewer, so it is spawned even under a standing
+  do-not-delegate directive. Drop "explain exceptions" from the same step.
+- [ ] `home/modules/agents/skills/review/rounds.md`, under
+  `## The round-1 subagent handoff`: delete the fresh-session clause; the
+  paragraph states that round 1 always hands off outside this context and
+  points at `work/delegation.md` for the bounded subagent shape.
+- [ ] `home/modules/agents/skills/review/rounds.md`, `## Required fields`:
+  narrow `- REVIEWER:` to `out-of-context`, or `in-session (<why>)` reserved
+  for a runtime with no way to start a second context. "for a trivial diff"
+  goes; see DECISION.md.
+- [ ] Run `bash home/modules/agents/skills/check.sh` and confirm both budgets
+  still pass; if either is over, trim within the two edited files rather than
+  relaxing a budget.
+- [ ] Write DECISION.md recording the four planning decisions below.
+
+## Definition of Done
+
+- A WORK_DONE gate whose resume overshoots to `COMPOUNDING` /
+  `RESOLUTION DONE` completes the run instead of dying.
+  (test: `home/modules/scripts/afk-test.sh` overshoot case; red on base with
+  `the work done gate was approved but ... is in COMPOUNDING, not REVIEWING`)
+- A WORK_DONE gate whose resume leaves the cursor at `WORKING` still fails,
+  and the message names `REVIEWING or later`.
+  (test: `home/modules/scripts/afk-test.sh` ineffective-approval case)
+- A PLAN_READY gate whose resume overshoots past `WORKING` still completes.
+  (test: `home/modules/scripts/afk-test.sh`; see Notes - already true on base
+  because that postcondition is `require_gate`, so this pins it rather than
+  fixing it)
+- The whole suite passes.
+  (cmd: `bash home/modules/scripts/afk-test.sh`)
+- `PROTOCOL` tells a gate-answering session to transition, commit records,
+  stop, and report `ROTATE`.
+  (cmd: `sed -n '/AFK RUNNER PROTOCOL/,/^EOF$/p' home/modules/scripts/afk.sh | grep -i rotate`)
+- No `review/` file offers a fresh session as a substitute for the round-1
+  reviewer.
+  (cmd: `! grep -rn 'starts at REVIEWING counts\|do not spawn another\|trivial diff' home/modules/agents/skills/review/`)
+- `review/SKILL.md` states that invoking the skill is the request for the
+  round-1 reviewer.
+  (cmd: `grep -n 'request' home/modules/agents/skills/review/SKILL.md`)
+- Skill budgets and conformance hold.
+  (cmd: `bash home/modules/agents/skills/check.sh`)
+- The repository gates hold.
+  (cmd: `nix flake check`, `tatr check`)
+
+## Notes
+
+- Confirmed in scratch (`/tmp/tatrscratch`): the terminal pre-land record is
+  `ACTIVITY: COMPOUNDING`, `GATES: PLAN REVIEW RETRO`, `RESOLUTION: DONE`.
+  ACTIVITY is never cleared by a resolution, so ranking activities alone
+  covers the reported overshoot; no resolution term is needed in the order.
+- Correction to the Story: the PLAN gate is NOT currently broken by an
+  overshoot. `lifecycle_gate PLAN_READY` uses the `gate PLAN` postcondition,
+  and `require_gate` is a token match against an accumulating GATES field, so
+  a cursor two activities past `WORKING` still passes. `WORK_DONE`'s
+  `activity REVIEWING` is the only equality postcondition. The generalized
+  helper is still the right shape - it is where any future `activity`
+  postcondition lands - but the PLAN case is a regression pin, not a fix.
+- Current budgets: `review/SKILL.md` body 351/400, `review/rounds.md` 591/600
+  (measured with `check.sh`'s own `body_of` + `wc -w`). Both edits delete more
+  than they add, so headroom grows.
+- `flow/gates.md` "## Continue or stop" already tells the session to
+  transition, commit records, and stop. The `PROTOCOL` change restates it at
+  the runner's own authority level, where a session that never loaded
+  `gates.md` still sees it.
+- `check.sh` has a duplicated-prose rule (a 12+ word paragraph verbatim in two
+  files). Deleting the near-duplicate clause from both `SKILL.md` and
+  `rounds.md` only reduces exposure to it.
+- Assumption: later rounds keep their recorded-exception default. Only round 1
+  becomes unconditional - see DECISION.md.
