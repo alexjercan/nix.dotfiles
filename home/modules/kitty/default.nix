@@ -52,9 +52,6 @@ in {
 
       "ctrl+shift+z" = "toggle_layout stack";
       "ctrl+shift+g" = "goto_layout grid";
-
-      "ctrl+shift+-" = "launch --location=hsplit";
-      "ctrl+shift+=" = "launch --location=vsplit";
     };
 
     extraConfig = ''
