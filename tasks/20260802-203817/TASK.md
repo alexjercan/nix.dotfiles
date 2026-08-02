@@ -1,10 +1,10 @@
 # afk spinner must never wrap to a second row
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 70
 - TAGS: agents, afk, ux
 - KIND: TASK
-- FLOW STEP: PLANNED
+- FLOW STEP: DONE
 - PLAN STATUS: APPROVED
 
 ## Why
@@ -60,7 +60,7 @@ folders describes the spinner - `grep -rn spinner --include='*.md'` finds only
 
 ## Steps
 
-- [ ] `home/modules/scripts/afk-test.sh`: add `test_spinner_never_wraps`,
+- [x] `home/modules/scripts/afk-test.sh`: add `test_spinner_never_wraps`,
   registered in the `run_test` list at the bottom. Seed a planned task and
   `gen_work_to_land 0` as `test_spinner_and_color_only_on_a_tty` does, but make
   invocation 1 emit an assistant event whose text is a long run of
@@ -82,29 +82,29 @@ folders describes the spinner - `grep -rn spinner --include='*.md'` finds only
   Run it against unmodified `afk.sh` and confirm it fails - `?7` does not occur
   anywhere in `afk.sh` on the base branch (`grep -c '?7'` is 0), so assertions
   1 and 3 are red by construction.
-- [ ] `home/modules/scripts/afk.sh`, `spin()`: write the frame as
+- [x] `home/modules/scripts/afk.sh`, `spin()`: write the frame as
   `printf '\r\033[K\033[?7l%s\033[?7h' "$truncated"` - one `printf`, hence one
   `write`, so no signal can land between disabling and restoring autowrap.
   Keep the existing `${text:0:$((TERM_COLS - 1))}` truncation: it is no longer
   load-bearing for correctness but still bounds the write and keeps the frame
   readable when the terminal is wider than afk believes.
-- [ ] `home/modules/scripts/afk.sh`, `spin_clear()`: emit
+- [x] `home/modules/scripts/afk.sh`, `spin_clear()`: emit
   `\r\033[K\033[?7h` so every erase - including the one on the interrupt path
   via `err` - also restores autowrap.
-- [ ] `home/modules/scripts/afk.sh:415`: extend the `SPIN_MSG` sanitizer from
+- [x] `home/modules/scripts/afk.sh:415`: extend the `SPIN_MSG` sanitizer from
   `tr '\n\t' '  '` to also flatten `\r` and `\033`. Both are the same class of
   bug as the wrap: a raw CR makes the frame overwrite itself and a raw ESC from
   model text quoting terminal output can move the cursor or set a mode, and
   neither is something a transient decoration line may do.
-- [ ] `home/modules/scripts/afk.sh`, the presentation comment block at the top
+- [x] `home/modules/scripts/afk.sh`, the presentation comment block at the top
   (currently "the spinner is truncated to the terminal width by byte count"):
   that sentence is false - the truncation counts characters - and it is now the
   wrong invariant anyway. Restate it as: the spinner is written with autowrap
   disabled, so it always occupies exactly one row and `spin_clear` always
   erases all of it; the truncation is only a bound on the write.
-- [ ] Re-read the `## Check suite` entry for `afk-test.sh` in `AGENTS.md`;
+- [x] Re-read the `## Check suite` entry for `afk-test.sh` in `AGENTS.md`;
   update only if it now states something false.
-- [ ] Run `bash home/modules/scripts/afk-test.sh` and confirm the whole suite
+- [x] Run `bash home/modules/scripts/afk-test.sh` and confirm the whole suite
   is green.
 
 ## Notes
@@ -124,3 +124,46 @@ folders describes the spinner - `grep -rn spinner --include='*.md'` finds only
   it.
 - Sabotage check: reverting the `spin()` change alone turns
   `test_spinner_never_wraps` red while the rest of the suite stays green.
+
+## Close-out
+
+WHAT/WHY: `spin()` now writes its frame as
+`\r\033[K\033[?7l<text>\033[?7h` and `spin_clear()` erases with
+`\r\033[K\033[?7h`. With autowrap (DECAWM) off for the write, a frame wider
+than the terminal is clipped at the right margin instead of continuing on the
+next row, so the single-row erase always erases all of it - cause-agnostic
+across all three width-prediction variants (character-vs-column counting, the
+once-sampled `TERM_COLS`, the 80-column `stty` fallback). The `SPIN_MSG`
+sanitizer also flattens CR and ESC, since a transient decoration line may not
+move the cursor or set a mode. The presentation comment's "truncated by byte
+count" claim was false and is replaced by the autowrap invariant.
+
+ALTERNATIVES: as planned - measuring display width (no portable `wcswidth` in
+bash: a subprocess per frame or a hand-rolled East Asian Width table) and a
+`SIGWINCH` trap (no requirement left once wrapping is impossible). Neither was
+revisited during implementation.
+
+DIFFICULTIES: the forced-narrow pty was NOT the uncertain part - `stty cols 40
+< /dev/tty` inside the `script` child does resize the pty afk reads (verified:
+`stty size` reports `0 40`), so the width is forced as planned. What did cost a
+cycle was the capture parser. The first version recognized a spinner erase by
+EQUALITY against `\033[K\033[?7h`, on the assumption that every spinner write
+is CR-terminated. Only the frames are: `spin_clear` is followed immediately by
+the permanent line it made room for, with no CR between them, so the erase and
+that line land in one chunk. The three autowrap assertions stayed red against
+the fixed script until both kinds were recognized by PREFIX instead. Diagnosed
+by dumping the raw capture and reading the actual bytes rather than trusting
+the model of them.
+
+EVIDENCE: `bash home/modules/scripts/afk-test.sh` - 13 passed, 0 failed.
+Red-first confirmed on the unmodified script (`grep -c '?7'` was 0; the two
+autowrap assertions and the erase assertion failed). Sabotage confirmed:
+reverting the `spin()` line alone leaves 12 passing and only
+`test_spinner_never_wraps` red. Also green: `nix flake check`,
+`bash home/modules/agents/skills/check.sh`, `tatr check`. The `AGENTS.md`
+`## Check suite` entry for `afk-test.sh` was re-read and states nothing the
+change makes false, so it is unchanged.
+
+REFLECTION: a test that asserts on a raw terminal byte stream is only as good
+as its model of who emits CRs. Dumping the capture once, up front, would have
+been cheaper than reasoning about the framing twice.

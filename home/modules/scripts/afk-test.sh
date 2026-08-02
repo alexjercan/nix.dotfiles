@@ -800,6 +800,65 @@ test_spinner_and_color_only_on_a_tty() {
     check "the report itself is unchanged" str_contains "$plain" "done  $id landed"
 }
 
+test_spinner_never_wraps() {
+    # A spinner frame is only safe to erase with `\r\033[K` if it occupies
+    # exactly one row, so every frame must be written with autowrap off. The
+    # assertions are on the RAW pty capture, not on the rendered screen: the
+    # escape sequences ARE the mechanism under test.
+    local id wide cap chunk frames=0 clears=0 bad_open=0 bad_close=0 newlines=0
+    local esc=$'\033'
+    local -a chunks
+
+    id=$(seed_planned_task)
+    gen_work_to_land 0
+    reply_slow 1 "AFK WORK_DONE $id" 1.2
+    # 80 double-width glyphs: 160 display columns, and exactly the input the
+    # character-counting truncation under-measures. reply_slow's transcript is
+    # replaced, but its pause is kept, so at least one frame is drawn.
+    wide=$(printf '漢%.0s' {1..80})
+    reply_raw 1 << EOF
+{"type":"system","subtype":"init","session_id":"fake"}
+{"type":"assistant","message":{"content":[{"type":"text","text":"$wide"}],"usage":{"input_tokens":57594,"cache_creation_input_tokens":1,"cache_read_input_tokens":2,"output_tokens":3}}}
+{"type":"result","subtype":"success","is_error":false,"result":"phase summary\nAFK WORK_DONE $id"}
+EOF
+
+    # The pty is forced narrow so the payload also over-runs afk's own idea of
+    # the width; the glyphs alone would already exceed any real terminal.
+    script -qec "stty cols 40 < /dev/tty; bash '$AFK' run '$id'" /dev/null \
+        > "$TMP/pty.out" 2>&1
+    cap=$(cat "$TMP/pty.out")
+
+    # Every spinner write starts at column 0 and erases the row first, so
+    # splitting on CR and keeping the chunks that open with an erase yields the
+    # spinner's writes. Only the frames are CR-terminated - an erase is
+    # followed straight away by the permanent line it made room for, in the
+    # same chunk - so both kinds are recognized by their PREFIX.
+    IFS=$'\r' read -r -d '' -a chunks < <(printf '%s\0' "$cap")
+    for chunk in "${chunks[@]}"; do
+        [[ $chunk == "$esc[K"* ]] || continue
+        if [[ $chunk == "$esc[K$esc[?7h"* ]]; then
+            clears=$((clears + 1))
+            continue
+        fi
+        frames=$((frames + 1))
+        [[ $chunk == "$esc[K$esc[?7l"* ]] || bad_open=$((bad_open + 1))
+        [[ $chunk == *"$esc[?7h" ]] || bad_close=$((bad_close + 1))
+        [[ $chunk == *$'\n'* ]] && newlines=$((newlines + 1))
+    done
+
+    check "the wide-message run drew at least one spinner frame" \
+        test "$frames" -ge 1
+    check "every frame disables autowrap before its text" test "$bad_open" -eq 0
+    check "every frame re-enables autowrap after its text" \
+        test "$bad_close" -eq 0
+    check "no spinner frame contains a newline" test "$newlines" -eq 0
+    check "erasing the spinner also restores autowrap" test "$clears" -ge 1
+    # On a pty the label is colored, so the needle carries the reset the piped
+    # run does not have; everything after it is the same content.
+    check "the report's permanent lines survive" \
+        str_contains "$cap" "done$esc[0m  $id landed"
+}
+
 test_interrupt_kills_recorded_pid() {
     local id afk_pid bystander_pid claude_pid rc step_before step_after waited
     id=$(seed_planned_task)
@@ -884,6 +943,7 @@ run_test test_failure_paths
 run_test test_verbose_echoes_assistant_text
 run_test test_session_token_report
 run_test test_spinner_and_color_only_on_a_tty
+run_test test_spinner_never_wraps
 run_test test_interrupt_kills_recorded_pid
 run_test test_no_progress_fingerprint_stops
 echo

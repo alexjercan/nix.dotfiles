@@ -84,8 +84,10 @@ EOF
 # the color constants (empty strings otherwise) and the transient spinner line
 # (a no-op otherwise). That includes the `tokens` line: its VALUE is content,
 # only its band color is gated, and the spinner's copy of the count stays
-# uncolored because the spinner is truncated to the terminal width by byte
-# count and a halved escape sequence would bleed into the terminal.
+# uncolored because the spinner is a bounded, truncated write and a halved
+# escape sequence would bleed into the terminal. The spinner is written with
+# autowrap disabled, so it always occupies exactly one row and `spin_clear`
+# always erases all of it; the truncation is only a bound on the write.
 # afk's PRINTED vocabulary is not its MARKER vocabulary:
 # the `AFK <STATUS> <id>` protocol below is a contract with the model and does
 # not follow this file's labels.
@@ -169,9 +171,12 @@ report_tokens() {
 
 spin_clear() {
     # Erase a live spinner so no permanent line is ever printed on top of it.
+    # Every erase also restores autowrap, so no exit path - including the
+    # interrupt handler, which reaches here through `err` - can leave the
+    # terminal with wrapping off.
     [[ $SPIN_LIVE -eq 1 ]] || return 0
     SPIN_LIVE=0
-    printf '\r\033[K'
+    printf '\r\033[K\033[?7h'
 }
 
 spin() {
@@ -184,7 +189,14 @@ spin() {
     [[ -z $SESSION_TOKENS ]] || tok="$(fmt_tokens "$SESSION_TOKENS")  "
     text=$(printf '%s working  %s  %dm%02ds  %s%s' \
         "$frame" "$SPIN_PHASE" $(($1 / 60)) $(($1 % 60)) "$tok" "$SPIN_MSG")
-    printf '\r\033[K%s' "${text:0:$((TERM_COLS - 1))}"
+    # Autowrap off (DECAWM) for the write, on again straight after: a frame
+    # wider than the terminal is CLIPPED at the right margin instead of
+    # continuing on the next row, so the frame always occupies exactly one row
+    # and `spin_clear`'s single-row erase always erases all of it. The
+    # truncation is only a bound on the write, not the wrap guard - it counts
+    # characters, which is not display columns. One printf, hence one write, so
+    # no signal can land between disabling and restoring autowrap.
+    printf '\r\033[K\033[?7l%s\033[?7h' "${text:0:$((TERM_COLS - 1))}"
     SPIN_LIVE=1
 }
 
@@ -412,7 +424,11 @@ run_claude() {
                     [[ $used =~ ^[0-9]+$ ]] && SESSION_TOKENS=$used
                     text=$(printf '%s' "$line" | jq -r 'try ([.message.content[]? | select(.type=="text") | .text] | join("\n")) catch empty')
                     if [[ -n $text ]]; then
-                        SPIN_MSG=$(printf '%s' "$text" | tr '\n\t' '  ' | tr -s ' ')
+                        # CR and ESC are flattened alongside the whitespace: a
+                        # transient decoration line may not move the cursor or
+                        # set a mode, and model text quoting terminal output
+                        # carries both.
+                        SPIN_MSG=$(printf '%s' "$text" | tr '\n\t\r\033' '    ' | tr -s ' ')
                         if [[ ${AFK_VERBOSE:-0} == 1 ]]; then
                             spin_clear
                             printf '%s\n' "$text" | sed 's/^/| /'
