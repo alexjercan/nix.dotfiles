@@ -209,7 +209,7 @@ part. The skill supplies the fact that satisfies the condition.
 - No `review/` file offers a fresh session as a substitute for the round-1
   reviewer.
   (cmd: `! grep -rn 'starts at REVIEWING counts\|do not spawn another\|started at REVIEWING after\|trivial diff' home/modules/agents/skills/review/`;
-  red on base - 2 matches in `SKILL.md`, 2 in `rounds.md`)
+  red on base - 3 matches, 2 in `SKILL.md` and 1 in `rounds.md`)
 - `review/SKILL.md` states that invoking the skill is the request for the
   round-1 reviewer.
   (cmd: `grep -n 'request' home/modules/agents/skills/review/SKILL.md`)
