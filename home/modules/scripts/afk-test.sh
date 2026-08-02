@@ -80,14 +80,18 @@ in_order() {
 WT_REL="sprouts/repo/feature/thing"
 
 reply() {
-    # $1: invocation number  $2: the AFK marker line (may be empty).
+    # $1: invocation number  $2: the AFK marker line (may be empty)
+    # $3: the session's context size in tokens (default 57600).
     # Emits a minimal but realistic stream-json transcript. The marker is put
-    # on the LAST line of the result text so the runner must scan for it.
-    local file="$AFK_TEST_TMP/replies/$1.jsonl"
+    # on the LAST line of the result text so the runner must scan for it. The
+    # token total is split across all four usage fields, with distinct small
+    # values, so a sum that drops one of them shows up in the reported count.
+    local file="$AFK_TEST_TMP/replies/$1.jsonl" total=${3:-57600}
     mkdir -p "$AFK_TEST_TMP/replies"
     {
         printf '%s\n' '{"type":"system","subtype":"init","session_id":"fake"}'
-        printf '%s\n' '{"type":"assistant","message":{"content":[{"type":"text","text":"phase running"}]}}'
+        printf '{"type":"assistant","message":{"content":[{"type":"text","text":"phase running"}],"usage":{"input_tokens":%d,"cache_creation_input_tokens":1,"cache_read_input_tokens":2,"output_tokens":3}}}\n' \
+            "$((total - 6))"
         printf '{"type":"result","subtype":"success","is_error":false,"result":"phase summary\\n%s"}\n' "$2"
     } > "$file"
 }
@@ -255,6 +259,18 @@ seed_planned_task() {
     printf '%s\n' "$id"
 }
 
+token_band_color() {
+    # $1: a session's context size in tokens -> the escape sequence coloring
+    # its `tokens` line, from a one-invocation run on a pty. DONE with no
+    # sprout worktree is the cheapest clean exit the runner has.
+    restart_sandbox
+    local id
+    id=$(seed_planned_task)
+    reply 1 "AFK DONE $id" "$1"
+    script -qec "bash '$AFK' run '$id'" /dev/null > "$TMP/pty.out" 2>&1
+    grep -oE $'\033\\[[0-9;]*m''tokens' "$TMP/pty.out" | head -1
+}
+
 task_step() {
     # $1: tasks root  $2: task ID -> its FLOW STEP.
     tatr -r "$1" show "$2" 2> /dev/null | sed -n 's/^- FLOW STEP: //p' | head -1
@@ -386,6 +402,7 @@ test_run_report_reads_as_a_report() {
         "goal  add a thing" \
         "session 1  starting" \
         'prompt  /flow "add a thing"' \
+        "tokens  57.6K" \
         "task    $id created" \
         "phase   PLANNING  writing the plan" \
         "commit  " \
@@ -636,11 +653,100 @@ test_verbose_echoes_assistant_text() {
     check "the default suppresses assistant text" not str_contains "$out" "phase running"
 }
 
+test_session_token_report() {
+    # The context meter: one permanent line per claude invocation, formatted in
+    # K, colored by which side of the 120K/180K thresholds it lands on.
+    local id out rc c_ok c_ok_edge c_warn c_warn_edge c_hot
+
+    id=$(seed_planned_task)
+    gen_work_to_land 0
+    out=$(afk run "$id" 2>&1)
+    rc=$?
+    check "a run reporting tokens exits 0" test "$rc" -eq 0
+    check "every claude invocation reports its context size" \
+        test "$(printf '%s\n' "$out" | grep -c '^  tokens  57\.6K$')" -eq 4
+    check "the count is the four usage fields summed" \
+        not str_contains "$out" "57.5K"
+
+    restart_sandbox
+    id=$(seed_planned_task)
+    reply 1 "AFK DONE $id" 119999
+    out=$(afk run "$id" 2>&1)
+    check "the count is formatted in K with one decimal" \
+        str_contains "$out" "tokens  119.9K"
+
+    c_ok=$(token_band_color 57600)
+    c_ok_edge=$(token_band_color 119999)
+    c_warn=$(token_band_color 120000)
+    c_warn_edge=$(token_band_color 179999)
+    c_hot=$(token_band_color 180000)
+
+    check "the tokens line is colored on a TTY" str_matches "${c_ok:-}" "^"$'\033'
+    check "119999 is still in the low band" test "$c_ok_edge" = "$c_ok"
+    check "120000 leaves the low band" not test "$c_warn" = "$c_ok"
+    check "179999 is still in the middle band" test "$c_warn_edge" = "$c_warn"
+    check "180000 leaves the middle band" not test "$c_hot" = "$c_warn"
+    check "the top band differs from the low band" not test "$c_hot" = "$c_ok"
+
+    restart_sandbox
+    id=$(seed_planned_task)
+    reply_raw 1 << EOF
+{"type":"system","subtype":"init","session_id":"fake"}
+{"type":"assistant","message":{"content":[{"type":"text","text":"phase running"}]}}
+{"type":"result","subtype":"success","is_error":false,"result":"phase summary\\nAFK DONE $id"}
+EOF
+    out=$(afk run "$id" 2>&1)
+    rc=$?
+    check "a stream carrying no usage still succeeds" test "$rc" -eq 0
+    check "a stream carrying no usage prints no tokens line" \
+        not str_contains "$out" "tokens"
+
+    # A dying invocation is the case the meter exists for: a session that
+    # stalls or blows up is the one whose context size a human wants. Each of
+    # these kills the run down a different path, all of them after the
+    # assistant event that carried the count.
+    restart_sandbox
+    id=$(seed_planned_task)
+    reply 1 "AFK ROTATE $id"
+    exit_rc 1 9
+    out=$(afk run "$id" 2>&1)
+    check "a nonzero claude exit still reports the count" \
+        str_contains "$out" "tokens  57.6K"
+
+    restart_sandbox
+    id=$(seed_planned_task)
+    reply_slow 1 "AFK ROTATE $id" 20
+    AFK_HEARTBEAT_SECS=2 afk run "$id" > "$TMP/stall.out" 2>&1
+    check "a stalled session still reports the count" \
+        str_contains "$(cat "$TMP/stall.out")" "tokens  57.6K"
+
+    restart_sandbox
+    id=$(seed_planned_task)
+    reply_raw 1 << 'EOF'
+{"type":"system","subtype":"init","session_id":"fake"}
+{"type":"assistant","message":{"content":[{"type":"text","text":"phase running"}],"usage":{"input_tokens":57594,"cache_creation_input_tokens":1,"cache_read_input_tokens":2,"output_tokens":3}}}
+{"type":"result","subtype":"success","is_error":true,"result":"Claude usage limit reached"}
+EOF
+    out=$(afk run "$id" 2>&1)
+    check "an error result still reports the count" \
+        str_contains "$out" "tokens  57.6K"
+
+    restart_sandbox
+    id=$(seed_planned_task)
+    reply_raw 1 << 'EOF'
+{"type":"system","subtype":"init","session_id":"fake"}
+{"type":"assistant","message":{"content":[{"type":"text","text":"phase running"}],"usage":{"input_tokens":57594,"cache_creation_input_tokens":1,"cache_read_input_tokens":2,"output_tokens":3}}}
+EOF
+    out=$(afk run "$id" 2>&1)
+    check "a stream with no terminal result still reports the count" \
+        str_contains "$out" "tokens  57.6K"
+}
+
 test_spinner_and_color_only_on_a_tty() {
     # The decoration is the ONLY thing that may differ between a terminal and a
     # pipe, so both halves of this run the same fixtures the same way.
     local id pty plain rc gate_color commit_color
-    local spinner_re='[|/\-] working  PLANNED  [0-9]+m[0-9]{2}s  phase running'
+    local spinner_re='[|/\-] working  PLANNED  [0-9]+m[0-9]{2}s  57\.6K  phase running'
     local color_re=$'\033\\[[0-9;]*m'
 
     id=$(seed_planned_task)
@@ -670,6 +776,7 @@ test_spinner_and_color_only_on_a_tty() {
     check "the piped run exits 0" test "$rc" -eq 0
     check "no escape sequence off a TTY" not str_contains "$plain" $'\033'
     check "no spinner line off a TTY" not str_contains "$plain" " working  "
+    check "the tokens line survives off a TTY" str_contains "$plain" "tokens  57.6K"
     check "the report itself is unchanged" str_contains "$plain" "done  $id landed"
 }
 
@@ -754,6 +861,7 @@ run_test test_run_report_reads_as_a_report
 run_test test_argv_session_and_resume_policy
 run_test test_failure_paths
 run_test test_verbose_echoes_assistant_text
+run_test test_session_token_report
 run_test test_spinner_and_color_only_on_a_tty
 run_test test_interrupt_kills_recorded_pid
 run_test test_no_progress_fingerprint_stops

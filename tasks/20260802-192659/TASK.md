@@ -1,10 +1,10 @@
 # afk: show the session's context token count, colored by budget
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 60
 - TAGS: feature, scripts, afk
 - KIND: TASK
-- FLOW STEP: PLANNED
+- FLOW STEP: DONE
 - PLAN STATUS: APPROVED
 
 Watching an `afk run`, a human cannot tell how full the session's context is.
@@ -39,27 +39,77 @@ an escape sequence cut in half would bleed color into the terminal.
 
 ## Steps
 
-- [ ] `home/modules/scripts/afk-test.sh`: extend the `reply` /`reply_slow`
+- [x] `home/modules/scripts/afk-test.sh`: extend the `reply` /`reply_slow`
       fixtures with a `usage` block on the assistant event (default 57600
       tokens) so every existing fixture exercises the new line, and add
       `test_session_token_report` covering the K format, the three color
       bands with their boundaries (119999 / 120000 / 180000), and a
       usage-free stream. Watch them fail.
-- [ ] `home/modules/scripts/afk.sh`: add `C_TOK_OK` / `C_TOK_WARN` /
+- [x] `home/modules/scripts/afk.sh`: add `C_TOK_OK` / `C_TOK_WARN` /
       `C_TOK_HOT` to the color block, blanked off a TTY with the rest.
-- [ ] `home/modules/scripts/afk.sh`: add `fmt_tokens` (integer -> `57.6K`)
+- [x] `home/modules/scripts/afk.sh`: add `fmt_tokens` (integer -> `57.6K`)
       and `tok_color` (integer -> the band's color constant).
-- [ ] `home/modules/scripts/afk.sh`: in `run_claude`, on each `assistant`
+- [x] `home/modules/scripts/afk.sh`: in `run_claude`, on each `assistant`
       event, sum `.message.usage` (`input_tokens` +
       `cache_creation_input_tokens` + `cache_read_input_tokens` +
       `output_tokens`) into `SESSION_TOKENS`, reset to empty at the top of
       the call, and append the formatted count to `SPIN_MSG`'s spinner line.
-- [ ] `home/modules/scripts/afk.sh`: after the terminal result, print the
+- [x] `home/modules/scripts/afk.sh`: after the terminal result, print the
       `tokens` line via `line`, skipping it when no usage was ever seen.
-- [ ] Update the `afk.sh` presentation header comment to name the tokens
-      line as the third TTY-gated thing.
-- [ ] Run `bash home/modules/scripts/afk-test.sh` and one real
-      `afk run <id>` sanity read.
+- [x] Update the `afk.sh` presentation header comment for the tokens line.
+      Corrected against the DoD: the line is NOT a third TTY-gated thing -
+      its value is content and prints off a TTY too, so the comment names
+      what actually is gated (its band color) and why the spinner's copy of
+      the count stays uncolored.
+- [x] Run `bash home/modules/scripts/afk-test.sh` and a real sanity read.
+      The suite is green; the real-stream read was a live
+      `claude -p --output-format stream-json` probe re-confirming the usage
+      shape (see the close-out) rather than a nested `afk run`.
+
+## Close-out
+
+What and why: `afk run` now prints one `tokens  <N.N>K` line per claude
+invocation and carries the same count live in the spinner, so a human
+watching an unattended run can see a session approaching its context window
+instead of discovering it when the session compacts or stalls. The count is
+the latest `assistant` event's `.message.usage` fields summed, colored green
+below 120K, yellow below 180K, red at and above 180K.
+
+Alternatives: none beyond the ones DECISION.md already settled (result-event
+usage, cumulative tokens, high-water mark, a colored spinner). One plan step
+was corrected rather than followed - see the step above.
+
+Difficulties and diagnosis: the only trap was the usage-absent branch. The
+obvious jq (`.message.usage | (.input_tokens // 0) + ...`) yields 0 rather
+than nothing for a stream with no usage, which would have printed a false
+`0.0K` line; the implementation guards with `if .message.usage then ... else
+empty end` and only assigns when the result is numeric. `fmt_tokens`
+truncates instead of rounding so a count can never be displayed above a
+threshold it has not crossed.
+
+Evidence: `bash home/modules/scripts/afk-test.sh` 11/11 green (was 3 red
+before the implementation), `nix flake check` all checks passed (it builds
+the writeShellApplication wrapper, so shellcheck ran over `afk.sh`),
+`bash home/modules/scripts/sprout-test.sh` 16/16, `tatr check` clean, and
+`shfmt -i 4 -ci -sr` reports no diff. A live
+`claude -p --output-format stream-json --verbose` probe returned
+`{"input_tokens":2,"cache_creation_input_tokens":4354,
+"cache_read_input_tokens":18144,"output_tokens":4}` - the four fields the
+parser reads, in the shape it expects.
+
+Review round 1 (R1.1, MAJOR): the count was printed only on the fully
+successful path, so all four `die`s inside `run_claude` threw it away -
+including the heartbeat kill, which is afk's own stall detector and the
+scenario the Story opens with. `report_tokens()` now owns the print and runs
+on every exit. Four new cases in `test_session_token_report` pin one dying
+path each.
+
+Reflection: the cheap trick worth keeping is the band test harness. A
+`DONE` marker on a task with no sprout worktree is a clean one-invocation
+exit, so each color band costs a single fake session on a pty instead of a
+four-invocation full cycle. Splitting the fixture's token total across all
+four usage fields with distinct values also means a parser that drops one
+field shows a wrong number rather than passing by luck.
 
 ## Definition of Done
 

@@ -82,7 +82,11 @@ EOF
 # One content stream, decoration gated on the terminal. Every permanent line is
 # byte-identical whether or not stdout is a TTY; exactly two things are gated,
 # the color constants (empty strings otherwise) and the transient spinner line
-# (a no-op otherwise). afk's PRINTED vocabulary is not its MARKER vocabulary:
+# (a no-op otherwise). That includes the `tokens` line: its VALUE is content,
+# only its band color is gated, and the spinner's copy of the count stays
+# uncolored because the spinner is truncated to the terminal width by byte
+# count and a halved escape sequence would bleed into the terminal.
+# afk's PRINTED vocabulary is not its MARKER vocabulary:
 # the `AFK <STATUS> <id>` protocol below is a contract with the model and does
 # not follow this file's labels.
 
@@ -98,9 +102,13 @@ C_COMMIT=$'\033[32m'
 C_GATE=$'\033[33m'
 C_LAND=$'\033[1;32m'
 C_NEXT=$'\033[2m'
+C_TOK_OK=$'\033[32m'
+C_TOK_WARN=$'\033[33m'
+C_TOK_HOT=$'\033[31m'
 if [[ $OUT_TTY -eq 0 ]]; then
     C_RESET="" C_AFK="" C_SESSION="" C_PROMPT="" C_PHASE=""
     C_COMMIT="" C_GATE="" C_LAND="" C_NEXT=""
+    C_TOK_OK="" C_TOK_WARN="" C_TOK_HOT=""
 fi
 
 E_RESET=$'\033[0m'
@@ -125,6 +133,40 @@ SPIN_LIVE=0
 SPIN_PHASE=""
 SPIN_MSG=""
 
+# The context size of the claude invocation in flight, empty until one of its
+# assistant events carries usage.
+SESSION_TOKENS=""
+
+fmt_tokens() {
+    # $1: a token count -> '57.6K'. Truncated, never rounded: a count must not
+    # be displayed above a threshold it has not actually crossed.
+    printf '%d.%dK' $(($1 / 1000)) $((($1 % 1000) / 100))
+}
+
+tok_color() {
+    # $1: a token count -> its band color against a 200K context window.
+    if [[ $1 -lt 120000 ]]; then
+        printf '%s' "$C_TOK_OK"
+    elif [[ $1 -lt 180000 ]]; then
+        printf '%s' "$C_TOK_WARN"
+    else
+        printf '%s' "$C_TOK_HOT"
+    fi
+}
+
+report_tokens() {
+    # Print the count for the claude invocation in flight, once, and forget it.
+    # Every exit from run_claude passes through here, including the ones that
+    # die: a session that stalled or blew up is exactly the one whose context
+    # size is worth seeing. A session killed before its first assistant event
+    # has no count at all, and a missing cosmetic field must not add a line
+    # claiming zero.
+    [[ -n $SESSION_TOKENS ]] || return 0
+    spin_clear
+    line "$(tok_color "$SESSION_TOKENS")" tokens "$(fmt_tokens "$SESSION_TOKENS")"
+    SESSION_TOKENS=""
+}
+
 spin_clear() {
     # Erase a live spinner so no permanent line is ever printed on top of it.
     [[ $SPIN_LIVE -eq 1 ]] || return 0
@@ -136,11 +178,12 @@ spin() {
     # $1: seconds since the session started. Transient and TTY-only: never
     # content, so nothing downstream may depend on it.
     [[ $OUT_TTY -eq 1 ]] || return 0
-    local frame text
+    local frame text tok=""
     frame=${SPIN_FRAMES:$SPIN_INDEX:1}
     SPIN_INDEX=$(((SPIN_INDEX + 1) % ${#SPIN_FRAMES}))
-    text=$(printf '%s working  %s  %dm%02ds  %s' \
-        "$frame" "$SPIN_PHASE" $(($1 / 60)) $(($1 % 60)) "$SPIN_MSG")
+    [[ -z $SESSION_TOKENS ]] || tok="$(fmt_tokens "$SESSION_TOKENS")  "
+    text=$(printf '%s working  %s  %dm%02ds  %s%s' \
+        "$frame" "$SPIN_PHASE" $(($1 / 60)) $(($1 % 60)) "$tok" "$SPIN_MSG")
     printf '\r\033[K%s' "${text:0:$((TERM_COLS - 1))}"
     SPIN_LIVE=1
 }
@@ -309,7 +352,7 @@ run_claude() {
     fi
     args+=("$prompt")
 
-    local dir fifo line typ text result="" rc sfd partial="" started last_event
+    local dir fifo line typ text used result="" rc sfd partial="" started last_event
     dir=$(mktemp -d) || die "cannot create a temporary directory"
     fifo="$dir/stream"
     mkfifo "$fifo" || die "cannot create the event pipe"
@@ -326,6 +369,7 @@ run_claude() {
     started=$SECONDS
     last_event=$SECONDS
     SPIN_MSG=""
+    SESSION_TOKENS=""
     while true; do
         # '!' would reset $?, so the read status is captured on its own line:
         # >128 is a poll timeout, 1 is a clean end of stream.
@@ -344,6 +388,7 @@ run_claude() {
                 wait "$CLAUDE_PID" 2> /dev/null
                 CLAUDE_PID=""
                 rm -rf "$dir"
+                report_tokens
                 die "claude produced no output for ${AFK_HEARTBEAT_SECS}s; session killed"
             fi
             spin $((SECONDS - started))
@@ -358,6 +403,13 @@ run_claude() {
             case "$typ" in
                 result) result=$line ;;
                 assistant)
+                    # The context this turn was holding: everything the model
+                    # read plus what it wrote. Absent usage leaves the last
+                    # known count alone rather than resetting it to zero, and
+                    # the LATEST count wins - after a compaction the context
+                    # genuinely shrinks and the display should follow it down.
+                    used=$(printf '%s' "$line" | jq -r 'try (if .message.usage then (.message.usage | (.input_tokens // 0) + (.cache_creation_input_tokens // 0) + (.cache_read_input_tokens // 0) + (.output_tokens // 0)) else empty end) catch empty' 2> /dev/null)
+                    [[ $used =~ ^[0-9]+$ ]] && SESSION_TOKENS=$used
                     text=$(printf '%s' "$line" | jq -r 'try ([.message.content[]? | select(.type=="text") | .text] | join("\n")) catch empty')
                     if [[ -n $text ]]; then
                         SPIN_MSG=$(printf '%s' "$text" | tr '\n\t' '  ' | tr -s ' ')
@@ -377,6 +429,7 @@ run_claude() {
     wait "$CLAUDE_PID"
     rc=$?
     CLAUDE_PID=""
+    report_tokens
 
     if [[ $rc -ne 0 ]]; then
         err "$(tail -5 "$dir/err" 2> /dev/null)"
