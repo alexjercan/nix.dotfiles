@@ -3,8 +3,8 @@
 - PRIORITY: 60
 - TAGS: afk, scripts, agents
 - KIND: TASK
-- ACTIVITY: PLANNING
-- GATES: -
+- ACTIVITY: WORKING
+- GATES: PLAN
 - RESOLUTION: -
 
 An `afk run` of `nova-protocol` task `20260802-183352` died with:
