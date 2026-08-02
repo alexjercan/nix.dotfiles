@@ -30,10 +30,13 @@ usage() {
     echo "Run the /flow skill unattended through headless Claude Code sessions."
     echo
     echo "Commands:"
-    echo "  run <goal|task-id>"
-    echo "                   Drive one goal, or one existing task, from its"
+    echo "  run <goal|task-id>..."
+    echo "                   Drive each goal, or each existing task, from its"
     echo "                   current activity through to a landed commit,"
-    echo "                   auto-approving the standard flow gates"
+    echo "                   auto-approving the standard flow gates. Several"
+    echo "                   arguments run sequentially, in the order given;"
+    echo "                   the batch stops at the first one that fails and"
+    echo "                   names the arguments it never started"
     echo "  help             Show this help message"
     echo
     echo "Starting a run IS the approval for the plan, review and landing"
@@ -47,7 +50,8 @@ usage() {
     echo "                      next completed tool call (default 180000)"
     echo "  AFK_HARD_TOKENS     Context size that rotates immediately, without"
     echo "                      waiting for a boundary (default 200000)"
-    echo "  AFK_MAX_SESSIONS    Maximum fresh Claude sessions (default 40)"
+    echo "  AFK_MAX_SESSIONS    Maximum fresh Claude sessions per item, not per"
+    echo "                      run (default 40)"
     echo "  AFK_VERBOSE         Set to 1 to echo Claude's assistant text"
 }
 
@@ -243,8 +247,23 @@ phase_gloss() {
     esac
 }
 
+# The batch arguments the run has not started yet, space-joined. Empty before
+# the queue exists - a bad argument count, or no git repository - and empty
+# again once the last item is under way, so a stop with nothing left to do adds
+# no line.
+BATCH_REMAINING=""
+
+report_remaining() {
+    # Every stop passes through here. A batch that stops halfway must not lose
+    # what it had left to do: the arguments are printed so a human can re-issue
+    # them once the stop is understood.
+    [[ -n $BATCH_REMAINING ]] || return 0
+    err "not started: $BATCH_REMAINING"
+}
+
 die() {
     err "${E_ERROR}error${E_RESET}  $*"
+    report_remaining
     err "afk run failed"
     exit 1
 }
@@ -397,6 +416,7 @@ on_signal() {
         rc=$?
     fi
     err "${E_ERROR}interrupted${E_RESET}  the run is resumable with 'afk run <task-id>'"
+    report_remaining
     [[ $rc -ne 0 ]] || rc=130
     exit "$rc"
 }
@@ -725,11 +745,14 @@ lifecycle_gate() {
     report_commits "$TASK_ID" "$before_main" "$before_feat"
 }
 
-cmd_run() {
-    [[ $# -eq 1 && -n ${1:-} ]] ||
-        die "run takes exactly one argument: a goal string or a task ID"
-    [[ -n $main_worktree ]] || die "not inside a git repository"
-
+run_item() {
+    # $1: one goal string, or one task ID that has already been verified to
+    # exist. Drives it from its current activity to a landed commit and reports
+    # its own summary. TASK_ID is a global because gate and lifecycle_gate read
+    # it, and prev_fp is a local because require_progress reads it from here -
+    # that is what "two consecutive sessions" means, and it is scoped to the
+    # item so one item's history cannot judge the next one's. Leaves the
+    # session count in ITEM_SESSIONS.
     local input=$1 goal="" prompt
     TASK_ID=""
     if [[ $input =~ ^[0-9]{8}-[0-9]{6}$ ]]; then
@@ -738,18 +761,16 @@ cmd_run() {
         goal=$input
     fi
 
-    cd "$main_worktree" || die "cannot enter $main_worktree"
-
-    head_line "$C_AFK" afk "unattended flow runner"
-    head_line "$C_AFK" repo "$main_worktree"
     if [[ -n $TASK_ID ]]; then
-        task_exists "$TASK_ID" || die "no task $TASK_ID in $main_worktree/tasks"
         head_line "$C_AFK" task "$TASK_ID"
     else
         head_line "$C_AFK" goal "$goal"
     fi
 
     local session=0 prev_fp="" main_before feat_before branch landed phase
+    # $SECONDS is process-wide, so the item's own elapsed time is a difference
+    # from where it started, not the counter itself.
+    local item_started=$SECONDS
     while true; do
         session=$((session + 1))
         if [[ $session -gt ${AFK_MAX_SESSIONS} ]]; then
@@ -859,9 +880,50 @@ cmd_run() {
         esac
     done
 
+    local elapsed=$((SECONDS - item_started))
     say ""
     head_line "$C_LAND" "done" "$TASK_ID landed"
-    say "$(printf '      %d sessions, %dm%02ds' "$session" $((SECONDS / 60)) $((SECONDS % 60)))"
+    say "$(printf '      %d sessions, %dm%02ds' "$session" $((elapsed / 60)) $((elapsed % 60)))"
+    ITEM_SESSIONS=$session
+}
+
+cmd_run() {
+    [[ $# -ge 1 ]] ||
+        die "run takes at least one argument: a goal string or a task ID"
+    local arg
+    for arg in "$@"; do
+        [[ -n $arg ]] ||
+            die "run takes goal strings or task IDs, not an empty argument"
+    done
+    [[ -n $main_worktree ]] || die "not inside a git repository"
+    cd "$main_worktree" || die "cannot enter $main_worktree"
+
+    # Validate the whole queue before the first session: a typo in the third
+    # argument must not surface after the first two have landed. Only the
+    # ID-shaped arguments can be checked - a goal string names nothing yet.
+    for arg in "$@"; do
+        [[ $arg =~ ^[0-9]{8}-[0-9]{6}$ ]] || continue
+        task_exists "$arg" || die "no task $arg in $main_worktree/tasks"
+    done
+
+    head_line "$C_AFK" afk "unattended flow runner"
+    head_line "$C_AFK" repo "$main_worktree"
+
+    local total=$# index=0 sessions=0 started=$SECONDS
+    for arg in "$@"; do
+        index=$((index + 1))
+        BATCH_REMAINING="${*:index+1}"
+        run_item "$arg"
+        sessions=$((sessions + ITEM_SESSIONS))
+    done
+    BATCH_REMAINING=""
+
+    # One argument is not a batch: its report stays exactly what it was.
+    [[ $total -gt 1 ]] || return 0
+    local elapsed=$((SECONDS - started))
+    say ""
+    head_line "$C_LAND" batch "$total tasks landed"
+    say "$(printf '      %d sessions, %dm%02ds' "$sessions" $((elapsed / 60)) $((elapsed % 60)))"
 }
 
 AFK_HEARTBEAT_SECS=${AFK_HEARTBEAT_SECS:-900}
