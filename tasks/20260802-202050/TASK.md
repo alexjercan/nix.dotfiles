@@ -1,10 +1,10 @@
 # afk: name the Claude session ID on each session header line
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 60
 - TAGS: feature, scripts, afk
 - KIND: TASK
-- FLOW STEP: PLANNED
+- FLOW STEP: DONE
 - PLAN STATUS: APPROVED
 
 ## Why
@@ -39,7 +39,7 @@ are unaffected.
 
 ## Steps
 
-- [ ] `home/modules/scripts/afk-test.sh`: add
+- [x] `home/modules/scripts/afk-test.sh`: add
   `test_session_header_names_the_claude_session_id`, registered in the
   `run_test` list at the bottom. Drive `gen_goal_cycle` (three fresh sessions,
   invocations 1/3/5), then for each fresh invocation assert the printed
@@ -47,19 +47,19 @@ are unaffected.
   `--session-id` (`argv_line`, same extraction as
   `test_argv_session_and_resume_policy`), and that no header line carries the
   old step text. Run it against unmodified `afk.sh` and confirm it fails.
-- [ ] `home/modules/scripts/afk-test.sh`: make the `in_order` needles in
+- [x] `home/modules/scripts/afk-test.sh`: make the `in_order` needles in
   `test_run_report_reads_as_a_report` step-free - `session 1  starting`,
   `session 2  PLANNED`, `session 3  REVIEWING` become `session 1`,
   `session 2`, `session 3`. The ordering they pin is the point; the step text
   is not.
-- [ ] `home/modules/scripts/afk.sh`, `cmd_run`: change
+- [x] `home/modules/scripts/afk.sh`, `cmd_run`: change
   `head_line "$C_SESSION" "session $session" "${step:-starting}"` to print
   `$SESSION_UUID`. Keep `step`; `SPIN_PHASE=${step:-starting}` still uses it.
   Print the UUID in full, never truncated - a partial ID is not resumable.
-- [ ] Re-read the presentation comment block at the top of `afk.sh` and the
+- [x] Re-read the presentation comment block at the top of `afk.sh` and the
   `## Check suite` entry in `AGENTS.md`; update only if either now states
   something false.
-- [ ] Run `bash home/modules/scripts/afk-test.sh` and confirm the whole suite
+- [x] Run `bash home/modules/scripts/afk-test.sh` and confirm the whole suite
   is green.
 
 ## Notes
@@ -76,3 +76,30 @@ are unaffected.
 - No doc surface outside `afk.sh` reproduces the report's session line -
   `grep -rn afk --include='*.md' --include='*.nix'` finds only `AGENTS.md` and
   the two nix wrappers, none of which quote the format.
+
+## Close-out
+
+What/why: the `session N` header now prints `$SESSION_UUID` instead of the
+flow step. The step was already carried twice (the `phase` line and the live
+spinner); the session UUID was carried nowhere, so a piped afk log could not
+be traced back to a resumable Claude session. One `head_line` call changed;
+`step` stays, since `SPIN_PHASE=${step:-starting}` still reads it.
+
+Alternatives: printing both step and UUID on one line, and truncating the UUID
+to 8 chars. Rejected - the step is redundant, and a truncated ID is not
+`claude --resume`-able, which is the whole point.
+
+Difficulties: none. The only judgement call was in
+`test_run_report_reads_as_a_report`, whose `in_order` needles pinned the step
+text; they now pin bare `session N`, which is what that test is actually
+about (report ordering).
+
+Evidence: `bash home/modules/scripts/afk-test.sh` - 12 passed, 0 failed. The
+new test was run first against unmodified `afk.sh` and failed on all four of
+its asserts (three UUID headers plus the no-step-text assert). Doc surface
+re-read: `afk.sh`'s header comment and `AGENTS.md`'s `## Check suite` entry
+say nothing about the header format, so neither needed a change.
+
+Reflection: the plan matched the code exactly; no Step needed correcting.
+`shellcheck`/`shfmt` are not on PATH in this sandbox, so the change rests on
+the integration suite alone - acceptable for a one-argument substitution.

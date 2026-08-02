@@ -566,7 +566,7 @@ cmd_run() {
         [[ -z $TASK_ID ]] || step=$(flow_step "$TASK_ID")
         SPIN_PHASE=${step:-starting}
         say ""
-        head_line "$C_SESSION" "session $session" "${step:-starting}"
+        head_line "$C_SESSION" "session $session" "$SESSION_UUID"
         if [[ -n $TASK_ID ]]; then
             prompt="/flow $TASK_ID"
         else

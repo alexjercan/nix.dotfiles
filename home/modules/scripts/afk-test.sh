@@ -400,7 +400,7 @@ test_run_report_reads_as_a_report() {
     check "the run reads as a phase-by-phase report" in_order "$out" \
         "afk  unattended flow runner" \
         "goal  add a thing" \
-        "session 1  starting" \
+        "session 1" \
         'prompt  /flow "add a thing"' \
         "tokens  57.6K" \
         "task    $id created" \
@@ -408,12 +408,12 @@ test_run_report_reads_as_a_report() {
         "commit  " \
         "gate    plan ready - approved automatically" \
         "phase   PLANNED  plan approved, ready to build" \
-        "session 2  PLANNED" \
+        "session 2" \
         "prompt  /flow $id" \
         "phase   WORKING  building on the feature branch" \
         "gate    work done - approved automatically" \
         "phase   REVIEWING  reviewing the branch" \
-        "session 3  REVIEWING" \
+        "session 3" \
         "phase   DONE  finished, ready to land" \
         "gate    landing - approved automatically" \
         "landed  " \
@@ -426,6 +426,26 @@ test_run_report_reads_as_a_report() {
     check "elapsed time is reported" str_matches "$out" '3 sessions, [0-9]+m[0-9]{2}s'
     check "every auto-approved gate says why it was automatic" \
         test "$(printf '%s\n' "$out" | grep -c 'approved automatically, starting an afk run approves the flow gates')" -eq 3
+}
+
+test_session_header_names_the_claude_session_id() {
+    local out i session uuid
+    gen_goal_cycle
+    out=$(afk run "add a thing" 2>&1)
+
+    session=0
+    for i in 1 3 5; do
+        session=$((session + 1))
+        uuid=$(printf '%s\n' "$(argv_line "$i")" |
+            sed -n 's/.*<--session-id> <\([0-9a-f-]*\)>.*/\1/p')
+        check "invocation $i was started with a session ID" \
+            str_matches "$uuid" '^[0-9a-f-]{36}$'
+        check "the session $session header names that Claude session ID" \
+            str_contains "$out" "session $session  $uuid"
+    done
+
+    check "no session header carries the flow step" \
+        not str_matches "$out" 'session [0-9]+  (starting|PLANNED|WORKING|REVIEWING)'
 }
 
 test_argv_session_and_resume_policy() {
@@ -858,6 +878,7 @@ run_test test_usage
 run_test test_run_goal_full_cycle
 run_test test_run_task_id_resumes
 run_test test_run_report_reads_as_a_report
+run_test test_session_header_names_the_claude_session_id
 run_test test_argv_session_and_resume_policy
 run_test test_failure_paths
 run_test test_verbose_echoes_assistant_text
