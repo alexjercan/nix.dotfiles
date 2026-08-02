@@ -21,10 +21,11 @@ compaction is not a durable handoff.
 
 ## Inspect
 
-Run `sprout ls` before `tatr show`. Inspect each worktree's task records,
-branch diff and uncommitted changes for work belonging to `<id>`. One matching
-worktree identifies `<task-root>` even when main reports WORKING. If none
-match, use main. Stop and diagnose multiple matches instead of guessing.
+Run `sprout ls` before `tatr show`; each row is `BRANCH TASK PATH`. A matching
+TASK identifies `<task-root>` even when main reports WORKING. For legacy `-`
+associations, inspect that worktree's task records, branch diff and uncommitted
+changes for work belonging to `<id>`. If none match, use main. Stop and
+diagnose multiple matches instead of guessing.
 
 ```bash
 sprout ls

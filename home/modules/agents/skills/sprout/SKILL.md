@@ -14,7 +14,7 @@ worktree operations.
 ## Commands
 
 ```bash
-cd "$(sprout new <feature>)"
+cd "$(sprout new <feature> [--task <id>])"
 cd "$(sprout show <feature>)"
 sprout ls
 sprout land <feature> -m "<subject>" [-m "<body>"]
@@ -22,9 +22,11 @@ sprout rm <feature>
 ```
 
 - `new`/`show` print only the path. New branches start at current HEAD and
-  reuse an existing branch.
+  reuse an existing branch. `--task` validates a tatr-shaped ID and stores the
+  association in Git's worktree-local config; it does not require tatr.
 - Names may contain `/`; never empty, leading `-`/`/`, or a `..` segment.
-- `ls` is project-scoped; detached worktrees show branch `-`.
+- `ls` is project-scoped. Each row prints `BRANCH TASK PATH`; missing task
+  associations and detached branches show `-`.
 - `rm` force-deletes the branch and tmux session. Use only when truly done;
   nonzero means nothing existed.
 - `land` squash-merges one commit into the main checkout's current branch,

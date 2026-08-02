@@ -11,10 +11,10 @@ the nix.dotfiles repo for the design rationale; the source is
 The leading `-i`/`--interactive` flag adds tmux integration, mirroring the
 `sesh` (tmux-sessionizer) workflow:
 
-- `sprout -i new <feature>` creates the worktree, then opens or switches to a
-  tmux session rooted in it.
-- `sprout -i ls` runs an `fzf` picker over the worktrees (showing the feature
-  and branch columns) and switches to a session on the selection.
+- `sprout -i new <feature> [--task <id>]` creates the worktree, then opens or
+  switches to a tmux session rooted in it.
+- `sprout -i ls` runs an `fzf` picker over the worktrees (showing the branch,
+  task and path columns) and switches to a session on the selection.
 
 Sessions are named `<project>_<feature>`. `sprout rm` always kills the
 matching session, with or without `-i`. Without `-i`, `new` and `ls` do no
@@ -34,12 +34,13 @@ parent directories under the cache root after removing a worktree.
 ## Workflow for parallel agents
 
 1. From the repo, create an isolated worktree per parallel task:
-   `sprout new <feature>` (or `-i new` to also drop into a tmux session).
+   `sprout new <feature> --task <id>` (or `-i new` to also drop into a tmux
+   session). Omit `--task` only when no tatr task owns the worktree.
 2. Do all of that task's work inside the worktree; commit on its branch.
    Other agents work their own worktrees on their own branches, so nothing
    collides.
-3. `sprout ls` to see what is in flight; `sprout show <feature>` to get a
-   path to `cd` into.
+3. `sprout ls` prints `BRANCH TASK PATH` for each worktree; an absent task or
+   detached branch prints `-`. `sprout show <feature>` prints its path.
 4. When a branch is ready, `sprout land <feature> -m "<subject>"` squash-
    merges it into the main checkout's branch and cleans everything up; for
    a merged-elsewhere or abandoned branch, `sprout rm <feature>` removes

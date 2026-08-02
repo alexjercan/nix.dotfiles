@@ -11,7 +11,7 @@ Ship the maintainable solution, not the smallest plausible diff.
 
 1. Use the given ID, else the highest-priority OPEN task. Read
    `tatr context <id> --phase work`.
-2. From the intended base, run `sprout new <type>/<slug>`, then
+2. From the intended base, run `sprout new <type>/<slug> --task <id>`, then
    `tatr flow <id> --to WORKING`. Tags choose type (`bug` -> `fix`,
    `refactor` -> `refactor`). Ask before touching unrelated dirty main-tree
    changes. If sprout is unavailable, use a local feature branch. Shell cwd

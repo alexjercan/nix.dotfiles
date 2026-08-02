@@ -16,7 +16,9 @@ usage() {
     echo "Manage git worktrees so several agents can work a repo in parallel."
     echo
     echo "Commands:"
-    echo "  new <feature>    Create a worktree and branch for <feature>, off HEAD"
+    echo "  new <feature> [--task <ID>]"
+    echo "                   Create a worktree and branch off HEAD, optionally"
+    echo "                   associated with a task ID"
     echo "  ls               List this project's worktrees"
     echo "  show <feature>   Print the path to <feature>'s worktree"
     echo "  land <feature> -m <subject> [-m <body>]"
@@ -106,8 +108,31 @@ open_session() {
 }
 
 cmd_new() {
-    feature=$1
+    feature=${1:-}
     require_feature "$feature" || exit 1
+    shift
+
+    task=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --task)
+                if [[ -n $task || -z ${2:-} ]]; then
+                    echo "sprout: --task requires one task ID" >&2
+                    exit 1
+                fi
+                task=$2
+                shift 2
+                ;;
+            *)
+                echo "sprout: unknown new argument '$1'" >&2
+                exit 1
+                ;;
+        esac
+    done
+    if [[ -n $task && ! $task =~ ^[0-9]{8}-[0-9]{6}$ ]]; then
+        echo "sprout: invalid task ID '$task' (expected YYYYMMDD-HHMMSS)" >&2
+        exit 1
+    fi
 
     path=$(worktree_path "$feature")
     if [[ -e $path ]]; then
@@ -121,10 +146,12 @@ cmd_new() {
     # git's progress chatter goes to stderr so stdout is only the path,
     # which lets callers do: cd "$(sprout new feat)". Fail loudly if the
     # worktree could not be created rather than reporting a bogus path.
+    created_branch=false
     if git show-ref --verify --quiet "refs/heads/$feature"; then
         git worktree add "$path" "$feature" 1>&2
     else
         git worktree add -b "$feature" "$path" HEAD 1>&2
+        created_branch=true
     fi
 
     if [[ ! -d $path ]]; then
@@ -132,33 +159,55 @@ cmd_new() {
         exit 1
     fi
 
+    if [[ -n $task ]]; then
+        if ! git -C "$main_worktree" config extensions.worktreeConfig true ||
+           ! git -C "$path" config --worktree sprout.task "$task"; then
+            git worktree remove --force "$path" 1>&2
+            if [[ $created_branch == true ]]; then
+                git branch -D "$feature" 1>&2
+            fi
+            echo "sprout: failed to associate task '$task' with '$feature'" >&2
+            exit 1
+        fi
+    fi
+
     echo "$path"
 }
 
 cmd_ls() {
     # Show only worktrees that sprout created (those under sprouts_root).
-    git worktree list --porcelain | awk -v root="$sprouts_root/" '
-        function emit() {
-            if (wt != "" && index(wt, root) == 1) {
-                feat = substr(wt, length(root) + 1)
-                printf "%-20s %-28s %s\n", feat, branch, wt
-            }
-        }
-        /^worktree / { emit(); wt = substr($0, 10); branch = "-" }
-        /^branch /   { branch = substr($0, 8); sub("refs/heads/", "", branch) }
-        END          { emit() }
-    '
+    wt=""
+    branch="-"
+    emit_worktree() {
+        if [[ -n $wt && $wt == "$sprouts_root/"* ]]; then
+            task=$(git -C "$wt" config --worktree --get sprout.task 2> /dev/null)
+            [[ -n $task ]] || task="-"
+            printf "%-28s %-15s %s\n" "$branch" "$task" "$wt"
+        fi
+    }
+    while IFS= read -r line; do
+        case "$line" in
+            "worktree "*)
+                emit_worktree
+                wt=${line#worktree }
+                branch="-"
+                ;;
+            "branch refs/heads/"*) branch=${line#branch refs/heads/} ;;
+        esac
+    done < <(git worktree list --porcelain)
+    emit_worktree
 }
 
 cmd_ls_interactive() {
     # fzf-pick a worktree from the ls table and open its session.
-    line=$(cmd_ls | fzf --with-nth=1,2)
+    line=$(cmd_ls | fzf --with-nth=1,2,3)
     if [[ -z $line ]]; then
         echo "sprout: nothing selected" >&2
         exit 1
     fi
-    feature=$(echo "$line" | awk '{print $1}')
-    open_session "$(worktree_path "$feature")" "$feature"
+    path="$sprouts_root/${line#*"$sprouts_root/"}"
+    feature=${path#"$sprouts_root/"}
+    open_session "$path" "$feature"
 }
 
 cmd_show() {

@@ -91,12 +91,29 @@ test_new_show_rm() {
     check "worktree directory exists" test -d "$path"
     check "branch created" git show-ref --verify --quiet refs/heads/feat
     ls_out=$(sprout ls 2> /dev/null)
-    check "ls lists the feature and its branch" str_matches "$ls_out" '^feat +feat +/'
+    check "ls lists branch, empty task, and path" str_matches "$ls_out" '^feat +- +/'
     shown=$(sprout show feat 2> /dev/null)
     check "show prints the same path" test "$shown" = "$path"
     check "rm exits 0" quiet sprout rm feat
     check "worktree removed" not test -d "$path"
     check "branch deleted" not git show-ref --verify --quiet refs/heads/feat
+}
+
+test_new_task_association() {
+    local path ls_out task
+    task=20260802-113805
+    path=$(sprout new feat --task "$task" 2> /dev/null)
+    check "new with task prints only the path" test "$path" = "$XDG_CACHE_HOME/sprouts/repo/feat"
+    check "task is stored in worktree config" test "$(git -C "$path" config --worktree --get sprout.task)" = "$task"
+    ls_out=$(sprout ls 2> /dev/null)
+    check "ls lists branch, task, and path" str_matches "$ls_out" "^feat +$task +/"
+}
+
+test_new_rejects_bad_task() {
+    check "rejects missing task ID" not quiet sprout new feat --task
+    check "rejects malformed task ID" not quiet sprout new feat --task not-an-id
+    check "rejects unknown new option" not quiet sprout new feat --unknown
+    check "invalid task creates no worktree" not test -d "$XDG_CACHE_HOME/sprouts/repo/feat"
 }
 
 test_new_rejects_bad_names() {
@@ -251,6 +268,8 @@ test_land_from_inside_worktree() {
 
 echo "== sprout integration tests =="
 run_test test_new_show_rm
+run_test test_new_task_association
+run_test test_new_rejects_bad_task
 run_test test_new_rejects_bad_names
 run_test test_land_happy
 run_test test_land_refuses_behind
