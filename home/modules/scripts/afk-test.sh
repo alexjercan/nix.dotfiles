@@ -875,6 +875,66 @@ EOF
         str_contains "$cap" "done$esc[0m  $id landed"
 }
 
+test_spinner_strips_control_bytes() {
+    # Assistant text reaches the spinner as SPIN_MSG, so a raw CR or ESC in it
+    # would be executed by the terminal rather than shown: a CR splits the
+    # frame's own single write, an ESC starts a sequence the frame never
+    # closes. Both are flattened by the sanitizer, and both are asserted on the
+    # RAW pty capture, where the leak would be visible.
+    local id payload cap chunk body frames=0 bad_close=0 leaked=0 carried=0
+    local esc=$'\033'
+    local -a chunks
+
+    id=$(seed_planned_task)
+    gen_work_to_land 0
+    reply_slow 1 "AFK WORK_DONE $id" 1.2
+    # Built with printf, not written literally, so the control bytes cannot be
+    # lost to an editor or a diff. jq -Rs makes the JSON string, so the
+    # transcript stays valid input for afk's own jq extraction. reply_slow's
+    # transcript is replaced but its pause is kept, so a frame is drawn.
+    payload=$(printf 'alpha\rbeta\033[31mgamma' | jq -Rs .)
+    reply_raw 1 << EOF
+{"type":"system","subtype":"init","session_id":"fake"}
+{"type":"assistant","message":{"content":[{"type":"text","text":$payload}],"usage":{"input_tokens":57594,"cache_creation_input_tokens":1,"cache_read_input_tokens":2,"output_tokens":3}}}
+{"type":"result","subtype":"success","is_error":false,"result":"phase summary\nAFK WORK_DONE $id"}
+EOF
+
+    # 80 columns, unlike the wrap test's 40: the sanitized message must SURVIVE
+    # `${text:0:$((TERM_COLS - 1))}` for its bytes to be assertable at all.
+    script -qec "stty cols 80 < /dev/tty; bash '$AFK' run '$id'" /dev/null \
+        > "$TMP/pty.out" 2>&1
+    cap=$(cat "$TMP/pty.out")
+
+    # Same frame recognition as test_spinner_never_wraps: split on CR, keep the
+    # chunks that open with an erase, and separate frames from bare erases by
+    # the autowrap directive that follows.
+    IFS=$'\r' read -r -d '' -a chunks < <(printf '%s\0' "$cap")
+    for chunk in "${chunks[@]}"; do
+        [[ $chunk == "$esc[K$esc[?7l"* ]] || continue
+        frames=$((frames + 1))
+        # A leaked CR would end this chunk early, before the frame's own
+        # trailing directive - that is what makes CR observable here.
+        if [[ $chunk == *"$esc[?7h" ]]; then
+            body=${chunk#"$esc[K$esc[?7l"}
+            body=${body%"$esc[?7h"}
+        else
+            bad_close=$((bad_close + 1))
+            continue
+        fi
+        [[ $body == *"$esc"* ]] && leaked=$((leaked + 1))
+        [[ $body == *"[31mgamma"* ]] && carried=$((carried + 1))
+    done
+
+    check "the control-byte run drew at least one spinner frame" \
+        test "$frames" -ge 1
+    check "no frame is cut short by a carriage return" test "$bad_close" -eq 0
+    check "no frame body carries an escape byte" test "$leaked" -eq 0
+    # Without this a frame that truncated the message away would pass the two
+    # assertions above vacuously.
+    check "a frame carries the message past the stripped escape" \
+        test "$carried" -ge 1
+}
+
 test_interrupt_kills_recorded_pid() {
     local id afk_pid bystander_pid claude_pid rc step_before step_after waited
     id=$(seed_planned_task)
@@ -1134,6 +1194,7 @@ run_test test_verbose_echoes_assistant_text
 run_test test_session_token_report
 run_test test_spinner_and_color_only_on_a_tty
 run_test test_spinner_never_wraps
+run_test test_spinner_strips_control_bytes
 run_test test_interrupt_kills_recorded_pid
 run_test test_no_progress_fingerprint_stops
 run_test test_token_limit_rotation
