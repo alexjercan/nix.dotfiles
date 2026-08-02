@@ -1,6 +1,7 @@
-# Resuming a flow
+# Discovering or resuming a flow
 
-Read after a context cut or loss. Disk is the state; never guess chat history.
+Read for every existing ID and after a context cut or loss. Disk is the state;
+never guess chat history.
 
 ## Checkpoint
 
@@ -20,10 +21,10 @@ compaction is not a durable handoff.
 
 ## Inspect
 
-Run `sprout ls` before `tatr show`. For each worktree, compare its
-`tasks/<id>/TASK.md` with the default branch, including uncommitted changes.
-The changed copy identifies `<task-root>`; if none changed, use main. Stop and
-diagnose multiple changed copies instead of guessing.
+Run `sprout ls` before `tatr show`. Inspect each worktree's task records,
+branch diff and uncommitted changes for work belonging to `<id>`. One matching
+worktree identifies `<task-root>` even when main reports WORKING. If none
+match, use main. Stop and diagnose multiple matches instead of guessing.
 
 ```bash
 sprout ls

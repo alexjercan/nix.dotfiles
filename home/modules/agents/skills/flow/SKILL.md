@@ -7,9 +7,9 @@ description: Drive one goal through the whole cycle: understand, plan, gate, wor
 
 One task; dispatch phases. Approval owns every context cut.
 
-Resolve ID, else `tatr new`. Resume loads `resume.md` before task-root
-selection. Otherwise read `tatr context <id> --phase <phase>`; task prose is
-not authority.
+Resolve ID, else `tatr new`. For an existing ID, load `resume.md` and select
+the authoritative task root before reading state. For a new ID, read
+`tatr context <id> --phase <phase>`; task prose is not authority.
 
 ## Route
 
@@ -52,4 +52,4 @@ Concise bullets. Include `<id>` and one status: `SPIKED`, `PLAN_READY`,
 - explicit epic, sprint, version, release, or multi-feature goal -> `epic.md`
 - a phase or resume returns PLAN_READY, WORK_DONE, or LAND_READY -> `gates.md`
 - LAND_READY was approved, or a land failed -> `landing.md`
-- at a context checkpoint, or resuming after `/clear` or context loss -> `resume.md`
+- an existing ID, a context checkpoint, or context loss -> `resume.md`
