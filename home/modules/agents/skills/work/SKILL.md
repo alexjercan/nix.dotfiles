@@ -11,12 +11,13 @@ Ship the maintainable solution, not the smallest plausible diff.
 
 1. Use the given ID, else the highest-priority OPEN task. Read
    `tatr -r <task-root> context <id> --phase work`.
-2. From the intended base, run `sprout new <type>/<slug> --task <id>`, then
+2. Reuse the task's `sprout ls` worktree, else `sprout new <type>/<slug>
+   --task <id>` off the intended base; then
    `tatr -r <task-root> flow <id> --to WORKING`. Tags choose type
    (`bug` -> `fix`, `refactor` -> `refactor`). Ask before touching unrelated
    dirty main-tree changes. If sprout is unavailable, use a local feature
-   branch. The new worktree becomes `<task-root>`. Shell cwd does not persist:
-   use absolute paths for every edit/git/tatr call.
+   branch. The worktree becomes `<task-root>`. Shell cwd does not persist:
+   use absolute paths everywhere.
 3. Read named and neighboring code. Correct Steps that contradict it before
    implementation.
 4. For each `test:` or `cmd:` proof, make it fail for the intended reason,

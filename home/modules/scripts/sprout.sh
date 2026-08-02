@@ -134,6 +134,24 @@ cmd_new() {
         exit 1
     fi
 
+    # One task per worktree. A second sprout for the same task splits its
+    # records across two checkouts, and nothing downstream can then tell which
+    # one is authoritative. Refuse before creating anything, so there is
+    # nothing to unwind and the message names the worktree to reuse.
+    if [[ -n $task ]]; then
+        while IFS= read -r line; do
+            case "$line" in
+                "worktree "*)
+                    wt=${line#worktree }
+                    if [[ $(git -C "$wt" config --worktree --get sprout.task 2> /dev/null) == "$task" ]]; then
+                        echo "sprout: task '$task' already has a worktree at $wt" >&2
+                        exit 1
+                    fi
+                    ;;
+            esac
+        done < <(git worktree list --porcelain)
+    fi
+
     path=$(worktree_path "$feature")
     if [[ -e $path ]]; then
         echo "sprout: worktree already exists at $path" >&2

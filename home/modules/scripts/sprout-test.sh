@@ -109,6 +109,19 @@ test_new_task_association() {
     check "ls lists branch, task, and path" str_matches "$ls_out" "^feat +$task +/"
 }
 
+test_new_rejects_duplicate_task() {
+    local task err rc
+    task=20260802-192659
+    sprout new feature/dup --task "$task" > /dev/null 2>&1
+    err=$(sprout new feat/dup --task "$task" 2>&1 > /dev/null)
+    rc=$?
+    check "refuses a second worktree for the same task" test "$rc" -ne 0
+    check "reason names the existing worktree" str_contains "$err" "$XDG_CACHE_HOME/sprouts/repo/feature/dup"
+    check "no second worktree created" not test -d "$XDG_CACHE_HOME/sprouts/repo/feat/dup"
+    check "no second branch created" not git show-ref --verify --quiet refs/heads/feat/dup
+    check "a different task still sprouts" quiet sprout new feat/other --task 20260802-192700
+}
+
 test_new_rejects_bad_task() {
     check "rejects missing task ID" not quiet sprout new feat --task
     check "rejects malformed task ID" not quiet sprout new feat --task not-an-id
@@ -269,6 +282,7 @@ test_land_from_inside_worktree() {
 echo "== sprout integration tests =="
 run_test test_new_show_rm
 run_test test_new_task_association
+run_test test_new_rejects_duplicate_task
 run_test test_new_rejects_bad_task
 run_test test_new_rejects_bad_names
 run_test test_land_happy
