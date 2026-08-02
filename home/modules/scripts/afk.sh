@@ -77,12 +77,111 @@ it:
 Never invent a task ID; use the one the flow is working on.
 EOF
 
-say() { printf '%s\n' "$*"; }
-err() { printf '%s\n' "$*" >&2; }
+# ------------------------------------------------------------- presentation --
+#
+# One content stream, decoration gated on the terminal. Every permanent line is
+# byte-identical whether or not stdout is a TTY; exactly two things are gated,
+# the color constants (empty strings otherwise) and the transient spinner line
+# (a no-op otherwise). afk's PRINTED vocabulary is not its MARKER vocabulary:
+# the `AFK <STATUS> <id>` protocol below is a contract with the model and does
+# not follow this file's labels.
+
+if [[ -t 1 ]]; then OUT_TTY=1; else OUT_TTY=0; fi
+if [[ -t 2 ]]; then ERR_TTY=1; else ERR_TTY=0; fi
+
+C_RESET=$'\033[0m'
+C_AFK=$'\033[1;36m'
+C_SESSION=$'\033[1;35m'
+C_PROMPT=$'\033[2m'
+C_PHASE=$'\033[36m'
+C_COMMIT=$'\033[32m'
+C_GATE=$'\033[33m'
+C_LAND=$'\033[1;32m'
+C_NEXT=$'\033[2m'
+if [[ $OUT_TTY -eq 0 ]]; then
+    C_RESET="" C_AFK="" C_SESSION="" C_PROMPT="" C_PHASE=""
+    C_COMMIT="" C_GATE="" C_LAND="" C_NEXT=""
+fi
+
+E_RESET=$'\033[0m'
+E_ERROR=$'\033[1;31m'
+if [[ $ERR_TTY -eq 0 ]]; then
+    E_RESET="" E_ERROR=""
+fi
+
+# Read once: a run that is resized mid-flight only mis-truncates a transient
+# line. stdin is not necessarily the terminal, so ask /dev/tty for the size.
+TERM_COLS=80
+if [[ $OUT_TTY -eq 1 ]]; then
+    # A pty with no size set reports 0; anything implausibly narrow would
+    # truncate the spinner to nothing, so keep the fallback instead.
+    _cols=$(stty size < /dev/tty 2> /dev/null | cut -d' ' -f2)
+    [[ $_cols =~ ^[0-9]+$ && $_cols -ge 20 ]] && TERM_COLS=$_cols
+fi
+
+SPIN_FRAMES=$'|/-\\'
+SPIN_INDEX=0
+SPIN_LIVE=0
+SPIN_PHASE=""
+SPIN_MSG=""
+
+spin_clear() {
+    # Erase a live spinner so no permanent line is ever printed on top of it.
+    [[ $SPIN_LIVE -eq 1 ]] || return 0
+    SPIN_LIVE=0
+    printf '\r\033[K'
+}
+
+spin() {
+    # $1: seconds since the session started. Transient and TTY-only: never
+    # content, so nothing downstream may depend on it.
+    [[ $OUT_TTY -eq 1 ]] || return 0
+    local frame text
+    frame=${SPIN_FRAMES:$SPIN_INDEX:1}
+    SPIN_INDEX=$(((SPIN_INDEX + 1) % ${#SPIN_FRAMES}))
+    text=$(printf '%s working  %s  %dm%02ds  %s' \
+        "$frame" "$SPIN_PHASE" $(($1 / 60)) $(($1 % 60)) "$SPIN_MSG")
+    printf '\r\033[K%s' "${text:0:$((TERM_COLS - 1))}"
+    SPIN_LIVE=1
+}
+
+say() {
+    spin_clear
+    printf '%s\n' "$*"
+}
+
+err() {
+    spin_clear
+    printf '%s\n' "$*" >&2
+}
+
+head_line() {
+    # $1: color  $2: label  $3: text. Run-level, flush left.
+    say "$1$2$C_RESET  $3"
+}
+
+line() {
+    # $1: color  $2: label  $3: text. Indented under the current session, with
+    # the label padded so every text column lines up.
+    say "$(printf '  %s%-7s%s %s' "$1" "$2" "$C_RESET" "$3")"
+}
+
+phase_gloss() {
+    # $1: FLOW STEP -> a short human phrase, empty for an unknown step.
+    case "$1" in
+        UNDERSTANDING) printf 'working out what to build' ;;
+        PLANNING) printf 'writing the plan' ;;
+        PLANNED) printf 'plan approved, ready to build' ;;
+        WORKING) printf 'building on the feature branch' ;;
+        REVIEWING) printf 'reviewing the branch' ;;
+        COMPOUNDING) printf 'writing the retro' ;;
+        DONE) printf 'finished, ready to land' ;;
+    esac
+}
 
 die() {
-    err "ERROR $*"
-    err "AFK RUN FAILED"
+    err "${E_ERROR}error${E_RESET}  $*"
+    err "afk run failed"
     exit 1
 }
 
@@ -115,7 +214,7 @@ task_root() {
         0) printf '%s\n' "$main_worktree" ;;
         1) printf '%s\n' "${roots[0]}" ;;
         *)
-            err "ERROR ${#roots[@]} worktrees claim task $1: ${roots[*]}"
+            err "${E_ERROR}error${E_RESET}  ${#roots[@]} worktrees claim task $1: ${roots[*]}"
             return 1
             ;;
     esac
@@ -185,7 +284,7 @@ on_signal() {
         wait "$CLAUDE_PID" 2> /dev/null
         rc=$?
     fi
-    err "AFK RUN INTERRUPTED"
+    err "${E_ERROR}interrupted${E_RESET}  the run is resumable with 'afk run <task-id>'"
     [[ $rc -ne 0 ]] || rc=130
     exit "$rc"
 }
@@ -210,7 +309,7 @@ run_claude() {
     fi
     args+=("$prompt")
 
-    local dir fifo line typ text result="" rc sfd
+    local dir fifo line typ text result="" rc sfd partial="" started last_event
     dir=$(mktemp -d) || die "cannot create a temporary directory"
     fifo="$dir/stream"
     mkfifo "$fifo" || die "cannot create the event pipe"
@@ -219,31 +318,53 @@ run_claude() {
     CLAUDE_PID=$!
     exec {sfd}< "$fifo"
 
-    # read -t returns >128 on timeout and 1 on EOF, which is the whole reason
-    # there is no wall-clock cap: a long, productive turn keeps emitting events
-    # and only a genuinely silent one is killed.
+    # The pipe is POLLED at spinner rate and the heartbeat is an explicit
+    # budget since the last event - the same rule the old blocking read
+    # expressed, separated from the read so the spinner can advance while the
+    # model is silent. There is still no wall-clock cap: a long, productive
+    # turn keeps emitting events and only a genuinely silent one is killed.
+    started=$SECONDS
+    last_event=$SECONDS
+    SPIN_MSG=""
     while true; do
         # '!' would reset $?, so the read status is captured on its own line:
-        # >128 is the heartbeat timeout, 1 is a clean end of stream.
-        IFS= read -r -t "$AFK_HEARTBEAT_SECS" -u "$sfd" line
+        # >128 is a poll timeout, 1 is a clean end of stream.
+        IFS= read -r -t 0.2 -u "$sfd" line
         rc=$?
         if [[ $rc -gt 128 ]]; then
-            exec {sfd}<&-
-            kill "$CLAUDE_PID" 2> /dev/null
-            wait "$CLAUDE_PID" 2> /dev/null
-            CLAUDE_PID=""
-            rm -rf "$dir"
-            die "claude produced no output for ${AFK_HEARTBEAT_SECS}s; session killed"
+            # A timeout mid-line leaves what did arrive in $line; keep it, or
+            # the event is silently cut in half.
+            if [[ -n $line ]]; then
+                partial+=$line
+                last_event=$SECONDS
+            fi
+            if [[ $((SECONDS - last_event)) -ge $AFK_HEARTBEAT_SECS ]]; then
+                exec {sfd}<&-
+                kill "$CLAUDE_PID" 2> /dev/null
+                wait "$CLAUDE_PID" 2> /dev/null
+                CLAUDE_PID=""
+                rm -rf "$dir"
+                die "claude produced no output for ${AFK_HEARTBEAT_SECS}s; session killed"
+            fi
+            spin $((SECONDS - started))
+            continue
         fi
+        last_event=$SECONDS
         # A final line without its newline still arrives, with status 1.
+        line="$partial$line"
+        partial=""
         if [[ -n $line ]]; then
             typ=$(printf '%s' "$line" | jq -r 'try .type catch empty' 2> /dev/null)
             case "$typ" in
                 result) result=$line ;;
                 assistant)
-                    if [[ ${AFK_VERBOSE:-0} == 1 ]]; then
-                        text=$(printf '%s' "$line" | jq -r 'try ([.message.content[]? | select(.type=="text") | .text] | join("\n")) catch empty')
-                        [[ -z $text ]] || printf '%s\n' "$text" | sed 's/^/| /'
+                    text=$(printf '%s' "$line" | jq -r 'try ([.message.content[]? | select(.type=="text") | .text] | join("\n")) catch empty')
+                    if [[ -n $text ]]; then
+                        SPIN_MSG=$(printf '%s' "$text" | tr '\n\t' '  ' | tr -s ' ')
+                        if [[ ${AFK_VERBOSE:-0} == 1 ]]; then
+                            spin_clear
+                            printf '%s\n' "$text" | sed 's/^/| /'
+                        fi
                     fi
                     ;;
             esac
@@ -252,6 +373,7 @@ run_claude() {
     done
 
     exec {sfd}<&-
+    spin_clear
     wait "$CLAUDE_PID"
     rc=$?
     CLAUDE_PID=""
@@ -297,11 +419,25 @@ report_commits() {
     local after
     after=$(ref_head "refs/heads/$(feature_branch "$1")")
     if [[ -n $after && $after != "$3" ]]; then
-        say "COMMIT ${after:0:7} $(git -C "$main_worktree" log -1 --format=%s "$after")"
+        line "$C_COMMIT" commit "${after:0:7} $(git -C "$main_worktree" log -1 --format=%s "$after")"
     fi
     after=$(ref_head HEAD)
     if [[ -n $after && $after != "$2" ]]; then
-        say "COMMIT ${after:0:7} $(git -C "$main_worktree" log -1 --format=%s "$after")"
+        line "$C_COMMIT" commit "${after:0:7} $(git -C "$main_worktree" log -1 --format=%s "$after")"
+    fi
+}
+
+report_phase() {
+    # $1: task ID. The phase a human cares about, read from tatr, with a gloss
+    # so a bare lifecycle word is not the only thing on screen.
+    local step gloss
+    step=$(flow_step "$1")
+    SPIN_PHASE=$step
+    gloss=$(phase_gloss "$step")
+    if [[ -n $gloss ]]; then
+        line "$C_PHASE" phase "$step  $gloss"
+    else
+        line "$C_PHASE" phase "$step"
     fi
 }
 
@@ -314,29 +450,30 @@ require_step() {
 }
 
 gate() {
-    # $1: task ID  $2: marker status  $3: the exact gates.md approve label.
+    # $1: task ID  $2: marker status  $3: the exact gates.md approve label
+    # $4: the gate's human name.
     # One resume, one label. The session is disposable afterwards either way.
-    say ""
-    say "RESUME CLAUDE SESSION $SESSION_UUID"
-    say "AUTO_APPROVE $2"
+    line "$C_GATE" gate \
+        "$4 - approved automatically, starting an afk run approves the flow gates"
     run_claude resume "$SESSION_UUID" "$3"
     if parse_marker && [[ $MARKER_ID != "$1" ]]; then
-        die "the $2 gate answered for task $MARKER_ID, not $1"
+        die "the $4 gate answered for task $MARKER_ID, not $1"
     fi
 }
 
 lifecycle_gate() {
     # $1: marker status  $2: the FLOW STEP the gate is only legal from
-    # $3: the exact gates.md approve label  $4: the FLOW STEP it must produce.
+    # $3: the exact gates.md approve label  $4: the FLOW STEP it must produce
+    # $5: the gate's human name.
     # Both ends are checked against tatr: a gate afk cannot see land in the
     # record is a gate afk must not build on.
     local before_main before_feat
     require_step "$TASK_ID" "$2" "the session reported $1"
     before_main=$(ref_head HEAD)
     before_feat=$(ref_head "refs/heads/$(feature_branch "$TASK_ID")")
-    gate "$TASK_ID" "$1" "$3"
-    require_step "$TASK_ID" "$4" "the $1 gate was approved"
-    say "FLOW $(flow_step "$TASK_ID")"
+    gate "$TASK_ID" "$1" "$3" "$5"
+    require_step "$TASK_ID" "$4" "the $5 gate was approved"
+    report_phase "$TASK_ID"
     report_commits "$TASK_ID" "$before_main" "$before_feat"
 }
 
@@ -355,16 +492,16 @@ cmd_run() {
 
     cd "$main_worktree" || die "cannot enter $main_worktree"
 
-    say "AFK RUN START"
-    say "REPO $main_worktree"
+    head_line "$C_AFK" afk "unattended flow runner"
+    head_line "$C_AFK" repo "$main_worktree"
     if [[ -n $TASK_ID ]]; then
         [[ -n $(flow_step "$TASK_ID") ]] || die "no task $TASK_ID in $main_worktree/tasks"
-        say "TASK $TASK_ID"
+        head_line "$C_AFK" task "$TASK_ID"
     else
-        say "GOAL $goal"
+        head_line "$C_AFK" goal "$goal"
     fi
 
-    local session=0 prev_fp="" fp main_before feat_before branch landed
+    local session=0 prev_fp="" fp main_before feat_before branch landed step
     while true; do
         session=$((session + 1))
         if [[ $session -gt ${AFK_MAX_SESSIONS} ]]; then
@@ -372,14 +509,17 @@ cmd_run() {
         fi
 
         SESSION_UUID=$(uuidgen)
+        step=""
+        [[ -z $TASK_ID ]] || step=$(flow_step "$TASK_ID")
+        SPIN_PHASE=${step:-starting}
         say ""
-        say "CREATE CLAUDE SESSION $SESSION_UUID"
+        head_line "$C_SESSION" "session $session" "${step:-starting}"
         if [[ -n $TASK_ID ]]; then
             prompt="/flow $TASK_ID"
         else
             prompt="/flow \"$goal\""
         fi
-        say "RUN $prompt"
+        line "$C_PROMPT" prompt "$prompt"
 
         main_before=$(ref_head HEAD)
         feat_before=$(ref_head "refs/heads/$(feature_branch "${TASK_ID:-none}")")
@@ -391,14 +531,13 @@ cmd_run() {
             TASK_ID=$MARKER_ID
             [[ -n $(flow_step "$TASK_ID") ]] ||
                 die "the session reported task $TASK_ID, but no such record exists"
-            say "TASK CREATED $TASK_ID"
+            line "$C_PHASE" task "$TASK_ID created"
         elif [[ $MARKER_ID != "$TASK_ID" ]]; then
             die "the session reported task $MARKER_ID, not $TASK_ID"
         fi
 
-        say "FLOW $(flow_step "$TASK_ID")"
+        report_phase "$TASK_ID"
         report_commits "$TASK_ID" "$main_before" "$feat_before"
-        say "$MARKER_STATUS $TASK_ID"
 
         case "$MARKER_STATUS" in
             ROTATE)
@@ -407,13 +546,16 @@ cmd_run() {
                     die "no durable progress across two consecutive sessions"
                 fi
                 prev_fp=$fp
+                line "$C_NEXT" next "rotating to a fresh context"
                 ;;
             PLAN_READY)
-                lifecycle_gate PLAN_READY PLANNING "Approve plan - move to PLANNED" PLANNED
+                lifecycle_gate PLAN_READY PLANNING \
+                    "Approve plan - move to PLANNED" PLANNED "plan ready"
                 prev_fp=""
                 ;;
             WORK_DONE)
-                lifecycle_gate WORK_DONE WORKING "Approve review - move to REVIEWING" REVIEWING
+                lifecycle_gate WORK_DONE WORKING \
+                    "Approve review - move to REVIEWING" REVIEWING "work done"
                 prev_fp=""
                 ;;
             LAND_READY)
@@ -422,14 +564,14 @@ cmd_run() {
                 [[ -n $branch ]] ||
                     die "$TASK_ID has no sprout worktree, so there is no branch to land"
                 main_before=$(ref_head HEAD)
-                gate "$TASK_ID" LAND_READY "Approve landing - land the branch"
+                gate "$TASK_ID" LAND_READY "Approve landing - land the branch" landing
                 landed=$(ref_head HEAD)
                 [[ $landed != "$main_before" ]] ||
                     die "the landing gate was approved but $branch produced no commit on $(git -C "$main_worktree" symbolic-ref --quiet --short HEAD)"
                 ! git -C "$main_worktree" show-ref --verify --quiet "refs/heads/$branch" ||
                     die "the landing gate was approved but branch $branch still exists"
-                say "LAND COMMIT ${landed:0:7} $(git -C "$main_worktree" log -1 --format=%s)"
-                say "WORKTREE REMOVED $branch"
+                line "$C_LAND" landed "${landed:0:7} $(git -C "$main_worktree" log -1 --format=%s)"
+                line "$C_LAND" cleanup "$branch worktree removed"
                 break
                 ;;
             DONE)
@@ -450,16 +592,11 @@ cmd_run() {
                 die "unknown control status '$MARKER_STATUS'"
                 ;;
         esac
-
-        say ""
-        say "CLOSE CLAUDE SESSION $SESSION_UUID"
     done
 
     say ""
-    say "GOAL DONE $TASK_ID"
-    say "CLAUDE SESSIONS $session"
-    printf 'ELAPSED %dm%02ds\n' $((SECONDS / 60)) $((SECONDS % 60))
-    say "AFK RUN COMPLETE"
+    head_line "$C_LAND" "done" "$TASK_ID landed"
+    say "$(printf '      %d sessions, %dm%02ds' "$session" $((SECONDS / 60)) $((SECONDS % 60)))"
 }
 
 AFK_HEARTBEAT_SECS=${AFK_HEARTBEAT_SECS:-900}

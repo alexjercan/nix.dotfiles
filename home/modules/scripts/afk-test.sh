@@ -92,6 +92,14 @@ reply() {
     } > "$file"
 }
 
+reply_slow() {
+    # $1: invocation number  $2: the AFK marker line  $3: seconds of silence
+    # between the assistant event and the result. A session that streams an
+    # event and then goes quiet is the only one a spinner is visible in.
+    reply "$1" "$2"
+    printf '%s\n' "$3" > "$AFK_TEST_TMP/replies/$1.slow"
+}
+
 reply_raw() {
     # $1: invocation number; the transcript is read from stdin verbatim.
     mkdir -p "$AFK_TEST_TMP/replies"
@@ -281,7 +289,13 @@ if [[ -f "$AFK_TEST_TMP/replies/$n.sh" ]]; then
         printf 'SIDE %s FAILED\n' "$n" >> "$AFK_TEST_TMP/side.log"
 fi
 if [[ -f "$AFK_TEST_TMP/replies/$n.jsonl" ]]; then
-    cat "$AFK_TEST_TMP/replies/$n.jsonl"
+    if [[ -f "$AFK_TEST_TMP/replies/$n.slow" ]]; then
+        head -n -1 "$AFK_TEST_TMP/replies/$n.jsonl"
+        sleep "$(cat "$AFK_TEST_TMP/replies/$n.slow")"
+        tail -n 1 "$AFK_TEST_TMP/replies/$n.jsonl"
+    else
+        cat "$AFK_TEST_TMP/replies/$n.jsonl"
+    fi
 fi
 exit "$(cat "$AFK_TEST_TMP/replies/$n.rc" 2> /dev/null || echo 0)"
 SHIM
@@ -333,10 +347,9 @@ test_run_goal_full_cycle() {
     id=$(cat "$TMP/task_id" 2> /dev/null)
 
     check "goal run exits 0" test "$rc" -eq 0
-    check "the created task is reported" str_contains "$out" "TASK CREATED $id"
-    check "the run ends with GOAL DONE" str_contains "$out" "GOAL DONE $id"
-    check "the summary counts the 3 worker sessions" str_contains "$out" "CLAUDE SESSIONS 3"
-    check "the run reports completion" str_contains "$out" "AFK RUN COMPLETE"
+    check "the created task is reported" str_contains "$out" "task    $id created"
+    check "the run ends with a done line" str_contains "$out" "done  $id landed"
+    check "the summary counts the 3 worker sessions" str_matches "$out" '3 sessions, [0-9]+m[0-9]{2}s'
     check "3 fresh sessions and 3 gate resumes ran" test "$(invocations)" -eq 6
     check "the work landed on master" test -f "$REPO/thing.txt"
     check "the landing commit is on master" test "$(git -C "$REPO" log -1 --format=%s)" = "feat: land thing"
@@ -353,46 +366,49 @@ test_run_task_id_resumes() {
     rc=$?
 
     check "task-ID run exits 0" test "$rc" -eq 0
-    check "the header names the existing task" str_contains "$out" "TASK $id"
-    check "no goal header is printed" not str_contains "$out" "GOAL add"
+    check "the header names the existing task" str_contains "$out" "task  $id"
+    check "no goal header is printed" not str_contains "$out" "goal  add"
     check "the first prompt resumes the task" str_contains "$(argv_line 1)" "</flow $id>"
     check "no task was created" test "$(find "$REPO/tasks" -mindepth 1 -maxdepth 1 -type d | wc -l)" -eq 1
     check "only the work-to-land sessions ran" test "$(invocations)" -eq 4
-    check "the run ends with GOAL DONE" str_contains "$out" "GOAL DONE $id"
+    check "the run ends with a done line" str_contains "$out" "done  $id landed"
     check "the work landed on master" test -f "$REPO/thing.txt"
 }
 
-test_audit_log_order() {
+test_run_report_reads_as_a_report() {
     local out id
     gen_goal_cycle
     out=$(afk run "add a thing" 2>&1)
     id=$(cat "$TMP/task_id" 2> /dev/null)
 
-    check "the audit log is ordered" in_order "$out" \
-        "AFK RUN START" \
-        "GOAL add a thing" \
-        "CREATE CLAUDE SESSION" \
-        "TASK CREATED $id" \
-        "FLOW PLANNING" \
-        "PLAN_READY $id" \
-        "AUTO_APPROVE PLAN_READY" \
-        "FLOW PLANNED" \
-        "CLOSE CLAUDE SESSION" \
-        "FLOW WORKING" \
-        "WORK_DONE $id" \
-        "AUTO_APPROVE WORK_DONE" \
-        "FLOW REVIEWING" \
-        "FLOW DONE" \
-        "LAND_READY $id" \
-        "AUTO_APPROVE LAND_READY" \
-        "LAND COMMIT" \
-        "WORKTREE REMOVED feature/thing" \
-        "GOAL DONE $id" \
-        "CLAUDE SESSIONS 3" \
-        "AFK RUN COMPLETE"
-    check "the repository is named up front" str_contains "$out" "REPO $REPO"
-    check "the branch commit is reported" str_matches "$out" 'COMMIT [0-9a-f]{7} feat: thing'
-    check "elapsed time is reported" str_matches "$out" 'ELAPSED [0-9]+m[0-9]{2}s'
+    check "the run reads as a phase-by-phase report" in_order "$out" \
+        "afk  unattended flow runner" \
+        "goal  add a thing" \
+        "session 1  starting" \
+        'prompt  /flow "add a thing"' \
+        "task    $id created" \
+        "phase   PLANNING  writing the plan" \
+        "commit  " \
+        "gate    plan ready - approved automatically" \
+        "phase   PLANNED  plan approved, ready to build" \
+        "session 2  PLANNED" \
+        "prompt  /flow $id" \
+        "phase   WORKING  building on the feature branch" \
+        "gate    work done - approved automatically" \
+        "phase   REVIEWING  reviewing the branch" \
+        "session 3  REVIEWING" \
+        "phase   DONE  finished, ready to land" \
+        "gate    landing - approved automatically" \
+        "landed  " \
+        "cleanup feature/thing worktree removed" \
+        "done  $id landed" \
+        "3 sessions, "
+    check "the repository is named up front" str_contains "$out" "repo  $REPO"
+    check "the branch commit is reported" str_matches "$out" 'commit  [0-9a-f]{7} feat: thing'
+    check "the landing commit is reported" str_matches "$out" 'landed  [0-9a-f]{7} feat: land thing'
+    check "elapsed time is reported" str_matches "$out" '3 sessions, [0-9]+m[0-9]{2}s'
+    check "every auto-approved gate says why it was automatic" \
+        test "$(printf '%s\n' "$out" | grep -c 'approved automatically, starting an afk run approves the flow gates')" -eq 3
 }
 
 test_argv_session_and_resume_policy() {
@@ -508,7 +524,7 @@ EOF
     rc=$?
     check "an unrecorded task ID fails the run" test "$rc" -ne 0
     check "the failure says no such record exists" str_contains "$out" "no such record"
-    check "the phantom task is not adopted" not str_contains "$out" "TASK CREATED"
+    check "the phantom task is not adopted" not str_contains "$out" "created"
 
     # A marker whose gate disagrees with durable state: PLAN_READY at PLANNED.
     restart_sandbox
@@ -620,6 +636,43 @@ test_verbose_echoes_assistant_text() {
     check "the default suppresses assistant text" not str_contains "$out" "phase running"
 }
 
+test_spinner_and_color_only_on_a_tty() {
+    # The decoration is the ONLY thing that may differ between a terminal and a
+    # pipe, so both halves of this run the same fixtures the same way.
+    local id pty plain rc gate_color commit_color
+    local spinner_re='[|/\-] working  PLANNED  [0-9]+m[0-9]{2}s  phase running'
+    local color_re=$'\033\\[[0-9;]*m'
+
+    id=$(seed_planned_task)
+    gen_work_to_land 0
+    reply_slow 1 "AFK WORK_DONE $id" 1.2
+    script -qec "bash '$AFK' run '$id'" /dev/null > "$TMP/pty.out" 2>&1
+    rc=$?
+    pty=$(cat "$TMP/pty.out")
+
+    check "the pty run exits 0" test "$rc" -eq 0
+    check "a spinner frame carries the phase, elapsed time and latest message" \
+        str_matches "$pty" "$spinner_re"
+    gate_color=$(printf '%s\n' "$pty" | grep -oE "$color_re"'gate' | head -1)
+    commit_color=$(printf '%s\n' "$pty" | grep -oE "$color_re"'commit' | head -1)
+    check "the gate label is colored" str_matches "${gate_color:-}" "^$color_re"
+    check "the commit label is colored" str_matches "${commit_color:-}" "^$color_re"
+    check "gate and commit are colored differently" \
+        not test "${gate_color%gate}" = "${commit_color%commit}"
+
+    restart_sandbox
+    id=$(seed_planned_task)
+    gen_work_to_land 0
+    reply_slow 1 "AFK WORK_DONE $id" 1.2
+    plain=$(afk run "$id" 2>&1)
+    rc=$?
+
+    check "the piped run exits 0" test "$rc" -eq 0
+    check "no escape sequence off a TTY" not str_contains "$plain" $'\033'
+    check "no spinner line off a TTY" not str_contains "$plain" " working  "
+    check "the report itself is unchanged" str_contains "$plain" "done  $id landed"
+}
+
 test_interrupt_kills_recorded_pid() {
     local id afk_pid bystander_pid claude_pid rc step_before step_after waited
     id=$(seed_planned_task)
@@ -658,7 +711,7 @@ EOF
     step_after=$(task_step "$REPO" "$id")
 
     check "an interrupted run exits non-zero" test "$rc" -ne 0
-    check "the interruption is reported" str_contains "$(cat "$TMP/out")" "INTERRUPTED"
+    check "the interruption is reported" str_contains "$(cat "$TMP/out")" "interrupted"
     check "the recorded claude process is dead" dead "$claude_pid"
     check "unrelated processes survive" alive "$bystander_pid"
     check "the task record is untouched" test "$step_after" = "$step_before"
@@ -697,10 +750,11 @@ echo "== afk integration tests =="
 run_test test_usage
 run_test test_run_goal_full_cycle
 run_test test_run_task_id_resumes
-run_test test_audit_log_order
+run_test test_run_report_reads_as_a_report
 run_test test_argv_session_and_resume_policy
 run_test test_failure_paths
 run_test test_verbose_echoes_assistant_text
+run_test test_spinner_and_color_only_on_a_tty
 run_test test_interrupt_kills_recorded_pid
 run_test test_no_progress_fingerprint_stops
 echo

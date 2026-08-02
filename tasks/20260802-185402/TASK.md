@@ -1,10 +1,10 @@
 # Make the afk runner's output human readable
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 60
 - TAGS: agents, afk, ux
 - KIND: TASK
-- FLOW STEP: PLANNED
+- FLOW STEP: DONE
 - PLAN STATUS: APPROVED
 
 `afk run` currently prints a flat machine log (`CREATE CLAUDE SESSION <uuid>`,
@@ -62,36 +62,36 @@ done  20260802-185402 landed
 
 ## Steps
 
-- [ ] Add the presentation layer to `home/modules/scripts/afk.sh`: `OUT_TTY`
+- [x] Add the presentation layer to `home/modules/scripts/afk.sh`: `OUT_TTY`
       / `ERR_TTY` from `[[ -t 1 ]]` / `[[ -t 2 ]]`, the color constants
       (empty when not a TTY), `line <color> <label> <text>`, and `say`/`err`
       clearing any live spinner first.
-- [ ] Add the phase gloss: one `case` mapping FLOW STEP to a short human
+- [x] Add the phase gloss: one `case` mapping FLOW STEP to a short human
       phrase (UNDERSTANDING, PLANNING, PLANNED, WORKING, REVIEWING,
       COMPOUNDING, DONE). Unknown steps print bare.
-- [ ] Add the spinner to `run_claude`: poll the event pipe with
+- [x] Add the spinner to `run_claude`: poll the event pipe with
       `read -t 0.2` instead of `read -t $AFK_HEARTBEAT_SECS`, track the last
       event with `SECONDS` and die on the same heartbeat budget, and on each
       timeout redraw `<frame> working  <phase>  <elapsed>  <message>` with
       `\r\033[K`. Frames are `| / - \`. The message is the latest assistant
       text, whitespace-collapsed and truncated to the terminal width read
       once from `stty size` (fallback 80). No-op when not a TTY.
-- [ ] Reformat `cmd_run`, `gate`, `lifecycle_gate`, `report_commits` and the
+- [x] Reformat `cmd_run`, `gate`, `lifecycle_gate`, `report_commits` and the
       failure paths to the target output. `gate` names WHICH gate and WHY it
       was automatic. `die` prints `error  <msg>` then `afk run failed`;
       the interrupt path prints `interrupted`.
-- [ ] Update `home/modules/scripts/afk-test.sh`: rename `test_audit_log_order`
+- [x] Update `home/modules/scripts/afk-test.sh`: rename `test_audit_log_order`
       to `test_run_report_reads_as_a_report` with the new ordered labels,
       fix the label substrings in `test_run_goal_full_cycle`,
       `test_run_task_id_resumes`, `test_failure_paths` and
       `test_interrupt_kills_recorded_pid`.
-- [ ] Add `test_spinner_and_color_only_on_a_tty` to `afk-test.sh`: a
+- [x] Add `test_spinner_and_color_only_on_a_tty` to `afk-test.sh`: a
       `reply_slow` fixture whose fake claude sleeps ~1s between the assistant
       event and the result, run once under `script -qec ... /dev/null` (a
       pty) and once captured normally. The pty run must show a spinner frame,
       the word `working`, the phase, and different colors for `gate` and
       `commit`; the plain run must contain no `\033` and no `working` line.
-- [ ] Run `bash home/modules/scripts/afk-test.sh` and
+- [x] Run `bash home/modules/scripts/afk-test.sh` and
       `shellcheck -s bash home/modules/scripts/afk.sh`.
 
 ## Definition of Done
@@ -128,3 +128,39 @@ done  20260802-185402 landed
 - No new runtime dependency: `stty` is coreutils, colors are literal ANSI.
 - `script` is ambient for the hand-run test suite; `afk-test.sh` is not part
   of `nix flake check`, so this adds no sandbox requirement.
+
+## Close-out
+
+What/why: `afk.sh` gained a presentation section (TTY probes, color constants,
+`spin`/`spin_clear`, `head_line`/`line`, `phase_gloss`) and every print site
+was rewritten to the target report. `run_claude` now polls the pipe at 5 Hz
+and enforces the heartbeat as an explicit `SECONDS` budget, which is what lets
+the spinner advance while the model is silent. Control logic, the `AFK` marker
+protocol and the three `gates.md` labels are untouched.
+
+Alternatives: none beyond the two DECISION.md already rejected (dual
+human/machine formats, a background animator process).
+
+Difficulties and diagnosis:
+
+- `read -t 0.2` saves partial input into the variable on timeout, so polling a
+  pipe fast enough to animate will cut a long event line in half. Fixed by
+  accumulating into `partial` across timeouts; confirmed directly in scratch
+  that without it the first fragment is lost and with it the line reassembles.
+- The new pty test failed by exactly one character. `stty size` under
+  `script -qec` with a non-tty parent reports `0 0`, so `TERM_COLS` was 0 and
+  `${text:0:-1}` silently became "all but the last character". The width guard
+  now rejects anything under 20 columns and keeps the 80 fallback.
+
+Evidence: `bash home/modules/scripts/afk-test.sh` 10/10 (was 9/9). Both DoD
+tests were run against the base `afk.sh` and fail there for the intended
+reason - no report labels, no gate rationale, no spinner, no color.
+`nix flake check` (6 checks), `bash home/modules/agents/skills/check.sh`,
+`bash home/modules/scripts/sprout-test.sh` (16/16), `tatr check` and
+`shellcheck -s bash` on both scripts are green. `manual: user judgement` stays
+pending. No doc surface quotes the old labels, so none needed editing.
+
+Reflection: the plan's "poll instead of block" step was one line of intent
+hiding two behavioural traps (partial reads, a lying `stty`). Both were only
+visible because the suite drives the real script through a real pipe and a
+real pty rather than testing the formatter in isolation.
