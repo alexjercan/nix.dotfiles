@@ -1,11 +1,11 @@
 # Make avoidable complexity block review approval
 
-- STATUS: CLOSED
 - PRIORITY: 100
 - TAGS: skills, review, lessons, docs, flow
 - KIND: STORY
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 - PARENT: 20260731-174333
 
 ## Story

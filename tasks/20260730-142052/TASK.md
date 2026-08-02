@@ -1,11 +1,11 @@
 # Spike: redesign the flow skills for concise progressive disclosure
 
-- STATUS: CLOSED
 - PRIORITY: 80
-- TAGS: spike,skills,flow,docs
+- TAGS: spike, skills, flow, docs
 - KIND: SPIKE
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Story
 

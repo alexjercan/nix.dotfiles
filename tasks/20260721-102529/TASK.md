@@ -1,11 +1,11 @@
 # deploy the agents skills to codex too (~/.agents/skills)
 
-- STATUS: CLOSED
 - PRIORITY: 60
 - TAGS: feature
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Story
 

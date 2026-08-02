@@ -1,11 +1,11 @@
 # Epic: enforce ambitious simplicity and bounded-context flow
 
-- STATUS: CLOSED
 - PRIORITY: 0
 - TAGS: goal, skills, flow
 - KIND: EPIC
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN
+- RESOLUTION: DONE
 
 ## Epic
 

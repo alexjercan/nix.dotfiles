@@ -1,11 +1,11 @@
 # Add secrets/README.md multi-machine key runbook
 
-- STATUS: CLOSED
 - PRIORITY: 40
-- TAGS: docs,nix,security
+- TAGS: docs, nix, security
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Story
 

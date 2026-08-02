@@ -1,11 +1,11 @@
 # Add an unattended afk flow runner
 
-- STATUS: CLOSED
 - PRIORITY: 80
 - TAGS: feature, agents, flow, claude
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Story
 

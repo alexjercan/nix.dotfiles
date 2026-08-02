@@ -1,11 +1,11 @@
 # Add the spike skill for ideation and research
 
-- STATUS: CLOSED
 - PRIORITY: 100
-- TAGS: feature,skills,docs,historical
+- TAGS: feature, skills, docs, historical
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Goal
 

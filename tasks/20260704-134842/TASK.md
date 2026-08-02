@@ -1,11 +1,11 @@
 # PR-style merge: sync feature branch with default before squash-merge
 
-- STATUS: CLOSED
 - PRIORITY: 100
-- TAGS: feature,docs,skills,historical
+- TAGS: feature, docs, skills, historical
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Context
 

@@ -1,11 +1,11 @@
 # Write Claude Code skills that drive `daily` and `today` as CLI tools
 
-- STATUS: CLOSED
 - PRIORITY: 80
-- TAGS: feature,historical
+- TAGS: feature, historical
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Goal
 

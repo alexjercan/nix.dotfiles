@@ -1,11 +1,11 @@
 # Address the afk runner's round-1 review findings
 
-- STATUS: CLOSED
 - PRIORITY: 40
 - TAGS: agents, flow
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Story
 

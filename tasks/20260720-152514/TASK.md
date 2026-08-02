@@ -1,11 +1,11 @@
 # Ledger lifecycle: RETIRED marker, promotion order, shrink-on-absorb
 
-- STATUS: CLOSED
 - PRIORITY: 70
-- TAGS: feature,skills
+- TAGS: feature, skills
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Story
 

@@ -1,11 +1,11 @@
 # Record epic flow in TASK.md only
 
-- STATUS: CLOSED
 - PRIORITY: 80
-- TAGS: docs,skills,flow
+- TAGS: docs, skills, flow
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Story
 

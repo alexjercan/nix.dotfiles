@@ -1,11 +1,11 @@
 # Investigate encrypted secrets management (sops-nix vs agenix)
 
-- STATUS: CLOSED
 - PRIORITY: 40
-- TAGS: chore,nix,security
+- TAGS: chore, nix, security
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Story
 

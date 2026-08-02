@@ -1,11 +1,11 @@
 # Associate sprout worktrees with task IDs
 
-- STATUS: CLOSED
 - PRIORITY: 50
 - TAGS: agents, sprout
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Goal
 

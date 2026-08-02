@@ -1,11 +1,11 @@
 # Refactor home.packages into topical modules
 
-- STATUS: CLOSED
 - PRIORITY: 20
-- TAGS: chore,nix,refactor
+- TAGS: chore, nix, refactor
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Story
 

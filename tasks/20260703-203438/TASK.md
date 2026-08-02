@@ -1,11 +1,11 @@
 # Make the `daily` script agent-friendly (JSON output, exit codes, help)
 
-- STATUS: CLOSED
 - PRIORITY: 90
-- TAGS: feature,historical
+- TAGS: feature, historical
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Goal
 

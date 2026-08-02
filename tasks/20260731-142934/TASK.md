@@ -1,11 +1,11 @@
 # Add explicit flow dispatch table
 
-- STATUS: CLOSED
 - PRIORITY: 75
 - TAGS: skills, flow, docs
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Story
 

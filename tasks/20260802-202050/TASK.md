@@ -1,11 +1,11 @@
 # afk: name the Claude session ID on each session header line
 
-- STATUS: CLOSED
 - PRIORITY: 60
 - TAGS: feature, scripts, afk
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Why
 

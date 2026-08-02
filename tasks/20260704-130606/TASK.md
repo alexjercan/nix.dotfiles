@@ -1,11 +1,11 @@
 # Cross-reference spike into the plan, flow and tatr skill lifecycle
 
-- STATUS: CLOSED
 - PRIORITY: 50
-- TAGS: docs,skills,historical
+- TAGS: docs, skills, historical
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Goal
 

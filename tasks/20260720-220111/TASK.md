@@ -1,11 +1,11 @@
 # flow skill: codify umbrella/GOAL lifecycle (close, residue, no-RETRO)
 
-- STATUS: CLOSED
 - PRIORITY: 60
-- TAGS: feature,flow
+- TAGS: feature, flow
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Story
 

@@ -1,11 +1,11 @@
 # Compact flow skills to stricter budgets
 
-- STATUS: CLOSED
 - PRIORITY: 80
 - TAGS: refactor, skills, flow, docs
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Story
 

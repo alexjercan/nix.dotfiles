@@ -1,11 +1,11 @@
 # Clean up hyprland module cruft (shadow block, dup capslock bind, wlogout style)
 
-- STATUS: CLOSED
 - PRIORITY: 25
-- TAGS: chore,nix
+- TAGS: chore, nix
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Story
 

@@ -1,11 +1,11 @@
 # Resolve sprout project from the main worktree, not the current one
 
-- STATUS: CLOSED
 - PRIORITY: 50
-- TAGS: bug,historical
+- TAGS: bug, historical
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Goal
 

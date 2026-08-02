@@ -1,11 +1,11 @@
 # Goal: flow-suite v2 - reviews, goal artifact, landing tool, DoD proofs, artifact linting
 
-- STATUS: CLOSED
 - PRIORITY: 0
 - TAGS: goal
 - KIND: EPIC
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW
+- RESOLUTION: DONE
 
 ## Goal
 

@@ -1,11 +1,11 @@
 # Epic: flow-suite v3 concise context and tatr-native orchestration
 
-- STATUS: CLOSED
 - PRIORITY: 0
 - TAGS: goal, skills, flow
 - KIND: EPIC
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN
+- RESOLUTION: DONE
 
 ## Epic
 

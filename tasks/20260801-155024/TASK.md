@@ -1,11 +1,11 @@
 # Make flow stop gates explicit approval transitions
 
-- STATUS: CLOSED
 - PRIORITY: 85
 - TAGS: skills, flow, review, docs
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Story
 

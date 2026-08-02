@@ -1,11 +1,11 @@
 # plan skill: DoD-grep proof template excludes tasks/ by default
 
-- STATUS: CLOSED
 - PRIORITY: 90
-- TAGS: feature,flow
+- TAGS: feature, flow
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Story
 

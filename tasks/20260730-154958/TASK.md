@@ -1,11 +1,11 @@
 # Add conditional parallel planning and review lanes
 
-- STATUS: CLOSED
 - PRIORITY: 65
 - TAGS: feature, skills, flow, parallel, review
 - KIND: STORY
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 - PARENT: 20260730-153122
 
 ## Story

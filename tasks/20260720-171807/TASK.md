@@ -1,11 +1,11 @@
 # Goal: flow-v2 adoption - root LESSONS.md, clean tatr check, AGENTS.md flow pointers across six repos
 
-- STATUS: CLOSED
 - PRIORITY: 0
 - TAGS: goal
 - KIND: EPIC
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW
+- RESOLUTION: DONE
 
 ## Goal
 

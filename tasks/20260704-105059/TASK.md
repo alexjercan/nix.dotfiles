@@ -1,11 +1,11 @@
 # Squash-merge task branches in flow
 
-- STATUS: CLOSED
 - PRIORITY: 1
-- TAGS: feature,docs,skills,historical
+- TAGS: feature, docs, skills, historical
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Context
 

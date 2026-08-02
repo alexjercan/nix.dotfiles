@@ -1,11 +1,11 @@
 # Add sprout git-worktree CLI core (new/ls/show/rm)
 
-- STATUS: CLOSED
 - PRIORITY: 100
-- TAGS: feature,historical
+- TAGS: feature, historical
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Goal
 

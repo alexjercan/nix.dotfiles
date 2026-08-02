@@ -1,11 +1,11 @@
 # Adopt flow v2: move ledger to root, create repo AGENTS.md flow pointer
 
-- STATUS: CLOSED
 - PRIORITY: 85
-- TAGS: chore,process
+- TAGS: chore, process
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Story
 

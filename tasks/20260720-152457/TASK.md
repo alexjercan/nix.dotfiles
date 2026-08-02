@@ -1,11 +1,11 @@
 # DoD items name their proof (test/cmd/manual) across plan, work, review, flow
 
-- STATUS: CLOSED
 - PRIORITY: 85
-- TAGS: feature,skills
+- TAGS: feature, skills
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Story
 

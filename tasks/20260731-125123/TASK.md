@@ -1,11 +1,11 @@
 # Write the sabotage-at-plan-time rule into the proofs reference
 
-- STATUS: CLOSED
 - PRIORITY: 55
 - TAGS: skills, lessons, docs
 - KIND: TASK
-- FLOW STEP: DONE
-- PLAN STATUS: APPROVED
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 ## Story
 
