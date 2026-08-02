@@ -604,7 +604,8 @@ EOF
     check "the inconsistency is named" str_contains "$out" "PLANNING"
     check "the gate was never answered" test "$(invocations)" -eq 1
 
-    # A gate approval that does not cause its transition.
+    # A gate approval that does not cause its transition. The cursor is BEHIND
+    # the gate's target, which the floor postcondition still refuses.
     restart_sandbox
     id=$(seed_working_task)
     reply 1 "AFK WORK_DONE $id"
@@ -612,7 +613,8 @@ EOF
     out=$(afk run "$id" 2>&1)
     rc=$?
     check "an ineffective approval fails the run" test "$rc" -ne 0
-    check "the expected activity is named" str_contains "$out" "REVIEWING"
+    check "the expected activity is named" str_contains "$out" "REVIEWING or later"
+    check "the activity it stayed in is named" str_contains "$out" "is in WORKING"
     check "the gate was answered once" test "$(invocations)" -eq 2
 
     # LAND_READY approved, but the branch never landed.
@@ -682,6 +684,133 @@ EOF
     check "the rotation bound fails the run" test "$rc" -ne 0
     check "the bound is named" str_contains "$out" "AFK_MAX_SESSIONS"
     check "no session past the bound is started" test "$(invocations)" -eq 1
+}
+
+gen_sprout_work() {
+    # The side script that a WORKING task's worker session runs: sprout the
+    # worktree the gates and the landing both need, and commit the work. $1:
+    # invocation number  $2: task ID. Unquoted heredoc, so the task ID is
+    # interpolated here and everything read at run time is escaped.
+    side "$1" << EOF
+set -e
+id=$2
+wt="\$XDG_CACHE_HOME/$WT_REL"
+mkdir -p "\$(dirname "\$wt")"
+git -C "\$REPO" worktree add -q -b feature/thing "\$wt" HEAD
+git -C "\$REPO" config extensions.worktreeConfig true
+git -C "\$wt" config --worktree sprout.task "\$id"
+echo work > "\$wt/thing.txt"
+git -C "\$wt" add -A
+git -C "\$wt" commit -qm "feat: thing"
+EOF
+}
+
+gen_review_to_done() {
+    # The side script that carries a REVIEWING task to RESOLUTION DONE in its
+    # worktree. $1: invocation number  $2: task ID.
+    side "$1" << EOF
+set -e
+source "\$AFK_TEST_TMP/fixtures.sh"
+id=$2
+wt="\$XDG_CACHE_HOME/$WT_REL"
+approved_review "\$wt/tasks/\$id/REVIEW.md"
+tatr -r "\$wt" flow "\$id" > /dev/null
+tatr -r "\$wt" scaffold "\$id" RETRO > /dev/null
+tatr -r "\$wt" flow "\$id" > /dev/null
+git -C "\$wt" add -A
+git -C "\$wt" commit -qm "docs: review and retro"
+EOF
+}
+
+gen_land() {
+    # The side script that lands feature/thing, exactly as `sprout land` would.
+    # $1: invocation number.
+    side "$1" << 'EOF'
+set -e
+wt="$XDG_CACHE_HOME/sprouts/repo/feature/thing"
+git -C "$REPO" merge --squash feature/thing > /dev/null
+git -C "$REPO" commit -qm "feat: land thing"
+git -C "$REPO" worktree remove --force "$wt"
+git -C "$REPO" branch -qD feature/thing
+EOF
+}
+
+test_gate_resume_may_overshoot() {
+    # A gate's postcondition is a floor, not an equality. The lifecycle only
+    # ever guarantees the cursor is AT OR PAST a transition's target, so a
+    # resumed gate session that answered the question and then kept going left
+    # durable state that is further along - not wrong. Rejecting it would be
+    # afk refusing the very state it treats as the authority.
+    local id out rc
+
+    # WORK_DONE asks for REVIEWING; the resume runs review and compound too and
+    # leaves COMPOUNDING / PLAN REVIEW RETRO / RESOLUTION DONE, the legal
+    # terminal pre-land record.
+    id=$(seed_working_task)
+    gen_sprout_work 1 "$id"
+    reply 1 "AFK WORK_DONE $id"
+    side 2 << EOF
+set -e
+source "\$AFK_TEST_TMP/fixtures.sh"
+id=$id
+wt="\$XDG_CACHE_HOME/$WT_REL"
+tatr -r "\$wt" flow "\$id" > /dev/null
+approved_review "\$wt/tasks/\$id/REVIEW.md"
+tatr -r "\$wt" flow "\$id" > /dev/null
+tatr -r "\$wt" scaffold "\$id" RETRO > /dev/null
+tatr -r "\$wt" flow "\$id" > /dev/null
+git -C "\$wt" add -A
+git -C "\$wt" commit -qm "docs: reviewing, review and retro"
+EOF
+    reply 2 ""
+    reply 3 "AFK LAND_READY $id"
+    gen_land 4
+    reply 4 ""
+    out=$(afk run "$id" 2>&1)
+    rc=$?
+    check "a work done gate that overshoots completes the run" test "$rc" -eq 0
+    check "the overshoot is not called a failed approval" \
+        not str_contains "$out" "not REVIEWING"
+    check "the branch landed" not git -C "$REPO" show-ref --verify --quiet refs/heads/feature/thing
+
+    # The same shape one gate earlier: PLAN_READY asks for the PLAN gate, and
+    # its resume runs past WORKING into REVIEWING. That postcondition is a
+    # token match on an accumulating field, so this pins behaviour rather than
+    # fixing it - but it is the same overshoot, and it must stay survivable.
+    restart_sandbox
+    id=$(seed_working_task)
+    # seed_working_task stops at WORKING; the PLAN gate is asked one step
+    # earlier, and clearing the earned gate is what makes it askable again.
+    (cd "$REPO" && quiet tatr rewind "$id" --to PLANNING --force &&
+        quiet git commit -aqm "docs: back to planning")
+    reply 1 "AFK PLAN_READY $id"
+    side 2 << EOF
+set -e
+source "\$AFK_TEST_TMP/fixtures.sh"
+id=$id
+wt="\$XDG_CACHE_HOME/$WT_REL"
+tatr -r "\$REPO" flow "\$id" > /dev/null
+git -C "\$REPO" commit -aqm "docs: plan approved"
+mkdir -p "\$(dirname "\$wt")"
+git -C "\$REPO" worktree add -q -b feature/thing "\$wt" HEAD
+git -C "\$REPO" config extensions.worktreeConfig true
+git -C "\$wt" config --worktree sprout.task "\$id"
+echo work > "\$wt/thing.txt"
+git -C "\$wt" add -A
+git -C "\$wt" commit -qm "feat: thing"
+tatr -r "\$wt" flow "\$id" > /dev/null
+git -C "\$wt" commit -aqm "docs: reviewing"
+EOF
+    reply 2 ""
+    gen_review_to_done 3 "$id"
+    reply 3 "AFK LAND_READY $id"
+    gen_land 4
+    reply 4 ""
+    out=$(afk run "$id" 2>&1)
+    rc=$?
+    check "a plan gate that overshoots completes the run" test "$rc" -eq 0
+    check "the plan overshoot is not called a failed approval" \
+        not str_contains "$out" "has earned"
 }
 
 test_verbose_echoes_assistant_text() {
@@ -1281,6 +1410,7 @@ run_test test_run_report_reads_as_a_report
 run_test test_session_header_names_the_claude_session_id
 run_test test_argv_session_and_resume_policy
 run_test test_failure_paths
+run_test test_gate_resume_may_overshoot
 run_test test_verbose_echoes_assistant_text
 run_test test_session_token_report
 run_test test_spinner_and_color_only_on_a_tty

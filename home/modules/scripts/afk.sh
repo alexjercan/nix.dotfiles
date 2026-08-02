@@ -66,6 +66,10 @@ and no way to ask one a question; the AskUserQuestion tool is disabled. When
 the flow reaches an approval gate, summarize the phase, ask its question, and
 end the turn - the runner answers it.
 
+Once the runner answers a gate, perform that gate's lifecycle transition,
+commit the task records, then stop and report ROTATE. Do not continue into the
+next phase; it gets a fresh context.
+
 End every response with exactly one final line of this form, and nothing after
 it:
 
@@ -350,6 +354,26 @@ phase_label() {
     }
     gates=$(task_gates "$1")
     printf '%s%s\n' "$activity" "${gates:+"+${gates// /+}"}"
+}
+
+# The lifecycle in order, earliest first. This is the second place the activity
+# vocabulary is written down - phase_gloss above is the first - so a new
+# activity has to be added to both.
+ACTIVITY_ORDER="UNDERSTANDING PLANNING WORKING REVIEWING COMPOUNDING"
+
+activity_rank() {
+    # $1: an ACTIVITY word -> its position in ACTIVITY_ORDER, one-based.
+    # Non-zero for anything else, including the empty string: a word afk cannot
+    # place is not a word afk can compare.
+    local rank=0 word
+    for word in $ACTIVITY_ORDER; do
+        rank=$((rank + 1))
+        if [[ $word == "$1" ]]; then
+            printf '%s\n' "$rank"
+            return 0
+        fi
+    done
+    return 1
 }
 
 feature_branch() {
@@ -661,6 +685,22 @@ require_activity() {
         die "$3 but $1 is in ${actual:-no activity}, not $2"
 }
 
+require_activity_at_least() {
+    # $1: task ID  $2: the earliest acceptable ACTIVITY  $3: what claimed it.
+    # A floor, not an equality: the lifecycle only ever guarantees the cursor
+    # is at or past a transition's target, so a session that answered a gate
+    # and then ran on is further along, not wrong. An activity afk cannot rank
+    # still dies.
+    local actual actual_rank want_rank
+    actual=$(task_activity "$1") || die "cannot read the activity of $1"
+    want_rank=$(activity_rank "$2") ||
+        die "internal error: unknown activity '$2'"
+    actual_rank=$(activity_rank "$actual") ||
+        die "$3 but $1 is in ${actual:-no activity}, not $2 or later"
+    [[ $actual_rank -ge $want_rank ]] ||
+        die "$3 but $1 is in $actual, not $2 or later"
+}
+
 require_gate() {
     # $1: task ID  $2: gate that must be earned  $3: what claimed it.
     # GATES is an accumulating whitespace-delimited set, so this is a token
@@ -725,8 +765,13 @@ lifecycle_gate() {
     # because not every lifecycle edge earns a gate, and where one is earned
     # it - not the cursor - is the durable half: leaving PLANNING with a
     # blocked dependency records PLAN and holds the cursor, and calling that a
-    # failed approval would be a lie. Returns non-zero when the gate was
-    # stopped on a context limit, having reported what it did change.
+    # failed approval would be a lie. The two ends also differ in strictness:
+    # the precondition is an equality because "the session reported this from
+    # somewhere that is not $2" is a genuine disagreement about durable state,
+    # while the postcondition is only a floor, because the lifecycle guarantees
+    # at-or-past and a session that answered the gate and kept going must not
+    # be failed for it. Returns non-zero when the gate was stopped on a context
+    # limit, having reported what it did change.
     local before_main before_feat
     require_activity "$TASK_ID" "$2" "the session reported $1"
     before_main=$(ref_head HEAD)
@@ -738,7 +783,7 @@ lifecycle_gate() {
     fi
     case "$4" in
         gate) require_gate "$TASK_ID" "$5" "the $6 gate was approved" ;;
-        activity) require_activity "$TASK_ID" "$5" "the $6 gate was approved" ;;
+        activity) require_activity_at_least "$TASK_ID" "$5" "the $6 gate was approved" ;;
         *) die "internal error: unknown postcondition kind '$4'" ;;
     esac
     report_phase "$TASK_ID"

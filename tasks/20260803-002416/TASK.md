@@ -3,9 +3,9 @@
 - PRIORITY: 60
 - TAGS: afk, scripts, agents
 - KIND: TASK
-- ACTIVITY: WORKING
-- GATES: PLAN
-- RESOLUTION: -
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 An `afk run` of `nova-protocol` task `20260802-183352` died with:
 
@@ -135,26 +135,26 @@ part. The skill supplies the fact that satisfies the condition.
 
 ## Steps
 
-- [ ] `home/modules/scripts/afk.sh`: next to `phase_label`, add the lifecycle
+- [x] `home/modules/scripts/afk.sh`: next to `phase_label`, add the lifecycle
   order as a constant (`UNDERSTANDING PLANNING WORKING REVIEWING COMPOUNDING`,
   confirmed against `tatr` in scratch) plus `activity_rank`, a lookup returning
   a position and failing on an unknown word.
-- [ ] `home/modules/scripts/afk.sh`: add `require_activity_at_least` beside
+- [x] `home/modules/scripts/afk.sh`: add `require_activity_at_least` beside
   `require_activity`, same three arguments, passing when the cursor's rank is
   at or past the expected one. An unreadable or unknown actual activity still
   dies, and the message names `<expected> or later`. Leave `require_activity`
   itself untouched - `lifecycle_gate`'s precondition keeps the equality test.
-- [ ] `home/modules/scripts/afk.sh`: in `lifecycle_gate`, switch the
+- [x] `home/modules/scripts/afk.sh`: in `lifecycle_gate`, switch the
   `activity)` postcondition arm to `require_activity_at_least`. Extend the
   function comment to say why the two ends differ: the precondition is a
   disagreement about where the session reported from, the postcondition is a
   floor, because the lifecycle only guarantees at-or-past.
-- [ ] `home/modules/scripts/afk.sh`: in `PROTOCOL`, after the gate sentence,
+- [x] `home/modules/scripts/afk.sh`: in `PROTOCOL`, after the gate sentence,
   state what to do once the runner answers - perform the transition, commit
   the task records, then stop and report `ROTATE`, rather than continuing into
   the next phase. Keep it to one or two sentences; `PROTOCOL` is injected into
   every session.
-- [ ] `home/modules/scripts/afk-test.sh`: in `test_failure_paths`, extend the
+- [x] `home/modules/scripts/afk-test.sh`: in `test_failure_paths`, extend the
   existing "ineffective approval" case so the actual failure it names is
   distinguishable, then add the overshoot case: a WORKING task, invocation 1
   replies `AFK WORK_DONE <id>`, invocation 2's side script runs the transition
@@ -162,29 +162,29 @@ part. The skill supplies the fact that satisfies the condition.
   `PLAN REVIEW RETRO` / `RESOLUTION DONE`, and replies `AFK LAND_READY <id>`.
   Assert the run does NOT die on the postcondition. Model the side script on
   `gen_work_to_land`'s invocations 2 and 3, collapsed into one.
-- [ ] `home/modules/scripts/afk-test.sh`: add a case pinning the tightened
+- [x] `home/modules/scripts/afk-test.sh`: add a case pinning the tightened
   postcondition - a WORK_DONE gate whose resume leaves the cursor BEHIND
   `REVIEWING` (still `WORKING`) still fails, naming `REVIEWING or later`. This
   is the existing "ineffective approval" assertion, updated for the new
   message.
-- [ ] `home/modules/agents/skills/review/SKILL.md` step 2: delete "A fresh
+- [x] `home/modules/agents/skills/review/SKILL.md` step 2: delete "A fresh
   `/flow <id>` session that starts at REVIEWING counts as the outside
   reviewer; do not spawn another by default". Replace with an unconditional
   round-1 reviewer plus the authorization sentence - invoking this skill IS
   the request for that reviewer, so it is spawned even under a standing
   do-not-delegate directive. Drop "explain exceptions" from the same step.
-- [ ] `home/modules/agents/skills/review/rounds.md`, under
+- [x] `home/modules/agents/skills/review/rounds.md`, under
   `## The round-1 subagent handoff`: delete the fresh-session clause; the
   paragraph states that round 1 always hands off outside this context and
   points at `work/delegation.md` for the bounded subagent shape.
-- [ ] `home/modules/agents/skills/review/rounds.md`, `## Required fields`:
+- [x] `home/modules/agents/skills/review/rounds.md`, `## Required fields`:
   narrow `- REVIEWER:` to `out-of-context`, or `in-session (<why>)` reserved
   for a runtime with no way to start a second context. "for a trivial diff"
   goes; see DECISION.md.
-- [ ] Run `bash home/modules/agents/skills/check.sh` and confirm both budgets
+- [x] Run `bash home/modules/agents/skills/check.sh` and confirm both budgets
   still pass; if either is over, trim within the two edited files rather than
   relaxing a budget.
-- [ ] Write DECISION.md recording the four planning decisions below.
+- [x] Write DECISION.md recording the four planning decisions below.
 
 ## Definition of Done
 
@@ -243,3 +243,46 @@ part. The skill supplies the fact that satisfies the condition.
   `rounds.md` only reduces exposure to it.
 - Assumption: later rounds keep their recorded-exception default. Only round 1
   becomes unconditional - see DECISION.md.
+
+## Close-out
+
+What and why. `afk.sh` gained `ACTIVITY_ORDER` + `activity_rank` (a one-based
+lookup that fails on any word it cannot place, the empty string included) and
+`require_activity_at_least`. `lifecycle_gate`'s `activity)` postcondition arm
+now calls it; the precondition still calls `require_activity`, and the function
+comment says why the two ends differ. `PROTOCOL` gained one sentence telling a
+gate-answering session to transition, commit the records, stop and report
+`ROTATE`. `review/SKILL.md` step 2 now makes round 1's outside reviewer
+unconditional and states that invoking the skill IS the request for it;
+`review/rounds.md` lost the fresh-session clause and narrowed `in-session` to a
+runtime that cannot start a second context.
+
+Deviation from the Steps. The overshoot case is its own test,
+`test_gate_resume_may_overshoot`, not an addition to `test_failure_paths`: it
+asserts a run SUCCEEDS, and a success assertion inside a function whose whole
+subject is failure reads as a mistake. `test_failure_paths` keeps the
+ineffective-approval case, now pinning both halves of the new message
+(`REVIEWING or later` and `is in WORKING`). The new test holds both overshoots -
+the WORK_DONE one that was broken, and the PLAN_READY one that was already
+survivable - so the two sit next to each other. Three side-script generators
+(`gen_sprout_work`, `gen_review_to_done`, `gen_land`) were factored out of the
+shapes `gen_work_to_land` already used.
+
+Difficulties. Confirming the proof's red-on-base message needed the base
+`afk.sh` restored under the NEW test, and `afk-test.sh` resolves `$AFK` from its
+own directory, so the debug copy had to live in `home/modules/scripts/` rather
+than `/tmp`. Base failure, verbatim: `the work done gate was approved but
+20260803-005247 is in COMPOUNDING, not REVIEWING`. Seeding a PLANNING task
+reused `seed_working_task` plus `tatr rewind --to PLANNING --force`; the plain
+rewind refuses to discard the earned PLAN gate.
+
+Evidence. `bash home/modules/scripts/afk-test.sh` - 19 passed, 0 failed (17
+before). `bash home/modules/agents/skills/check.sh` - clean, budgets still pass
+with more headroom than before. `nix flake check` - all checks passed.
+`tatr check` - silent.
+
+Reflection. The Notes' correction held up exactly: only `WORK_DONE` had an
+equality postcondition, so the PLAN case is a pin. Writing that pin was still
+worth it - both cases now go through one test whose comment states the
+at-or-past invariant, which is the thing a future `activity` postcondition
+needs to know.

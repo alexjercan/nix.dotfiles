@@ -25,10 +25,9 @@ by hand - the file is the review history and is never rewritten - numbered from
 
 ## The round-1 subagent handoff
 
-One out-of-context reviewer is the default. If the current session started at
-REVIEWING after `/clear`, it is already that reviewer. If it contains the
-implementation history, hand off to a bounded reviewer like the implementation
-subagent in `work/delegation.md`. A high-risk diff may split into lanes instead.
+Round 1 always hands off outside this context, to a bounded reviewer like the
+implementation subagent in `work/delegation.md`. A high-risk diff may split
+into lanes instead.
 
 What it RECEIVES, and nothing else: the task ID, the branch, the worktree path,
 the default branch, the review dimensions, and this format. Never the
@@ -69,9 +68,9 @@ about the plan, not a code finding, and never blocks a verdict.
 - `- VERDICT:` per round, `APPROVE` or `REQUEST_CHANGES` and nothing else
   (`bad-verdict`). An APPROVE with an unticked BLOCKER or MAJOR is
   `approve-with-open-findings`, and `tatr flow` out of REVIEWING refuses it.
-- `- REVIEWER:` per round (`missing-reviewer`): `out-of-context` - the default,
-  a reviewer with no sight of the implementing session - or
-  `in-session (<why>)` for a trivial diff or a recorded exception.
+- `- REVIEWER:` per round (`missing-reviewer`): `out-of-context` - a reviewer
+  with no sight of the implementing session - or `in-session (<why>)`, reserved
+  for a runtime that cannot start a second context.
 - Finding IDs are `R<round>.<index>`, in their own round, with no skipped
   index (`bad-finding-id`).
 

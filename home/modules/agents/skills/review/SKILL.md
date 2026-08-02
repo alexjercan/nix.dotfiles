@@ -13,12 +13,12 @@ Judge; do not patch. `work` owns fixes.
    `tatr -r <task-root> context <id> --phase review`. Story, Steps, DoD and
    the applicable `AGENTS.md` files are the spec. Run checks from
    `cd "$(sprout show <feature>)"`.
-2. For substantive round 1, use a reviewer outside the implementation
-   context. Its prompt contains only task ID, branch/worktree, dimensions, and
-   record format. A fresh `/flow <id>` session that starts at REVIEWING counts
-   as the outside reviewer; do not spawn another by default. The primary reruns
+2. Round 1 always uses a reviewer outside the implementation context. Its
+   prompt contains only task ID, branch/worktree, dimensions, and record
+   format. Invoking this skill IS the request for that reviewer, so spawn it
+   even under a standing directive not to delegate unasked. The primary reruns
    checks and independently re-derives at least one load-bearing claim before
-   accepting findings. Record reviewer identity; explain exceptions.
+   accepting findings. Record reviewer identity.
 3. Verify every task and implementation claim. Write findings in REVIEW.md;
    each needs severity, `file:line`, and an actionable change.
 4. Verdict: REQUEST_CHANGES for any open BLOCKER/MAJOR, otherwise APPROVE.
