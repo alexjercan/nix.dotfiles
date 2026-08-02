@@ -307,7 +307,8 @@ done < <(awk -F'\t' '
 rm -f "$paragraphs"
 
 # --- 8. direct state edits --------------------------------------------------
-# `tatr flow` is the only writer of a task's lifecycle markers. Prose telling
+# `tatr flow`, `tatr rewind` and `tatr close` are the only writers of a task's
+# lifecycle markers - ACTIVITY, GATES and RESOLUTION. Prose telling
 # the agent to type one in by hand reintroduces exactly the drift that
 # transactional command exists to remove. The content fixtures enumerate FILES,
 # so an imperative added to a file no fixture names is invisible to them; this
@@ -327,7 +328,7 @@ rm -f "$paragraphs"
 # A clause is a violation when it names a marker AND an edit verb, is NOT
 # attributed to the tool, is NOT a prohibition, and shows AGENCY - an
 # imperative-initial verb, or an explicit by-hand phrase. Agency is what
-# separates "Set FLOW STEP: DONE yourself" from "`tatr flow` writes FLOW STEP".
+# separates "Set RESOLUTION: DONE yourself" from "`tatr flow` writes RESOLUTION".
 # Location words like "in TASK.md" are NOT agency: they say where the marker
 # lives, not who typed it.
 #
@@ -336,19 +337,22 @@ rm -f "$paragraphs"
 # replacement is a GNU extension that silently yields a literal `n` on BSD -
 # which would turn this rule into a whole-file matcher instead of an error.
 #
-# A bare `STATUS:` is deliberately NOT a marker - DECISION.md and SPIKE.md both
-# carry their own `- STATUS:` field, and flagging those would make the rule
-# unusable. Only the flow lifecycle's own values count.
+# Every marker is matched with its VALUE. A bare `STATUS:` is deliberately NOT
+# one - DECISION.md and SPIKE.md both carry their own `- STATUS:` field, and
+# flagging those would make the rule unusable - and neither are the ordinary
+# words "activity" and "gates". Only the flow lifecycle's own values count.
 
 direct_state_edit_hits() {
   awk '
     BEGIN {
       EV = "(set|sets|write|writes|writing|change|changes|edit|edits|editing|type|types|put|puts|mark|marks|flip|flips|update|updates|add|adds|append|appends|record|records|replace|replaces|insert|inserts|bump|bumps|overwrite|overwrites|fill|fills|toggle|toggles|correct|corrects)"
-      # The BARE form is the imperative one. "sets FLOW STEP" is a third
-      # person describing the tool; "set FLOW STEP" is an order to the reader,
+      # The BARE form is the imperative one. "sets ACTIVITY" is a third
+      # person describing the tool; "set ACTIVITY" is an order to the reader,
       # and that inflection is the whole difference between the two.
       EVB = "(set|write|change|edit|type|put|mark|flip|update|add|append|record|replace|insert|bump|overwrite|fill|toggle|correct)"
-      MARKER = "(flow step|plan status|status: *(open|in_progress|closed))"
+      # Every marker is VALUE-anchored, so the ordinary English words
+      # "activity", "gates" and "status" cannot trip the rule on their own.
+      MARKER = "(activity: *(understanding|planning|working|reviewing|compounding)|gates: *(plan|review|retro)|resolution: *(done|wontdo|duplicate|superseded)|status: *(open|in_progress|closed))"
       HAND = "(by hand|hand-edit|yourself|manually)"
     }
     function judge(s,   t) {
@@ -360,7 +364,7 @@ direct_state_edit_hits() {
       if (t !~ "[^a-z]" EV "[^a-z]") return
       # Attributed to the tool: `tatr <verb>` as the clause subject, or named
       # as the instrument. Anchoring matters - a bare `tatr` anywhere would
-      # exempt "If `tatr flow` is unavailable, set FLOW STEP by hand", which is
+      # exempt "If `tatr flow` is unavailable, set ACTIVITY by hand", which is
       # the single likeliest real violation.
       if (t ~ "(^ |, )tatr [a-z-]+( [^ ]+){0,5} " EV "[^a-z]") return
       if (t ~ "(with|via|using|through) tatr [a-z-]+") return
@@ -416,8 +420,8 @@ done
 # A sprout worktree owns its task's records while the task is in flight, and
 # the shell's cwd is the main checkout. An unrooted `tatr` call there reads or
 # writes the STALE copy without saying so - the failure that reopened task
-# 20260802-143129, where a `--to WORKING` transition landed as an uncommitted
-# edit in main while the worktree that owned the task stayed PLANNED. It is the
+# 20260802-143129, where a transition into WORKING landed as an uncommitted
+# edit in main while the worktree that owned the task stayed behind. It is the
 # same class as the "absolute worktree paths for every edit/git call" rule the
 # work skill already states for git, so it gets the same treatment: named at
 # every command site, enforced here.
@@ -426,7 +430,8 @@ done
 # no worktree, so the rooted form is correct in every phase, and one habit
 # costs less than a rule carrying a map of where it applies.
 #
-# Only the subcommands that read or write one task's record. `new` predates the
+# Only the subcommands that read or write one task's record - which includes
+# `rewind`, the backward move, and `close`, the retire path. `new` predates the
 # record; `ls`, `frontier` and `claims` quantify over the whole tree; `claim`
 # and `release` write TATR_CLAIMS_DIR, not the checkout.
 #
@@ -434,7 +439,7 @@ done
 # realistic way past a line-based grep (`line-breaks-are-load-bearing`, the same
 # reason rule 8 joins lines). A hit is reported at the line the command STARTS
 # on, so the overlapping windows cannot report it twice.
-TATR_ID_SUBS='flow|scaffold|check|proofs|context|show|edit'
+TATR_ID_SUBS='flow|rewind|close|scaffold|check|proofs|context|show|edit'
 
 unrooted_tatr_hits() {
   # $1: file -> "<line>: <text>" for every unrooted task-taking tatr call.

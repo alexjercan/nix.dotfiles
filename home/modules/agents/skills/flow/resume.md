@@ -40,34 +40,39 @@ before re-sprouting.
 
 ## Route
 
-Dispatch from FLOW STEP, not old intent.
+Dispatch from ACTIVITY plus GATES, not old intent.
 
 - WORKING: inspect the branch diff and literal Steps; finish only incomplete
   work or re-emit a proven pending gate.
 - REVIEWING: read the latest REVIEW.md. Open BLOCKER/MAJOR findings route to
   fixes, not another review.
-- DONE: determine landing separately. A branch in `sprout ls` is not landed;
-  without one, verify the default-branch log.
+- RESOLUTION DONE: determine landing separately. A branch in `sprout ls` is not
+  landed; without one, verify the default-branch log.
 
 ## Reconstruct a pending gate
 
 No gate gets a lifecycle marker. Recompute evidence, then use `gates.md`:
 
 - PLANNING -> PLAN_READY only with executable Story, Steps, and DoD, plus
-  `cmd:` proofs red on the base for the intended missing change.
-- WORKING without review feedback -> WORK_DONE only with all Steps complete,
-  committed implementation and records, a clean tree, and green automation.
+  `cmd:` proofs red on the base for the intended missing change. `PLAN` already
+  earned with the cursor still at PLANNING is a blocked dependency: the gate
+  landed, so resolve the block and re-run rather than re-planning.
+- WORKING with `PLAN` earned and no review feedback -> WORK_DONE only with all
+  Steps complete, committed implementation and records, a clean tree, and green
+  automation.
 - WORKING after REQUEST_CHANGES -> require answered findings, committed fixes,
   a clean tree, and green verification. Latest round divisible by three means
   WORK_DONE; otherwise transition to REVIEWING and dispatch review.
-- DONE with its branch in `sprout ls` -> LAND_READY. Without the branch, use
-  the default log to distinguish landed work from branch loss.
+- `RESOLUTION: DONE` with its branch in `sprout ls` -> LAND_READY. Without the
+  branch, use the default log to distinguish landed work from branch loss.
 
 Missing evidence resumes the phase. `manual:` stays pending; never self-confirm
-it. A committed APPROVE still in REVIEWING is an interrupted handoff: move to
-COMPOUNDING. A committed retro in COMPOUNDING finishes DONE, then LAND_READY.
+it. A committed APPROVE still in REVIEWING is an interrupted handoff: run
+`tatr -r <task-root> flow <id>`. A committed retro in COMPOUNDING closes the
+record through the same command, then LAND_READY.
 
 ## Reconcile and report
 
 Visible work outranks ticks. Correct unticked completed work or ticked missing
-work against the diff. State task, FLOW STEP, and half-done work; then continue.
+work against the diff. State task, activity, earned gates, and half-done work;
+then continue.

@@ -16,9 +16,14 @@ approval. Summarize the phase result and inspection commands before asking.
 
 | Gate | Approve label | Effect |
 | --- | --- | --- |
-| `PLAN_READY` | `Approve plan - move to PLANNED` | Run `tatr -r <task-root> flow <id> --to PLANNED`. |
-| `WORK_DONE` | `Approve review - move to REVIEWING` | Run `tatr -r <task-root> flow <id> --to REVIEWING`. |
+| `PLAN_READY` | `Approve plan - earn the PLAN gate` | Run `tatr -r <task-root> flow <id>`. |
+| `WORK_DONE` | `Approve review - move to REVIEWING` | Run `tatr -r <task-root> flow <id>`. |
 | `LAND_READY` | `Approve landing - land the branch` | Follow `landing.md`. |
+
+Leaving `PLANNING` earns the `PLAN` gate and lands the cursor in `WORKING` in
+one call. A cursor held at `PLANNING` with `PLAN` earned is a blocked
+dependency or a foreign claim, not a failed approval: the gate is durable, so
+resolve the block and re-run rather than re-planning.
 
 `WORK_DONE` covers initial work and a review continuation when the latest
 round is a multiple of three.

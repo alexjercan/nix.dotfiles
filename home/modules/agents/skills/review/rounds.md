@@ -68,7 +68,7 @@ about the plan, not a code finding, and never blocks a verdict.
 
 - `- VERDICT:` per round, `APPROVE` or `REQUEST_CHANGES` and nothing else
   (`bad-verdict`). An APPROVE with an unticked BLOCKER or MAJOR is
-  `approve-with-open-findings`, and `tatr flow --to COMPOUNDING` refuses it.
+  `approve-with-open-findings`, and `tatr flow` out of REVIEWING refuses it.
 - `- REVIEWER:` per round (`missing-reviewer`): `out-of-context` - the default,
   a reviewer with no sight of the implementing session - or
   `in-session (<why>)` for a trivial diff or a recorded exception.

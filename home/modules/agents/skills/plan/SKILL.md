@@ -29,8 +29,8 @@ Output: `tasks/<id>/TASK.md` a cold session can execute top to bottom.
    work as `decide X: do, or defer with reason`. Record load-bearing choices
    in DECISION.md.
 5. Present via Output. Under `flow`, lifecycle stays PLANNING; flow owns the
-   approval gate. Its approved `tatr -r <task-root> flow <id> --to PLANNED`
-   records approval.
+   approval gate. Its approved `tatr -r <task-root> flow <id>` earns the
+   `PLAN` gate.
 
 ## Rules
 

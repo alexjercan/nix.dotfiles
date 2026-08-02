@@ -12,7 +12,8 @@
 #
 # Authority stays with tatr and git. The `AFK <STATUS> <id>` marker injected
 # through --append-system-prompt is a routing HINT; every route it selects is
-# cross-checked against durable state, and any disagreement stops the run.
+# cross-checked against durable state - the task's ACTIVITY, its earned GATES
+# and its RESOLUTION, plus git - and any disagreement stops the run.
 #
 # This file is the whole implementation; afk.nix wraps it with
 # pkgs.writeShellApplication, which prepends its own strict-mode prologue
@@ -31,7 +32,7 @@ usage() {
     echo "Commands:"
     echo "  run <goal|task-id>"
     echo "                   Drive one goal, or one existing task, from its"
-    echo "                   current flow step through to a landed commit,"
+    echo "                   current activity through to a landed commit,"
     echo "                   auto-approving the standard flow gates"
     echo "  help             Show this help message"
     echo
@@ -228,11 +229,13 @@ line() {
 }
 
 phase_gloss() {
-    # $1: FLOW STEP -> a short human phrase, empty for an unknown step.
-    case "$1" in
+    # $1: a phase_label -> a short human phrase, empty for an unknown label.
+    # Keyed off the activity part alone, so the appended gates do not have to
+    # be enumerated here.
+    case "${1%%+*}" in
+        OPEN) printf 'not started' ;;
         UNDERSTANDING) printf 'working out what to build' ;;
         PLANNING) printf 'writing the plan' ;;
-        PLANNED) printf 'plan approved, ready to build' ;;
         WORKING) printf 'building on the feature branch' ;;
         REVIEWING) printf 'reviewing the branch' ;;
         COMPOUNDING) printf 'writing the retro' ;;
@@ -289,11 +292,45 @@ task_worktree() {
     printf '%s\n' "$root"
 }
 
-flow_step() {
-    # $1: task ID -> its FLOW STEP, read from the authoritative record.
+task_field() {
+    # $1: task ID  $2: field name -> that field of the authoritative record,
+    # with tatr's '-' placeholder mapped to the empty string.
+    local root value
+    root=$(task_root "$1") || return 1
+    value=$(tatr -r "$root" show "$1" 2> /dev/null | sed -n "s/^- $2: //p" | head -1)
+    [[ $value == "-" ]] || printf '%s\n' "$value"
+}
+
+task_activity() { task_field "$1" ACTIVITY; }
+task_gates() { task_field "$1" GATES; }
+task_resolution() { task_field "$1" RESOLUTION; }
+
+task_exists() {
+    # $1: task ID. Existence is tatr's exit status, not a non-empty field: a
+    # task that has not started carries no activity and is still a real task.
     local root
     root=$(task_root "$1") || return 1
-    tatr -r "$root" show "$1" 2> /dev/null | sed -n 's/^- FLOW STEP: //p' | head -1
+    tatr -r "$root" show "$1" > /dev/null 2>&1
+}
+
+phase_label() {
+    # $1: task ID -> the one word a human reads for its lifecycle position: a
+    # resolved record reads its resolution, an open one reads its activity
+    # with the earned gates appended in tatr's frontier style (WORKING+PLAN),
+    # and a task with no activity yet reads OPEN.
+    local resolution activity gates
+    resolution=$(task_resolution "$1") || return 1
+    if [[ -n $resolution ]]; then
+        printf '%s\n' "$resolution"
+        return 0
+    fi
+    activity=$(task_activity "$1")
+    [[ -n $activity ]] || {
+        printf 'OPEN\n'
+        return 0
+    }
+    gates=$(task_gates "$1")
+    printf '%s%s\n' "$activity" "${gates:+"+${gates// /+}"}"
 }
 
 feature_branch() {
@@ -312,13 +349,17 @@ ref_head() {
 fingerprint() {
     # $1: task ID -> a hash of everything a productive session must change.
     # A session that leaves all of it identical made no durable progress, no
-    # matter what its prose claimed.
+    # matter what its prose claimed. All three lifecycle fields are hashed,
+    # not just the cursor: earning a gate without moving the activity is
+    # durable progress too.
     local id=$1 wt root verdict
     root=$(task_root "$id") || return 1
     wt=$(task_worktree "$id")
     verdict=$(sed -n 's/^- VERDICT: //p' "$root/tasks/$id/REVIEW.md" 2> /dev/null | tail -1)
     {
-        printf '%s\n' "$(flow_step "$id")"
+        printf '%s\n' "$(task_activity "$id")"
+        printf '%s\n' "$(task_gates "$id")"
+        printf '%s\n' "$(task_resolution "$id")"
         printf '%s\n' "$(ref_head HEAD)"
         printf '%s\n' "$(ref_head "refs/heads/$(feature_branch "$id")")"
         printf '%s\n' "$verdict"
@@ -581,23 +622,41 @@ report_commits() {
 report_phase() {
     # $1: task ID. The phase a human cares about, read from tatr, with a gloss
     # so a bare lifecycle word is not the only thing on screen.
-    local step gloss
-    step=$(flow_step "$1")
-    SPIN_PHASE=$step
-    gloss=$(phase_gloss "$step")
+    local label gloss
+    label=$(phase_label "$1")
+    SPIN_PHASE=$label
+    gloss=$(phase_gloss "$label")
     if [[ -n $gloss ]]; then
-        line "$C_PHASE" phase "$step  $gloss"
+        line "$C_PHASE" phase "$label  $gloss"
     else
-        line "$C_PHASE" phase "$step"
+        line "$C_PHASE" phase "$label"
     fi
 }
 
-require_step() {
-    # $1: task ID  $2: expected FLOW STEP  $3: what claimed it.
+require_activity() {
+    # $1: task ID  $2: expected ACTIVITY  $3: what claimed it.
     local actual
-    actual=$(flow_step "$1") || die "cannot read the flow state of $1"
+    actual=$(task_activity "$1") || die "cannot read the activity of $1"
     [[ $actual == "$2" ]] ||
-        die "$3 but $1 is in $actual, not $2"
+        die "$3 but $1 is in ${actual:-no activity}, not $2"
+}
+
+require_gate() {
+    # $1: task ID  $2: gate that must be earned  $3: what claimed it.
+    # GATES is an accumulating whitespace-delimited set, so this is a token
+    # match and not a comparison against the whole field.
+    local gates
+    gates=$(task_gates "$1") || die "cannot read the gates of $1"
+    [[ " $gates " == *" $2 "* ]] ||
+        die "$3 but $1 has earned ${gates:-no gates}, not $2"
+}
+
+require_resolution() {
+    # $1: task ID  $2: expected RESOLUTION  $3: what claimed it.
+    local actual
+    actual=$(task_resolution "$1") || die "cannot read the resolution of $1"
+    [[ $actual == "$2" ]] ||
+        die "$3 but $1 is resolved ${actual:-not at all}, not $2"
 }
 
 require_progress() {
@@ -638,22 +697,30 @@ gate() {
 }
 
 lifecycle_gate() {
-    # $1: marker status  $2: the FLOW STEP the gate is only legal from
-    # $3: the exact gates.md approve label  $4: the FLOW STEP it must produce
-    # $5: the gate's human name.
+    # $1: marker status  $2: the ACTIVITY the gate is only legal from
+    # $3: the exact gates.md approve label  $4: the postcondition kind, 'gate'
+    # or 'activity'  $5: the postcondition value  $6: the gate's human name.
     # Both ends are checked against tatr: a gate afk cannot see land in the
-    # record is a gate afk must not build on. Returns non-zero when the gate
-    # was stopped on a context limit, having reported what it did change.
+    # record is a gate afk must not build on. The postcondition kind varies
+    # because not every lifecycle edge earns a gate, and where one is earned
+    # it - not the cursor - is the durable half: leaving PLANNING with a
+    # blocked dependency records PLAN and holds the cursor, and calling that a
+    # failed approval would be a lie. Returns non-zero when the gate was
+    # stopped on a context limit, having reported what it did change.
     local before_main before_feat
-    require_step "$TASK_ID" "$2" "the session reported $1"
+    require_activity "$TASK_ID" "$2" "the session reported $1"
     before_main=$(ref_head HEAD)
     before_feat=$(ref_head "refs/heads/$(feature_branch "$TASK_ID")")
-    if ! gate "$TASK_ID" "$1" "$3" "$5"; then
+    if ! gate "$TASK_ID" "$1" "$3" "$6"; then
         report_phase "$TASK_ID"
         report_commits "$TASK_ID" "$before_main" "$before_feat"
         return 1
     fi
-    require_step "$TASK_ID" "$4" "the $5 gate was approved"
+    case "$4" in
+        gate) require_gate "$TASK_ID" "$5" "the $6 gate was approved" ;;
+        activity) require_activity "$TASK_ID" "$5" "the $6 gate was approved" ;;
+        *) die "internal error: unknown postcondition kind '$4'" ;;
+    esac
     report_phase "$TASK_ID"
     report_commits "$TASK_ID" "$before_main" "$before_feat"
 }
@@ -676,13 +743,13 @@ cmd_run() {
     head_line "$C_AFK" afk "unattended flow runner"
     head_line "$C_AFK" repo "$main_worktree"
     if [[ -n $TASK_ID ]]; then
-        [[ -n $(flow_step "$TASK_ID") ]] || die "no task $TASK_ID in $main_worktree/tasks"
+        task_exists "$TASK_ID" || die "no task $TASK_ID in $main_worktree/tasks"
         head_line "$C_AFK" task "$TASK_ID"
     else
         head_line "$C_AFK" goal "$goal"
     fi
 
-    local session=0 prev_fp="" main_before feat_before branch landed step
+    local session=0 prev_fp="" main_before feat_before branch landed phase
     while true; do
         session=$((session + 1))
         if [[ $session -gt ${AFK_MAX_SESSIONS} ]]; then
@@ -690,9 +757,9 @@ cmd_run() {
         fi
 
         SESSION_UUID=$(uuidgen)
-        step=""
-        [[ -z $TASK_ID ]] || step=$(flow_step "$TASK_ID")
-        SPIN_PHASE=${step:-starting}
+        phase=""
+        [[ -z $TASK_ID ]] || phase=$(phase_label "$TASK_ID")
+        SPIN_PHASE=${phase:-starting}
         say ""
         head_line "$C_SESSION" "session $session" "$SESSION_UUID"
         if [[ -n $TASK_ID ]]; then
@@ -719,7 +786,7 @@ cmd_run() {
             die "the session ended with no AFK control marker; last line: $(printf '%s\n' "$RESULT_TEXT" | tail -1)"
         if [[ -z $TASK_ID ]]; then
             TASK_ID=$MARKER_ID
-            [[ -n $(flow_step "$TASK_ID") ]] ||
+            task_exists "$TASK_ID" ||
                 die "the session reported task $TASK_ID, but no such record exists"
             line "$C_PHASE" task "$TASK_ID created"
         elif [[ $MARKER_ID != "$TASK_ID" ]]; then
@@ -736,7 +803,7 @@ cmd_run() {
                 ;;
             PLAN_READY)
                 if lifecycle_gate PLAN_READY PLANNING \
-                    "Approve plan - move to PLANNED" PLANNED "plan ready"; then
+                    "Approve plan - earn the PLAN gate" gate PLAN "plan ready"; then
                     prev_fp=""
                 else
                     rotate_stopped "$TASK_ID"
@@ -744,14 +811,14 @@ cmd_run() {
                 ;;
             WORK_DONE)
                 if lifecycle_gate WORK_DONE WORKING \
-                    "Approve review - move to REVIEWING" REVIEWING "work done"; then
+                    "Approve review - move to REVIEWING" activity REVIEWING "work done"; then
                     prev_fp=""
                 else
                     rotate_stopped "$TASK_ID"
                 fi
                 ;;
             LAND_READY)
-                require_step "$TASK_ID" DONE "the session reported LAND_READY"
+                require_resolution "$TASK_ID" DONE "the session reported LAND_READY"
                 branch=$(feature_branch "$TASK_ID")
                 [[ -n $branch ]] ||
                     die "$TASK_ID has no sprout worktree, so there is no branch to land"

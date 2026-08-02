@@ -24,8 +24,9 @@ change; REVIEW records findings. Reusable observations go through `knowledge`.
    lesson tree into the current checkout and reports success. Do not search,
    promote, ask disposition, or block DONE when the central checkout is
    unavailable; keep that signal in RETRO.
-5. Under flow, run `tatr -r <task-root> flow <id> --to DONE`, then commit
-   retro and close together. DONE -> LAND_READY without landing. Outside flow,
+5. Under flow, run `tatr -r <task-root> flow <id>`, which earns the `RETRO`
+   gate and resolves the record `DONE` in one motion, then commit retro and
+   close together. DONE -> LAND_READY without landing. Outside flow,
    commit retro on the feature branch. If already landed, first verify the
    main checkout branch, then commit there.
 

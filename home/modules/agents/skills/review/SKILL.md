@@ -29,8 +29,8 @@ Judge; do not patch. `work` owns fixes.
    pushback. Add findings only for fix regressions. Stop after three disputed
    rounds; work owns every third-round continuation gate.
 6. Commit REVIEW.md after every round. APPROVE -> COMPOUNDING; run
-   `tatr -r <task-root> flow <id> --to COMPOUNDING` and dispatch compound.
-   REQUEST_CHANGES dispatches work.
+   `tatr -r <task-root> flow <id>`, which earns the `REVIEW` gate, and
+   dispatch compound. REQUEST_CHANGES dispatches work.
 
 ## Rules
 

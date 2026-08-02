@@ -131,7 +131,8 @@ exit_rc() {
 }
 
 plan_sections() {
-    # $1: TASK.md path. tatr refuses PLANNING -> PLANNED without these.
+    # $1: TASK.md path. tatr's PLAN gate refuses to leave PLANNING without
+    # these.
     cat >> "$1" << 'EOF'
 
 ## Steps
@@ -145,8 +146,8 @@ EOF
 }
 
 approved_review() {
-    # $1: REVIEW.md path. tatr refuses REVIEWING -> COMPOUNDING without an
-    # APPROVE verdict and no open BLOCKER/MAJOR findings.
+    # $1: REVIEW.md path. tatr's REVIEW gate refuses to leave REVIEWING
+    # without an APPROVE verdict and no open BLOCKER/MAJOR findings.
     cat > "$1" << 'EOF'
 # Review: afk goal
 
@@ -163,11 +164,13 @@ EOF
 }
 
 gen_work_to_land() {
-    # Write the four invocations that carry a PLANNED task to a landed commit,
+    # Write the four invocations that carry a WORKING task to a landed commit,
     # starting at invocation $1 + 1.
     local b=$1
 
-    # Worker: sprout a worktree, move to WORKING, commit the work.
+    # Worker: sprout a worktree off the approved plan, commit the work. The
+    # plan gate already left the cursor in WORKING, so there is nothing to
+    # transition here.
     side $((b + 1)) << 'EOF'
 set -e
 id=$(cat "$AFK_TEST_TMP/task_id")
@@ -176,7 +179,6 @@ mkdir -p "$(dirname "$wt")"
 git -C "$REPO" worktree add -q -b feature/thing "$wt" HEAD
 git -C "$REPO" config extensions.worktreeConfig true
 git -C "$wt" config --worktree sprout.task "$id"
-tatr -r "$wt" flow "$id" --to WORKING > /dev/null
 echo work > "$wt/thing.txt"
 git -C "$wt" add -A
 git -C "$wt" commit -qm "feat: thing"
@@ -188,22 +190,23 @@ EOF
 set -e
 id=$(cat "$AFK_TEST_TMP/task_id")
 wt="$XDG_CACHE_HOME/sprouts/repo/feature/thing"
-tatr -r "$wt" flow "$id" --to REVIEWING > /dev/null
+tatr -r "$wt" flow "$id" > /dev/null
 git -C "$wt" add -A
 git -C "$wt" commit -qm "docs: reviewing"
 EOF
     reply $((b + 2)) ""
 
-    # Worker: review APPROVE, compound, close the task.
+    # Worker: review APPROVE, compound, close the task. The last flow earns
+    # the RETRO gate and resolves the record DONE in one motion.
     side $((b + 3)) << 'EOF'
 set -e
 source "$AFK_TEST_TMP/fixtures.sh"
 id=$(cat "$AFK_TEST_TMP/task_id")
 wt="$XDG_CACHE_HOME/sprouts/repo/feature/thing"
 approved_review "$wt/tasks/$id/REVIEW.md"
-tatr -r "$wt" flow "$id" --to COMPOUNDING > /dev/null
+tatr -r "$wt" flow "$id" > /dev/null
 tatr -r "$wt" scaffold "$id" RETRO > /dev/null
-tatr -r "$wt" flow "$id" --to DONE > /dev/null
+tatr -r "$wt" flow "$id" > /dev/null
 git -C "$wt" add -A
 git -C "$wt" commit -qm "docs: retro"
 EOF
@@ -231,7 +234,7 @@ source "$AFK_TEST_TMP/fixtures.sh"
 cd "$REPO"
 id=$(tatr new "afk goal" -t feature -p 50 | grep -oE '[0-9]{8}-[0-9]{6}' | tail -1)
 printf '%s\n' "$id" > "$AFK_TEST_TMP/task_id"
-tatr flow "$id" > /dev/null            # BACKLOG -> UNDERSTANDING
+tatr flow "$id" > /dev/null            # no activity -> UNDERSTANDING
 tatr flow "$id" > /dev/null            # UNDERSTANDING -> PLANNING
 plan_sections "$REPO/tasks/$id/TASK.md"
 git -C "$REPO" add -A
@@ -241,17 +244,18 @@ reply 1 "AFK PLAN_READY $id"
 side 2 << 'INNER'
 set -e
 id=$(cat "$AFK_TEST_TMP/task_id")
-tatr -r "$REPO" flow "$id" --to PLANNED > /dev/null
+tatr -r "$REPO" flow "$id" > /dev/null
 git -C "$REPO" add -A
-git -C "$REPO" commit -qm "docs: planned"
+git -C "$REPO" commit -qm "docs: plan approved"
 INNER
 reply 2 ""
 gen_work_to_land 2
 EOF
 }
 
-seed_planned_task() {
-    # Create a task already at PLANNED, committed, and record its ID.
+seed_working_task() {
+    # Create a task walked to WORKING with the PLAN gate earned, committed,
+    # and record its ID.
     local id
     id=$(cd "$REPO" && tatr new "afk goal" -t feature -p 50 | grep -oE '[0-9]{8}-[0-9]{6}' | tail -1)
     printf '%s\n' "$id" > "$TMP/task_id"
@@ -260,7 +264,7 @@ seed_planned_task() {
         tatr flow "$id" > /dev/null
         tatr flow "$id" > /dev/null
         plan_sections "$REPO/tasks/$id/TASK.md"
-        tatr flow "$id" --to PLANNED > /dev/null
+        tatr flow "$id" > /dev/null
         git add -A
         git commit -qm "docs: plan $id"
     )
@@ -273,15 +277,16 @@ token_band_color() {
     # sprout worktree is the cheapest clean exit the runner has.
     restart_sandbox
     local id
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     reply 1 "AFK DONE $id" "$1"
     script -qec "bash '$AFK' run '$id'" /dev/null > "$TMP/pty.out" 2>&1
     grep -oE $'\033\\[[0-9;]*m''tokens' "$TMP/pty.out" | head -1
 }
 
-task_step() {
-    # $1: tasks root  $2: task ID -> its FLOW STEP.
-    tatr -r "$1" show "$2" 2> /dev/null | sed -n 's/^- FLOW STEP: //p' | head -1
+task_field() {
+    # $1: tasks root  $2: task ID  $3: field name -> that field's value, read
+    # the same way afk reads it.
+    tatr -r "$1" show "$2" 2> /dev/null | sed -n "s/^- $3: //p" | head -1
 }
 
 # ------------------------------------------------------------------ harness --
@@ -387,12 +392,12 @@ test_run_goal_full_cycle() {
     check "the landing commit is on master" test "$(git -C "$REPO" log -1 --format=%s)" = "feat: land thing"
     check "the branch is gone" not git -C "$REPO" show-ref --verify --quiet refs/heads/feature/thing
     check "the worktree is gone" not test -d "$XDG_CACHE_HOME/$WT_REL"
-    check "the landed task is DONE" test "$(task_step "$REPO" "$id")" = DONE
+    check "the landed task is resolved DONE" test "$(task_field "$REPO" "$id" RESOLUTION)" = DONE
 }
 
 test_run_task_id_resumes() {
     local out rc id
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     gen_work_to_land 0
     out=$(afk run "$id" 2>&1)
     rc=$?
@@ -423,12 +428,11 @@ test_run_report_reads_as_a_report() {
         "phase   PLANNING  writing the plan" \
         "commit  " \
         "gate    plan ready - approved automatically" \
-        "phase   PLANNED  plan approved, ready to build" \
+        "phase   WORKING+PLAN  building on the feature branch" \
         "session 2" \
         "prompt  /flow $id" \
-        "phase   WORKING  building on the feature branch" \
         "gate    work done - approved automatically" \
-        "phase   REVIEWING  reviewing the branch" \
+        "phase   REVIEWING+PLAN  reviewing the branch" \
         "session 3" \
         "phase   DONE  finished, ready to land" \
         "gate    landing - approved automatically" \
@@ -460,8 +464,8 @@ test_session_header_names_the_claude_session_id() {
             str_contains "$out" "session $session  $uuid"
     done
 
-    check "no session header carries the flow step" \
-        not str_matches "$out" 'session [0-9]+  (starting|PLANNED|WORKING|REVIEWING)'
+    check "no session header carries the phase" \
+        not str_matches "$out" 'session [0-9]+  (starting|OPEN|PLANNING|WORKING|REVIEWING)'
 }
 
 test_argv_session_and_resume_policy() {
@@ -498,7 +502,7 @@ test_argv_session_and_resume_policy() {
     done
 
     check "the plan gate sends the exact label" \
-        str_contains "$(argv_line 2)" "<Approve plan - move to PLANNED>"
+        str_contains "$(argv_line 2)" "<Approve plan - earn the PLAN gate>"
     check "the review gate sends the exact label" \
         str_contains "$(argv_line 4)" "<Approve review - move to REVIEWING>"
     check "the landing gate sends the exact label" \
@@ -509,7 +513,7 @@ test_failure_paths() {
     local id out rc
 
     # A structured error result, even with subtype "success".
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     reply_raw 1 << 'EOF'
 {"type":"result","subtype":"success","is_error":true,"result":"Claude usage limit reached"}
 EOF
@@ -521,7 +525,7 @@ EOF
 
     # A nonzero claude exit.
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     reply 1 "AFK ROTATE $id"
     exit_rc 1 9
     out=$(afk run "$id" 2>&1)
@@ -531,7 +535,7 @@ EOF
 
     # A stall: no event within the heartbeat.
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     side 1 << 'EOF'
 sleep 20
 EOF
@@ -544,7 +548,7 @@ EOF
 
     # An unknown control status.
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     reply 1 "AFK WAT $id"
     out=$(afk run "$id" 2>&1)
     rc=$?
@@ -553,7 +557,7 @@ EOF
 
     # A missing control marker.
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     reply 1 "the phase went fine, honest"
     out=$(afk run "$id" 2>&1)
     rc=$?
@@ -562,7 +566,7 @@ EOF
 
     # A marker for a different task.
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     reply 1 "AFK ROTATE 19990101-000000"
     out=$(afk run "$id" 2>&1)
     rc=$?
@@ -579,45 +583,44 @@ EOF
     check "the failure says no such record exists" str_contains "$out" "no such record"
     check "the phantom task is not adopted" not str_contains "$out" "created"
 
-    # A marker whose gate disagrees with durable state: PLAN_READY at PLANNED.
+    # A marker whose gate disagrees with durable state: PLAN_READY at a task
+    # whose plan gate is already earned.
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     reply 1 "AFK PLAN_READY $id"
     out=$(afk run "$id" 2>&1)
     rc=$?
-    check "a gate at the wrong FLOW STEP fails the run" test "$rc" -ne 0
+    check "a gate at the wrong activity fails the run" test "$rc" -ne 0
     check "the inconsistency is named" str_contains "$out" "PLANNING"
     check "the gate was never answered" test "$(invocations)" -eq 1
 
     # A gate approval that does not cause its transition.
     restart_sandbox
-    id=$(seed_planned_task)
-    (cd "$REPO" && tatr flow "$id" --to WORKING > /dev/null && git add -A && git commit -qm working)
+    id=$(seed_working_task)
     reply 1 "AFK WORK_DONE $id"
     reply 2 ""
     out=$(afk run "$id" 2>&1)
     rc=$?
     check "an ineffective approval fails the run" test "$rc" -ne 0
-    check "the expected step is named" str_contains "$out" "REVIEWING"
+    check "the expected activity is named" str_contains "$out" "REVIEWING"
     check "the gate was answered once" test "$(invocations)" -eq 2
 
     # LAND_READY approved, but the branch never landed.
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     (
         cd "$REPO" || exit 1
         git worktree add -q -b feature/thing "$XDG_CACHE_HOME/$WT_REL" HEAD
         git config extensions.worktreeConfig true
         git -C "$XDG_CACHE_HOME/$WT_REL" config --worktree sprout.task "$id"
-        tatr -r "$XDG_CACHE_HOME/$WT_REL" flow "$id" --to WORKING > /dev/null
-        tatr -r "$XDG_CACHE_HOME/$WT_REL" flow "$id" --to REVIEWING > /dev/null
+        tatr -r "$XDG_CACHE_HOME/$WT_REL" flow "$id" > /dev/null
     )
     approved_review "$XDG_CACHE_HOME/$WT_REL/tasks/$id/REVIEW.md"
     (
         cd "$XDG_CACHE_HOME/$WT_REL" || exit 1
-        tatr flow "$id" --to COMPOUNDING > /dev/null
+        tatr flow "$id" > /dev/null
         tatr scaffold "$id" RETRO > /dev/null
-        tatr flow "$id" --to DONE > /dev/null
+        tatr flow "$id" > /dev/null
         git add -A && git commit -qm "docs: done"
     )
     reply 1 "AFK LAND_READY $id"
@@ -646,7 +649,7 @@ EOF
 
     # A spiked flow: the runner must not pick a seeded task by itself.
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     reply 1 "AFK SPIKED $id"
     out=$(afk run "$id" 2>&1)
     rc=$?
@@ -655,7 +658,7 @@ EOF
 
     # The rotation bound.
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     side 1 << 'EOF'
 set -e
 cd "$REPO"
@@ -676,14 +679,14 @@ test_verbose_echoes_assistant_text() {
     # AFK_VERBOSE is the only way to watch a live session.
     local id out
 
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     gen_work_to_land 0
     out=$(AFK_VERBOSE=1 afk run "$id" 2>&1)
     check "verbose echoes assistant text, prefixed" str_contains "$out" "| phase running"
     check "verbose does not echo the result text" not str_contains "$out" "| phase summary"
 
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     gen_work_to_land 0
     out=$(afk run "$id" 2>&1)
     check "the default suppresses assistant text" not str_contains "$out" "phase running"
@@ -694,7 +697,7 @@ test_session_token_report() {
     # K, colored by which side of the 120K/180K thresholds it lands on.
     local id out rc c_ok c_ok_edge c_warn c_warn_edge c_hot
 
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     gen_work_to_land 0
     out=$(afk run "$id" 2>&1)
     rc=$?
@@ -705,7 +708,7 @@ test_session_token_report() {
         not str_contains "$out" "57.5K"
 
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     reply 1 "AFK DONE $id" 119999
     out=$(afk run "$id" 2>&1)
     check "the count is formatted in K with one decimal" \
@@ -725,7 +728,7 @@ test_session_token_report() {
     check "the top band differs from the low band" not test "$c_hot" = "$c_ok"
 
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     reply_raw 1 << EOF
 {"type":"system","subtype":"init","session_id":"fake"}
 {"type":"assistant","message":{"content":[{"type":"text","text":"phase running"}]}}
@@ -742,7 +745,7 @@ EOF
     # these kills the run down a different path, all of them after the
     # assistant event that carried the count.
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     reply 1 "AFK ROTATE $id"
     exit_rc 1 9
     out=$(afk run "$id" 2>&1)
@@ -750,14 +753,14 @@ EOF
         str_contains "$out" "tokens  57.6K"
 
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     reply_slow 1 "AFK ROTATE $id" 20
     AFK_HEARTBEAT_SECS=2 afk run "$id" > "$TMP/stall.out" 2>&1
     check "a stalled session still reports the count" \
         str_contains "$(cat "$TMP/stall.out")" "tokens  57.6K"
 
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     reply_raw 1 << 'EOF'
 {"type":"system","subtype":"init","session_id":"fake"}
 {"type":"assistant","message":{"content":[{"type":"text","text":"phase running"}],"usage":{"input_tokens":57594,"cache_creation_input_tokens":1,"cache_read_input_tokens":2,"output_tokens":3}}}
@@ -768,7 +771,7 @@ EOF
         str_contains "$out" "tokens  57.6K"
 
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     reply_raw 1 << 'EOF'
 {"type":"system","subtype":"init","session_id":"fake"}
 {"type":"assistant","message":{"content":[{"type":"text","text":"phase running"}],"usage":{"input_tokens":57594,"cache_creation_input_tokens":1,"cache_read_input_tokens":2,"output_tokens":3}}}
@@ -782,10 +785,10 @@ test_spinner_and_color_only_on_a_tty() {
     # The decoration is the ONLY thing that may differ between a terminal and a
     # pipe, so both halves of this run the same fixtures the same way.
     local id pty plain rc gate_color commit_color
-    local spinner_re='[|/\-] working  PLANNED  [0-9]+m[0-9]{2}s  57\.6K  phase running'
+    local spinner_re='[|/\-] working  WORKING\+PLAN  [0-9]+m[0-9]{2}s  57\.6K  phase running'
     local color_re=$'\033\\[[0-9;]*m'
 
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     gen_work_to_land 0
     reply_slow 1 "AFK WORK_DONE $id" 1.2
     script -qec "bash '$AFK' run '$id'" /dev/null > "$TMP/pty.out" 2>&1
@@ -803,7 +806,7 @@ test_spinner_and_color_only_on_a_tty() {
         not test "${gate_color%gate}" = "${commit_color%commit}"
 
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     gen_work_to_land 0
     reply_slow 1 "AFK WORK_DONE $id" 1.2
     plain=$(afk run "$id" 2>&1)
@@ -825,7 +828,7 @@ test_spinner_never_wraps() {
     local esc=$'\033'
     local -a chunks
 
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     gen_work_to_land 0
     reply_slow 1 "AFK WORK_DONE $id" 1.2
     # 80 double-width glyphs: 160 display columns, and exactly the input the
@@ -885,7 +888,7 @@ test_spinner_strips_control_bytes() {
     local esc=$'\033'
     local -a chunks
 
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     gen_work_to_land 0
     reply_slow 1 "AFK WORK_DONE $id" 1.2
     # Built with printf, not written literally, so the control bytes cannot be
@@ -936,9 +939,10 @@ EOF
 }
 
 test_interrupt_kills_recorded_pid() {
-    local id afk_pid bystander_pid claude_pid rc step_before step_after waited
-    id=$(seed_planned_task)
-    step_before=$(task_step "$REPO" "$id")
+    local id afk_pid bystander_pid claude_pid rc waited
+    local activity_before activity_after
+    id=$(seed_working_task)
+    activity_before=$(task_field "$REPO" "$id" ACTIVITY)
     side 1 << 'EOF'
 sleep 20
 EOF
@@ -970,20 +974,20 @@ EOF
     kill -INT "$afk_pid"
     wait "$afk_pid"
     rc=$?
-    step_after=$(task_step "$REPO" "$id")
+    activity_after=$(task_field "$REPO" "$id" ACTIVITY)
 
     check "an interrupted run exits non-zero" test "$rc" -ne 0
     check "the interruption is reported" str_contains "$(cat "$TMP/out")" "interrupted"
     check "the recorded claude process is dead" dead "$claude_pid"
     check "unrelated processes survive" alive "$bystander_pid"
-    check "the task record is untouched" test "$step_after" = "$step_before"
-    check "the run is resumable from durable state" test "$step_after" = PLANNED
+    check "the task record is untouched" test "$activity_after" = "$activity_before"
+    check "the run is resumable from durable state" test "$activity_after" = WORKING
     kill "$bystander_pid" 2> /dev/null
 }
 
 test_no_progress_fingerprint_stops() {
     local id out rc
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     reply 1 "AFK ROTATE $id"
     reply 2 "AFK ROTATE $id"
     reply 3 "AFK ROTATE $id"
@@ -1005,7 +1009,7 @@ test_token_limit_rotation() {
     # tool call. The stop lands on that boundary, so neither the transcript's
     # long pause nor the BLOCKED marker behind it is ever reached, and a fresh
     # session carries the task the rest of the way.
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     gen_work_to_land 1
     reply_raw 1 << EOF
 {"type":"system","subtype":"init","session_id":"fake"}
@@ -1035,7 +1039,7 @@ EOF
     # soft limit and none of them completes a tool call, so all four run to
     # their own result event and their markers route the whole cycle.
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     gen_work_to_land 0
     out=$(AFK_SOFT_TOKENS=1000 AFK_HARD_TOKENS=900000 afk run "$id" 2>&1)
     rc=$?
@@ -1053,7 +1057,7 @@ EOF
     # result here is held behind the transcript's pause, so a stop that fired on
     # the first would land before it.
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     gen_work_to_land 1
     reply_raw 1 << EOF
 {"type":"system","subtype":"init","session_id":"fake"}
@@ -1077,7 +1081,7 @@ EOF
     # Hard limit: no boundary, no waiting. The transcript offers no tool result
     # at all and the stop still fires on the assistant event that crossed it.
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     gen_work_to_land 1
     reply_raw 1 << EOF
 {"type":"system","subtype":"init","session_id":"fake"}
@@ -1100,7 +1104,7 @@ EOF
     # stopped like any other. A half-answered gate is not an approved one: the
     # run rotates, and a fresh /flow re-reaches the same gate from tatr.
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     gen_work_to_land 0
     reply_raw 2 << EOF
 {"type":"system","subtype":"init","session_id":"fake"}
@@ -1119,7 +1123,7 @@ EOF
     # branch unlanded, so the run must rotate rather than die on the
     # "produced no commit" check that guards an approved landing.
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     gen_work_to_land 0
     side 4 < /dev/null
     reply_raw 4 << EOF
@@ -1152,7 +1156,7 @@ EOF
     # Two token rotations that change nothing durable is a run going nowhere,
     # and the existing fingerprint check is what stops it.
     restart_sandbox
-    id=$(seed_planned_task)
+    id=$(seed_working_task)
     for i in 1 2; do
         reply_raw "$i" << 'EOF'
 {"type":"system","subtype":"init","session_id":"fake"}

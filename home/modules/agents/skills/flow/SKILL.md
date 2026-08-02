@@ -13,21 +13,22 @@ Resolve ID, else `tatr new`. For an existing ID, `resume.md` selects
 
 ## Route
 
-`tatr` owns legality. Transitions run `tatr -r <task-root> flow <id>`.
+`tatr` owns legality; route on ACTIVITY+GATES. Forward:
+`tatr -r <task-root> flow <id>`, earning its exit gate. Back:
+`tatr -r <task-root> rewind <id> --to <ACTIVITY>`.
 
 | State | Skill | Result |
 |-|-|-|
-| BACKLOG | | UNDERSTANDING |
+| no ACTIVITY | | UNDERSTANDING |
 | UNDERSTANDING | | concrete: PLANNING |
-| WHAT unknown | `spike` | seeds tasks, `SPIKED <id>` |
+| WHAT unknown | `spike` | seeds tasks, `SPIKED` |
 | PLANNING | `plan` | PLAN_READY gate |
-| PLANNED | `work` | sprout, `--to WORKING` |
-| WORKING | `work` | WORK_DONE gate, or fix/review |
+| WORKING+PLAN | `work` | sprout; WORK_DONE gate |
 | REVIEWING | `review` | verdict |
-| REVIEWING + REQUEST_CHANGES | `work` | `--to WORKING`; fix |
-| REVIEWING + APPROVE | `review` | `--to COMPOUNDING`; compound |
-| COMPOUNDING | `compound` | DONE; LAND_READY gate |
-| DONE + branch | | LAND_READY gate; land |
+| REVIEWING+REQUEST_CHANGES | `work` | rewind; fix |
+| REVIEWING+APPROVE | `review` | REVIEW earned; compound |
+| COMPOUNDING | `compound` | RETRO earned, DONE; LAND_READY gate |
+| RESOLUTION DONE, branch | | LAND_READY gate |
 
 `spike` is a handoff. Unknown WHAT: ask one constraint; record it in
 DECISION.md. New work gets its own task.

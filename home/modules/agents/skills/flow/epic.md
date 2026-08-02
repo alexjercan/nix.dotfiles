@@ -44,8 +44,11 @@ expire; recover an abandoned one with `tatr release <id> --force`.
 ## Close
 
 After children land, verify every Done Means proof, batch Manual Acceptance to
-the user, then `tatr -r <task-root> flow <epic-id> --to DONE`. Report
-`GOAL DONE <epic-id>`.
+the user, then walk the epic to closure with repeated
+`tatr -r <task-root> flow <epic-id>`: an epic runs the same five activities,
+and its gates skip the record-presence checks. Retire a child that is no longer
+wanted with `tatr -r <task-root> close <id> --resolution WONTDO|SUPERSEDED
+--reason <why>`. Report `GOAL DONE <epic-id>`.
 
 Children are sized by the `plan` skill's reviewable-context and shim rules.
 Ask before splitting mid-cycle.
