@@ -80,3 +80,29 @@ mitigation is that every approval is verified against durable state and the run
 stops closed, but a wrong plan will now get built further before anyone looks.
 The rate limit means the first real end-to-end run is a manual check after this
 task lands, not part of its automated proof.
+
+## Implementation addendum (20260802, WORKING)
+
+Three details settled during implementation, each load-bearing:
+
+- **The audit log is derived, not scraped.** Every `FLOW`, `COMMIT`,
+  `LAND COMMIT` and `TASK CREATED` line is read back from `tatr` and `git`
+  after the session, never taken from Claude's prose. The same reason the
+  marker is only a hint applies to the log: a scraped line records a claim, a
+  derived line records what happened.
+- **A gate is bounded on both ends.** afk refuses to answer a gate unless the
+  task is in the FLOW STEP that gate is legal from (`PLANNING`, `WORKING`,
+  `DONE`), and refuses to continue unless the approval produced the next step -
+  or, for landing, both a new commit on the default branch and a deleted
+  feature branch. A half-landing is a distinct, tested failure.
+- **`sprout` is not a runtime dependency; `tatr` is.** The task/worktree
+  association is read straight from `git config --worktree sprout.task`, so
+  worktree discovery needs only git, while flow-state authority needs `tatr
+  show`. `runtimeInputs` is therefore claude-code, tatr, git, jq, coreutils and
+  util-linux.
+
+Two shell facts the interrupt handling depends on, both reproduced in isolation
+(detail in TASK.md's close-out): a background job in a non-interactive shell
+inherits SIGINT ignored and cannot trap it, and bash defers a trap until the
+current foreground command finishes - so the runner must block in an
+interruptible builtin (`read -t`), which it does.

@@ -1,6 +1,7 @@
 {pkgs, ...}: {
   imports = [
     ./sprout.nix
+    ./afk.nix
   ];
 
   # The unified `today` CLI (github:alexjercan/today) replaces the old `today` +

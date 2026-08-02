@@ -8,7 +8,7 @@ what is specific to this repository.
 My NixOS and home-manager configuration (flake at the root, hosts under
 `hosts/`, home modules under `home/modules/`). It is also the SOURCE of most
 agent tooling: the flow-family skills live in `home/modules/agents/skills/`
-and the sprout/daily/today CLIs live in `home/modules/scripts/`. Tool-owned
+and the sprout/afk/today CLIs live in `home/modules/scripts/`. Tool-owned
 skills can come from their own flakes; `tatr` and `knowledge` are imported
 from their locked inputs when exposed. The home-manager
 agents module deploys each managed skill to `~/.claude/skills` (Claude Code),
@@ -27,7 +27,8 @@ global `home/modules/agents/AGENTS.md` to `~/AGENTS.md`.
 - Research: local sources first; no network is required by any check.
 - Canonical checks: `nix flake check`,
   `bash home/modules/agents/skills/check.sh`,
-  `bash home/modules/scripts/sprout-test.sh`, `tatr check`.
+  `bash home/modules/scripts/sprout-test.sh`,
+  `bash home/modules/scripts/afk-test.sh`, `tatr check`.
 - Knowledge: central repo `/home/alex/personal/agent-knowledge`; project=nix.dotfiles; tags=agents,nix,flow,skills. Advisory only; failed writes stay in RETRO.
 
 Detail: the Check suite section below.
@@ -44,6 +45,11 @@ Detail: the Check suite section below.
 ## Check suite
 
 - `bash home/modules/scripts/sprout-test.sh` - the sprout CLI's test suite.
+- `bash home/modules/scripts/afk-test.sh` - the afk runner's test suite. It
+  drives the real script against throwaway repos with a fake `claude` first on
+  PATH, so it proves the control logic (session rotation, gate resumes, state
+  cross-checks, stop policy) without spending model quota. Like
+  `sprout-test.sh` it is a hand-run check, not part of `nix flake check`.
 - `bash home/modules/agents/skills/check.sh` - the skill-suite conformance
   gate: context budgets, the conditional-reference graph, the invocation
   policy, duplicated rules, a present `## Output` contract, and
@@ -70,6 +76,11 @@ Editing anything the skills describe (sprout behavior, tatr conventions, the
 flow itself) invalidates the skill texts in `home/modules/agents/skills/`;
 per the docs-sync rule, update those surfaces in the same task, and keep the
 skills generic - they run in every repo, not just this one.
+
+The flow skill also has a MACHINE consumer now: `home/modules/scripts/afk.sh`
+matches the three approve labels in `flow/gates.md` as literal strings and
+routes on the statuses in the skills' `## Output` contracts. Changing a label
+or a status means changing `afk.sh` and `afk-test.sh` in the same task.
 
 They are also budgeted. `flow/SKILL.md` is at most 300 words; each other skill
 body is at most 400; each conditional reference is at most 600, pointed at
