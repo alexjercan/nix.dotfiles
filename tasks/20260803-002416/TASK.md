@@ -203,10 +203,13 @@ part. The skill supplies the fact that satisfies the condition.
   (cmd: `bash home/modules/scripts/afk-test.sh`)
 - `PROTOCOL` tells a gate-answering session to transition, commit records,
   stop, and report `ROTATE`.
-  (cmd: `sed -n '/AFK RUNNER PROTOCOL/,/^EOF$/p' home/modules/scripts/afk.sh | grep -i rotate`)
+  (cmd: `sed -n '/AFK RUNNER PROTOCOL/,/^EOF$/p' home/modules/scripts/afk.sh | grep -i 'commit the task records'`;
+  red on base - the protocol already prints the word `ROTATE` in its status
+  list, so grepping for that alone would pass without the change)
 - No `review/` file offers a fresh session as a substitute for the round-1
   reviewer.
-  (cmd: `! grep -rn 'starts at REVIEWING counts\|do not spawn another\|trivial diff' home/modules/agents/skills/review/`)
+  (cmd: `! grep -rn 'starts at REVIEWING counts\|do not spawn another\|started at REVIEWING after\|trivial diff' home/modules/agents/skills/review/`;
+  red on base - 2 matches in `SKILL.md`, 2 in `rounds.md`)
 - `review/SKILL.md` states that invoking the skill is the request for the
   round-1 reviewer.
   (cmd: `grep -n 'request' home/modules/agents/skills/review/SKILL.md`)
