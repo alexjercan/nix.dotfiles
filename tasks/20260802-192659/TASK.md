@@ -4,8 +4,8 @@
 - PRIORITY: 60
 - TAGS: feature, scripts, afk
 - KIND: TASK
-- FLOW STEP: PLANNING
-- PLAN STATUS: DRAFT
+- FLOW STEP: PLANNED
+- PLAN STATUS: APPROVED
 
 Watching an `afk run`, a human cannot tell how full the session's context is.
 A session near the 200K window is about to compact or stall, and that is the
