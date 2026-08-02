@@ -4,8 +4,8 @@
 - PRIORITY: 70
 - TAGS: agents, afk, feature
 - KIND: TASK
-- FLOW STEP: PLANNING
-- PLAN STATUS: DRAFT
+- FLOW STEP: PLANNED
+- PLAN STATUS: APPROVED
 
 As an afk user I want a long-running session to be rotated on context size
 instead of being allowed to run into the context window.
