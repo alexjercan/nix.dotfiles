@@ -5,8 +5,9 @@ Read this when `review` left a `tasks/<id>/REVIEW.md` with a
 
 ## 1. Stay on the branch
 
-Same worktree, same feature branch. `tatr flow <id> --to WORKING` moves the
-task back from REVIEWING; that edge exists precisely for this loop.
+Same worktree, same feature branch.
+`tatr -r <task-root> flow <id> --to WORKING` moves the task back from
+REVIEWING; that edge exists precisely for this loop.
 
 ## 2. Answer every open finding
 
@@ -34,7 +35,7 @@ the tests near the fixes. A finding's fix has broken a neighbour before.
 Commit the code AND the updated REVIEW.md together.
 
 - Latest round not a multiple of three -> REVIEWING; run
-  `tatr flow <id> --to REVIEWING` and dispatch review.
+  `tatr -r <task-root> flow <id> --to REVIEWING` and dispatch review.
 - Latest round a multiple of three -> WORK_DONE without a transition; flow
   owns the review-continuation approval gate.
 

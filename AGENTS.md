@@ -77,10 +77,13 @@ flow itself) invalidates the skill texts in `home/modules/agents/skills/`;
 per the docs-sync rule, update those surfaces in the same task, and keep the
 skills generic - they run in every repo, not just this one.
 
-The flow skill also has a MACHINE consumer now: `home/modules/scripts/afk.sh`
-matches the three approve labels in `flow/gates.md` as literal strings and
-routes on the statuses in the skills' `## Output` contracts. Changing a label
-or a status means changing `afk.sh` and `afk-test.sh` in the same task.
+The flow skill also has a MACHINE consumer now: `home/modules/scripts/afk.sh`.
+Two vocabularies meet there, and only one is shared. `afk.sh` sends the three
+approve labels in `flow/gates.md` verbatim, and routes on `SPIKED`,
+`PLAN_READY`, `WORK_DONE` and `LAND_READY` from the skills' `## Output`
+contracts. `ROTATE`, `DONE` and `BLOCKED` are afk's own, defined only in its
+PROTOCOL heredoc; no skill declares them. Changing a label or a shared status
+means changing `afk.sh` and `afk-test.sh` in the same task.
 
 They are also budgeted. `flow/SKILL.md` is at most 300 words; each other skill
 body is at most 400; each conditional reference is at most 600, pointed at

@@ -10,22 +10,24 @@ change; REVIEW records findings. Reusable observations go through `knowledge`.
 
 ## Workflow
 
-1. Require latest REVIEW.md APPROVE and clean `tatr check <id>`. Under flow,
-   require COMPOUNDING. Otherwise stop unless the user explicitly requests an
-   unfinished retro.
+1. Require latest REVIEW.md APPROVE and clean
+   `tatr -r <task-root> check <id>`. Under flow, require COMPOUNDING.
+   Otherwise stop unless the user explicitly requests an unfinished retro.
 2. Re-read TASK.md, every review round, the branch log, and any
    `Process signal:` bullets or recorded checkpoints. Compare the original
    Story and Steps against the final diff. Identify practices to repeat,
    specific failures and root causes, and actionable improvements.
-3. Run `tatr scaffold <id> RETRO`; fill it briefly and blamelessly. Name the
-   failed decision and why it seemed sound then.
+3. Run `tatr -r <task-root> scaffold <id> RETRO`; fill it briefly and
+   blamelessly. Name the failed decision and why it seemed sound then.
 4. Submit reusable observations through the `knowledge` skill with project and
-   task provenance. Do not search, promote, ask disposition, or block DONE when
-   the central checkout is unavailable; keep that signal in RETRO.
-5. Under flow, run `tatr flow <id> --to DONE`, then commit retro and close
-   together. DONE -> LAND_READY without landing. Outside flow, commit retro on
-   the feature branch. If already landed, first verify the main checkout
-   branch, then commit there.
+   task provenance. Pass an explicit `--repo`: its default writes a shadow
+   lesson tree into the current checkout and reports success. Do not search,
+   promote, ask disposition, or block DONE when the central checkout is
+   unavailable; keep that signal in RETRO.
+5. Under flow, run `tatr -r <task-root> flow <id> --to DONE`, then commit
+   retro and close together. DONE -> LAND_READY without landing. Outside flow,
+   commit retro on the feature branch. If already landed, first verify the
+   main checkout branch, then commit there.
 
 Do not duplicate prose across records. A recurring pattern belongs in the
 central knowledge repository, not every close-out.

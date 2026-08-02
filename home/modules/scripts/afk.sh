@@ -67,6 +67,8 @@ it:
   PLAN_READY  the plan gate is pending
   WORK_DONE   the review gate is pending
   LAND_READY  the landing gate is pending
+  SPIKED      the flow answered a fuzzy question and seeded new tasks; the run
+              stops here, and a human picks which seeded task to run next
   ROTATE      the flow asked for /clear then /flow <id>, or the phase advanced
               and needs a fresh context
   DONE        the branch is landed and the goal is finished

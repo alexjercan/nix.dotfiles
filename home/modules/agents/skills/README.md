@@ -104,8 +104,11 @@ typographic glyphs (en/em dash, smart quotes, ellipsis, arrows - not every
 non-ASCII byte, since a skill may legitimately quote data containing one), the
 invocation policy, duplicated paragraphs, a present `## Output` contract, and
 `direct-state-edit` (no flow-family skill may ORDER a lifecycle marker written
-by hand - `tatr flow` owns those writes). `check.sh --rules` prints every rule
-it can report.
+by hand - `tatr flow` owns those writes), and `unrooted-tatr-call` (a `tatr`
+command naming a task must name the root that owns it, `-r <task-root>`,
+because a sprout worktree owns its records while the task is in flight and the
+shell's cwd is the main checkout). `check.sh --rules` prints every rule it can
+report.
 tatr owns the task RECORD schemas (`tatr check`). The deployment check owns
 whether the files reach an agent.
 

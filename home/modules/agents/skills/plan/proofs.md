@@ -1,7 +1,7 @@
 # Definition of Done proofs
 
 Every DoD item ends with one parenthesized proof. `tatr check` validates the
-shape; `tatr proofs <id>` lists it.
+shape; `tatr -r <task-root> proofs <id>` lists it.
 
 - ``(test: `name`)`` - automated test red without the change.
 - ``(cmd: `command`)`` - command whose result proves the criterion.

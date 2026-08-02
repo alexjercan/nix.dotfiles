@@ -44,7 +44,7 @@ expire; recover an abandoned one with `tatr release <id> --force`.
 ## Close
 
 After children land, verify every Done Means proof, batch Manual Acceptance to
-the user, then `tatr flow <epic-id> --to DONE`. Report
+the user, then `tatr -r <task-root> flow <epic-id> --to DONE`. Report
 `GOAL DONE <epic-id>`.
 
 Children are sized by the `plan` skill's reviewable-context and shim rules.

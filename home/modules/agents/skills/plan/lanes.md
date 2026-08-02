@@ -17,8 +17,9 @@ Drop irrelevant lenses. No fourth lane without a genuinely missing angle.
 ## Packet
 
 Give every lane the same read-only packet: task ID, verbatim request,
-`tatr context <id> --phase plan` artifacts, named files/commands, its lens,
-and output cap. Exclude other replies and the orchestrator's leanings.
+`tatr -r <task-root> context <id> --phase plan` artifacts, named
+files/commands, its lens, and output cap. Exclude other replies and the
+orchestrator's leanings.
 
 Each returns at most 400 words: ordered Steps, DoD, and the likely blind spot
 of other lenses. No narrative, code, writes, or worktree.

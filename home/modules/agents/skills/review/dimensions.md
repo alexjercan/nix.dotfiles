@@ -15,8 +15,9 @@ parser actually consumes.
 
 Does the diff deliver the Story? Is every ticked step really done - re-read
 each step's literal text against the diff, because ticks from intent have
-shipped undelivered clauses. Run each proof from `tatr proofs <id>` yourself
-and confirm it passes on ITS stated criterion. Each open `manual:` proof is
+shipped undelivered clauses. Run each proof from
+`tatr -r <task-root> proofs <id>` yourself and confirm it passes on ITS
+stated criterion. Each open `manual:` proof is
 not yours to resolve; note it as a pending user check to list with the
 verdict.
 

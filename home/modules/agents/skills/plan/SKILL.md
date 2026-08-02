@@ -9,10 +9,10 @@ Output: `tasks/<id>/TASK.md` a cold session can execute top to bottom.
 
 ## Workflow
 
-1. Read the request, named task, `tatr context <id> --phase plan` artifacts,
-   relevant code, and `tatr ls --sort priority`. Use `spike` when WHAT is
-   unknown. Ask only when code cannot answer; state the mutually exclusive
-   constraint.
+1. Read the request, named task,
+   `tatr -r <task-root> context <id> --phase plan` artifacts, relevant code,
+   and `tatr ls --sort priority`. Use `spike` when WHAT is unknown. Ask only
+   when code cannot answer; state the mutually exclusive constraint.
 2. Keep one cohesive change as one task. Split only independently
    committable pieces or an explicit multi-feature container. Name touched
    ownership boundaries. Size to one understand-build-review pass. A task
@@ -29,7 +29,8 @@ Output: `tasks/<id>/TASK.md` a cold session can execute top to bottom.
    work as `decide X: do, or defer with reason`. Record load-bearing choices
    in DECISION.md.
 5. Present via Output. Under `flow`, lifecycle stays PLANNING; flow owns the
-   approval gate. Its approved `tatr flow <id> --to PLANNED` records approval.
+   approval gate. Its approved `tatr -r <task-root> flow <id> --to PLANNED`
+   records approval.
 
 ## Rules
 

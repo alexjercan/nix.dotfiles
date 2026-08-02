@@ -500,6 +500,16 @@ EOF
     check "a foreign task ID fails the run" test "$rc" -ne 0
     check "the mismatch is named" str_contains "$out" "19990101-000000"
 
+    # Goal mode - the only path with no task ID up front - reporting an ID that
+    # was never written to disk.
+    restart_sandbox
+    reply 1 "AFK ROTATE 19990101-000000"
+    out=$(afk run "invent a task" 2>&1)
+    rc=$?
+    check "an unrecorded task ID fails the run" test "$rc" -ne 0
+    check "the failure says no such record exists" str_contains "$out" "no such record"
+    check "the phantom task is not adopted" not str_contains "$out" "TASK CREATED"
+
     # A marker whose gate disagrees with durable state: PLAN_READY at PLANNED.
     restart_sandbox
     id=$(seed_planned_task)
@@ -592,6 +602,24 @@ EOF
     check "no session past the bound is started" test "$(invocations)" -eq 1
 }
 
+test_verbose_echoes_assistant_text() {
+    # run_claude consumes the whole stream and prints nothing from it, so
+    # AFK_VERBOSE is the only way to watch a live session.
+    local id out
+
+    id=$(seed_planned_task)
+    gen_work_to_land 0
+    out=$(AFK_VERBOSE=1 afk run "$id" 2>&1)
+    check "verbose echoes assistant text, prefixed" str_contains "$out" "| phase running"
+    check "verbose does not echo the result text" not str_contains "$out" "| phase summary"
+
+    restart_sandbox
+    id=$(seed_planned_task)
+    gen_work_to_land 0
+    out=$(afk run "$id" 2>&1)
+    check "the default suppresses assistant text" not str_contains "$out" "phase running"
+}
+
 test_interrupt_kills_recorded_pid() {
     local id afk_pid bystander_pid claude_pid rc step_before step_after waited
     id=$(seed_planned_task)
@@ -672,6 +700,7 @@ run_test test_run_task_id_resumes
 run_test test_audit_log_order
 run_test test_argv_session_and_resume_policy
 run_test test_failure_paths
+run_test test_verbose_echoes_assistant_text
 run_test test_interrupt_kills_recorded_pid
 run_test test_no_progress_fingerprint_stops
 echo

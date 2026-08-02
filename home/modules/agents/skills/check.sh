@@ -58,6 +58,7 @@ RULES=(
   broken-reference unreachable-reference empty-pointer-condition
   reference-too-deep
   bad-invocation-policy missing-openai-metadata bad-openai-metadata
+  unrooted-tatr-call
   duplicated-paragraph
   missing-output-contract stale-rule-inventory
   direct-state-edit
@@ -411,7 +412,64 @@ for skill in "${FLOW_FAMILY[@]}"; do
   done < <(find "$root/$skill" -name '*.md' | sort)
 done
 
-# --- 9. the rule inventory is honest ---------------------------------------
+# --- 9. tatr calls name the authoritative task root -------------------------
+# A sprout worktree owns its task's records while the task is in flight, and
+# the shell's cwd is the main checkout. An unrooted `tatr` call there reads or
+# writes the STALE copy without saying so - the failure that reopened task
+# 20260802-143129, where a `--to WORKING` transition landed as an uncommitted
+# edit in main while the worktree that owned the task stayed PLANNED. It is the
+# same class as the "absolute worktree paths for every edit/git call" rule the
+# work skill already states for git, so it gets the same treatment: named at
+# every command site, enforced here.
+#
+# No per-phase exemptions. `<task-root>` is the main checkout for a task with
+# no worktree, so the rooted form is correct in every phase, and one habit
+# costs less than a rule carrying a map of where it applies.
+#
+# Only the subcommands that read or write one task's record. `new` predates the
+# record; `ls`, `frontier` and `claims` quantify over the whole tree; `claim`
+# and `release` write TATR_CLAIMS_DIR, not the checkout.
+#
+# Matched over a two-line window - a command wrapped across a line break is the
+# realistic way past a line-based grep (`line-breaks-are-load-bearing`, the same
+# reason rule 8 joins lines). A hit is reported at the line the command STARTS
+# on, so the overlapping windows cannot report it twice.
+TATR_ID_SUBS='flow|scaffold|check|proofs|context|show|edit'
+
+unrooted_tatr_hits() {
+  # $1: file -> "<line>: <text>" for every unrooted task-taking tatr call.
+  awk -v subs="$TATR_ID_SUBS" '
+    { line[NR] = $0 }
+    END {
+      for (i = 1; i <= NR; i++) {
+        # Backticks become spaces rather than vanishing, so offsets into the
+        # window still point at the same column of the original line.
+        w = line[i] " " line[i + 1]
+        gsub(/`/, " ", w)
+        if (match(w, "tatr +(" subs ") +<") && RSTART <= length(line[i]))
+          printf "%d: %s\n", i, substr(line[i], 1, 100)
+      }
+    }
+  ' "$1"
+}
+
+for skill in "${FLOW_FAMILY[@]}"; do
+  [ -d "$root/$skill" ] || continue
+  while IFS= read -r f; do
+    rel="${f#"$root"/}"
+    if [ ! -r "$f" ]; then
+      fail "$rel" unrooted-tatr-call "not readable, so the rule cannot clear it"
+      continue
+    fi
+    hits="$(unrooted_tatr_hits "$f")"
+    [ -n "$hits" ] || continue
+    n="$(printf '%s\n' "$hits" | grep -c .)"
+    fail "$rel" unrooted-tatr-call \
+      "$n line(s) omit -r <task-root>, first: $(printf '%s' "$hits" | head -1)"
+  done < <(find "$root/$skill" -name '*.md' | sort)
+done
+
+# --- 10. the rule inventory is honest --------------------------------------
 # `RULES` and `--rules` claim to be the complete set this gate can report.
 # Without the removed self-test, nothing checked that claim, and a stale
 # inventory is worse than none: a rule deleted from the code but left in the

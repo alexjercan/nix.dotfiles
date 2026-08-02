@@ -37,7 +37,7 @@ Scaffold it - the generated record passes `tatr check` with its placeholders
 in place:
 
 ```bash
-tatr scaffold <id> DECISION
+tatr -r <task-root> scaffold <id> DECISION
 ```
 
 ## Supersede, do not rewrite

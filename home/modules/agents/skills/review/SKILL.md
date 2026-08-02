@@ -10,8 +10,8 @@ Judge; do not patch. `work` owns fixes.
 ## Workflow
 
 1. Read `git diff <default>...<branch>` and
-   `tatr context <id> --phase review`. Story, Steps, DoD and the applicable
-   `AGENTS.md` files are the spec. Run checks from
+   `tatr -r <task-root> context <id> --phase review`. Story, Steps, DoD and
+   the applicable `AGENTS.md` files are the spec. Run checks from
    `cd "$(sprout show <feature>)"`.
 2. For substantive round 1, use a reviewer outside the implementation
    context. Its prompt contains only task ID, branch/worktree, dimensions, and
@@ -29,8 +29,8 @@ Judge; do not patch. `work` owns fixes.
    pushback. Add findings only for fix regressions. Stop after three disputed
    rounds; work owns every third-round continuation gate.
 6. Commit REVIEW.md after every round. APPROVE -> COMPOUNDING; run
-   `tatr flow <id> --to COMPOUNDING` and dispatch compound. REQUEST_CHANGES
-   dispatches work.
+   `tatr -r <task-root> flow <id> --to COMPOUNDING` and dispatch compound.
+   REQUEST_CHANGES dispatches work.
 
 ## Rules
 

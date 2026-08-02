@@ -3,7 +3,7 @@
 Scaffold the record so it passes the lint from the start:
 
 ```bash
-tatr scaffold <id> REVIEW
+tatr -r <task-root> scaffold <id> REVIEW
 ```
 
 ## Format

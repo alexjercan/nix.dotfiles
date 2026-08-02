@@ -16,8 +16,8 @@ approval. Summarize the phase result and inspection commands before asking.
 
 | Gate | Approve label | Effect |
 | --- | --- | --- |
-| `PLAN_READY` | `Approve plan - move to PLANNED` | Run `tatr flow <id> --to PLANNED`. |
-| `WORK_DONE` | `Approve review - move to REVIEWING` | Run `tatr flow <id> --to REVIEWING`. |
+| `PLAN_READY` | `Approve plan - move to PLANNED` | Run `tatr -r <task-root> flow <id> --to PLANNED`. |
+| `WORK_DONE` | `Approve review - move to REVIEWING` | Run `tatr -r <task-root> flow <id> --to REVIEWING`. |
 | `LAND_READY` | `Approve landing - land the branch` | Follow `landing.md`. |
 
 `WORK_DONE` covers initial work and a review continuation when the latest

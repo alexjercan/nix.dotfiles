@@ -7,13 +7,13 @@ description: Drive one goal through the whole cycle: understand, plan, gate, wor
 
 One task; dispatch phases. Approval owns every context cut.
 
-Resolve ID, else `tatr new`. For an existing ID, load `resume.md` and select
-the authoritative task root before reading state. For a new ID, read
-`tatr context <id> --phase <phase>`; task prose is not authority.
+Resolve ID, else `tatr new`. For an existing ID, `resume.md` selects
+`<task-root>`; a new ID has none, so use the main checkout. Read
+`tatr -r <task-root> context <id> --phase <phase>`; task prose is not authority.
 
 ## Route
 
-`tatr` owns legality. Transitions run `tatr flow <id>`.
+`tatr` owns legality. Transitions run `tatr -r <task-root> flow <id>`.
 
 | State | Skill | Result |
 |-|-|-|

@@ -20,7 +20,7 @@ Output: durable evidence and seeded tasks, never production code.
 
    ```bash
    tatr new "Spike: <question>" -k SPIKE -t spike
-   tatr scaffold <id> SPIKE
+   tatr -r <task-root> scaffold <id> SPIKE
    ```
 
    Fill a cold-readable SPIKE.md with reasoning, rejected options, open
