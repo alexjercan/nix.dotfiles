@@ -33,7 +33,10 @@ on the merged branch. TASK.md says afk skips it.
 
 **1. `advance` reads the activity back from tatr for the message.** It commits
 with `docs: advance <id> to $(task_activity <id>)`, evaluated AFTER the
-`tatr flow` call.
+`tatr flow` call. Amended in review round 1 (R1.2): the commit also runs on the
+path where the gate was already satisfied and nothing was transitioned, and
+there it says `docs: record <id> at $(task_activity <id>)` - same read-back, no
+claim of an advance that did not happen.
 
 **2. afk owns the record commit at all four gates, and refuses a worktree that
 is still dirty afterwards.** The `LAND_READY` arm runs

@@ -5,10 +5,17 @@
 # The problem afk solves is not reasoning, it is the human loop: /flow already
 # reconstructs its whole state from tasks/, git and the sprout worktrees at
 # every phase, so a long run is mostly a person re-typing /clear then
-# /flow <id> and answering three fixed approval gates. afk supervises
-# DISPOSABLE Claude sessions instead: every ordinary continuation is a brand
-# new session (that is the /clear equivalent), and --resume is used only to
-# complete one approval transaction.
+# /flow <id> and answering four fixed approval gates. afk supervises
+# DISPOSABLE Claude sessions instead: every claude invocation is a brand new
+# session (that is the /clear equivalent), and durable state is all a fresh
+# /flow ever needed.
+#
+# The gates themselves are mechanical, so afk answers them in code rather than
+# spending a session on each: probe, execute, verify. `tatr flow -n` probes the
+# three lifecycle gates and `sprout sync -n` / `sprout land -n` probe the
+# landing; a refused probe is not a failure of the run, it is the one case
+# worth waking an agent for, and that agent is woken FRESH with the refusal
+# text in its prompt.
 #
 # Authority stays with tatr and git. The `AFK <STATUS> <id>` marker injected
 # through --append-system-prompt is a routing HINT; every route it selects is
@@ -40,9 +47,12 @@ usage() {
     echo "  help             Show this help message"
     echo
     echo "Starting a run IS the approval for the plan, review and landing"
-    echo "gates. Everything else - a spike, a blocked flow, a marker that"
-    echo "disagrees with tatr or git - stops the run non-zero, leaving the task"
-    echo "and its worktree ready for 'afk run <task-id>'."
+    echo "gates, and afk performs them itself: 'tatr flow' for the lifecycle"
+    echo "gates, 'sprout sync' and 'sprout land' for the landing. A probe that"
+    echo "refuses wakes a fresh session to resolve it. Everything else - a"
+    echo "spike, a blocked flow, a marker that disagrees with tatr or git -"
+    echo "stops the run non-zero, leaving the task and its worktree ready for"
+    echo "'afk run <task-id>'."
     echo
     echo "Environment:"
     echo "  AFK_HEARTBEAT_SECS  Stall timeout between stream events (default 900)"
@@ -63,12 +73,13 @@ AFK RUNNER PROTOCOL
 
 You are running unattended under the afk runner. There is no interactive user
 and no way to ask one a question; the AskUserQuestion tool is disabled. When
-the flow reaches an approval gate, summarize the phase, ask its question, and
-end the turn - the runner answers it.
+the flow reaches an approval gate, summarize the phase, report the gate's
+status and end the turn.
 
-Once the runner answers a gate, perform that gate's lifecycle transition,
-commit the task records, then stop and report ROTATE. Do not continue into the
-next phase; it gets a fresh context.
+The runner performs the transition itself, so at a gate do not advance the
+task, do not commit the task records, and do not continue into the next phase;
+it gets a fresh context. The transitions that belong to a PHASE are still
+yours - review recording its APPROVE verdict, compound closing the record.
 
 End every response with exactly one final line of this form, and nothing after
 it:
@@ -461,11 +472,13 @@ stop_claude() {
 }
 
 run_claude() {
-    # $1: 'fresh' or 'resume'  $2: session UUID  $3: prompt.
+    # $1: session UUID  $2: prompt.
     # Streams the session, enforcing the heartbeat and the context limits, and
     # leaves the terminal result's text in RESULT_TEXT - or, when afk stopped
     # the session itself, the reason in KILL_REASON and RESULT_TEXT empty.
-    local mode=$1 uuid=$2 prompt=$3
+    # There is no resume: afk answers the gates itself, so it never has more to
+    # say to a session it has already ended.
+    local uuid=$1 prompt=$2
     KILL_REASON=""
     RESULT_TEXT=""
     local args=(
@@ -475,13 +488,9 @@ run_claude() {
         --dangerously-skip-permissions
         --disallowed-tools AskUserQuestion
         --append-system-prompt "$PROTOCOL"
+        --session-id "$uuid"
+        "$prompt"
     )
-    if [[ $mode == resume ]]; then
-        args+=(--resume "$uuid")
-    else
-        args+=(--session-id "$uuid")
-    fi
-    args+=("$prompt")
 
     local dir fifo line typ text used result="" rc sfd partial="" started last_event
     local soft_armed=0 pending_tools=0 drained
@@ -752,66 +761,224 @@ rotate_stopped() {
     line "$C_NEXT" next "$KILL_REASON; rotating to a fresh context"
 }
 
-gate() {
-    # $1: task ID  $2: marker status  $3: the exact gates.md approve label
-    # $4: the gate's human name.
-    # One resume, one label. The session is disposable afterwards either way.
-    # Returns non-zero when the resume was stopped on a context limit: a
-    # half-answered gate is not an approved one, and a fresh /flow re-reaches
-    # the same gate from durable state.
-    line "$C_GATE" gate \
-        "$4 - approved automatically, starting an afk run approves the flow gates"
-    run_claude resume "$SESSION_UUID" "$3"
-    [[ -z $KILL_REASON ]] || return 1
-    if parse_marker && [[ $MARKER_ID != "$1" ]]; then
-        die "the $4 gate answered for task $MARKER_ID, not $1"
-    fi
+wake_on_refusal() {
+    # $1: task ID. The route for a gate whose probe refused. A refusal is not a
+    # failure of the run - it is the one case an agent is worth waking for -
+    # and the probe changed nothing, so a fresh /flow carrying the refusal text
+    # can resolve it and the gate is re-probed next time round.
+    # require_progress is what stops two refusals that change nothing durable.
+    PENDING_UNMET=$PROBE_TEXT
+    line "$C_GATE" gate "refused; waking a fresh session to resolve it"
+    # The refusal is the whole reason a session is being spent, so it is
+    # content: a report that says only "refused" tells a human nothing.
+    [[ -z $PROBE_TEXT ]] ||
+        say "$(printf '%s\n' "$PROBE_TEXT" | sed 's/^/          /')"
+    require_progress "$1"
+    line "$C_NEXT" next "rotating to a fresh context"
 }
 
-lifecycle_gate() {
+# ---------------------------------------------------------- mechanical gates --
+#
+# A gate is probe, execute, verify. The probe is the whole reason no session is
+# spent here: `tatr flow -n` and `sprout land -n` run the same preconditions as
+# their write and refuse without changing anything, so afk can answer a gate
+# and still be certain it never guessed. What a probe refuses is the ONE thing
+# an agent is worth waking for, and the refusal text is what that agent is
+# handed.
+
+# The last probe's refusal text, ANSI-stripped, empty after a probe that
+# passed. Read by run_item to build the woken session's prompt.
+PROBE_TEXT=""
+
+capture_refusal() {
+    # Runs "$@" and leaves only its STDERR in PROBE_TEXT, returning its status.
+    # A command that succeeded refused nothing, so its stderr - git chatter, a
+    # progress line - is not a refusal and PROBE_TEXT is left empty.
+    # A probe describes what it would do on stdout - tatr's "would move"
+    # preamble, sprout's "would land onto" - and refuses on stderr, so only
+    # stderr is worth handing to the session that has to resolve it. The text
+    # is ANSI-stripped because tatr colors its ERROR label unconditionally:
+    # the escape sequences survive a redirect, and neither NO_COLOR nor
+    # TERM=dumb suppresses them.
+    local text rc
+    text=$("$@" 2>&1 > /dev/null)
+    rc=$?
+    if [[ $rc -eq 0 ]]; then
+        PROBE_TEXT=""
+    else
+        PROBE_TEXT=$(printf '%s\n' "$text" | sed 's/\x1b\[[0-9;]*m//g')
+    fi
+    return $rc
+}
+
+probe() {
+    # $1: root  $2: task ID. The lifecycle transition, read-only.
+    capture_refusal tatr -r "$1" flow -n "$2"
+}
+
+commit_records() {
+    # $1: root  $2: task ID  $3: commit subject. The phase session no longer
+    # commits at a gate, and `sprout land` refuses a dirty main checkout, so
+    # somebody has to; making it afk means exactly one place is responsible for
+    # the records. The commit is pathspec-limited to tasks/<id> so nothing else
+    # a session left staged can ride along, and it is a no-op when that path
+    # stages nothing - compound commits its own retro, and a record that is
+    # already committed is not an error.
+    git -C "$1" add "tasks/$2" 2> /dev/null
+    [[ -n $(git -C "$1" diff --cached --name-only -- "tasks/$2") ]] || return 0
+    git -C "$1" commit --quiet -m "$3" -- "tasks/$2" ||
+        die "cannot commit the task records of $2 in $1"
+}
+
+at_or_past() {
+    # $1: task ID  $2: postcondition kind, 'gate' or 'activity'  $3: its value.
+    # True when the postcondition is ALREADY satisfied, which is the one shape
+    # of durable state a gate must skip rather than execute: leaving PLANNING
+    # with a blocked dependency records PLAN and holds the cursor, so the gate
+    # has landed and re-running the transition would only refuse again.
+    local gates actual actual_rank want_rank
+    case "$2" in
+        gate)
+            gates=$(task_gates "$1") || return 1
+            [[ " $gates " == *" $3 "* ]]
+            ;;
+        activity)
+            actual=$(task_activity "$1") || return 1
+            want_rank=$(activity_rank "$3") || return 1
+            actual_rank=$(activity_rank "$actual") || return 1
+            [[ $actual_rank -ge $want_rank ]]
+            ;;
+        *) return 1 ;;
+    esac
+}
+
+advance() {
     # $1: marker status  $2: the ACTIVITY the gate is only legal from
-    # $3: the exact gates.md approve label  $4: the postcondition kind, 'gate'
-    # or 'activity'  $5: the postcondition value  $6: the gate's human name.
+    # $3: the postcondition kind, 'gate' or 'activity'  $4: the postcondition
+    # value  $5: the gate's human name.
     # Both ends are checked against tatr: a gate afk cannot see land in the
     # record is a gate afk must not build on. The postcondition kind varies
     # because not every lifecycle edge earns a gate, and where one is earned
-    # it - not the cursor - is the durable half: leaving PLANNING with a
-    # blocked dependency records PLAN and holds the cursor, and calling that a
-    # failed approval would be a lie. The two ends also differ in strictness:
-    # the precondition is an equality because "the session reported this from
-    # somewhere that is not $2" is a genuine disagreement about durable state,
-    # while the postcondition is only a floor, because the lifecycle guarantees
-    # at-or-past and a session that answered the gate and kept going must not
-    # be failed for it. Returns non-zero when the gate was stopped on a context
-    # limit, having reported what it did change.
-    local before_main before_feat
-    require_activity "$TASK_ID" "$2" "the session reported $1"
+    # it - not the cursor - is the durable half. The two ends also differ in
+    # strictness: the precondition is an equality because "the session reported
+    # this from somewhere that is not $2" is a genuine disagreement about
+    # durable state, while the postcondition is only a floor, because the
+    # lifecycle only ever guarantees at-or-past.
+    # at_or_past is consulted FIRST, and that ordering is the whole answer to a
+    # session that performed the transition itself: the postcondition already
+    # holds, so there is nothing left to disagree about and the precondition
+    # equality would only kill a run over work that is already done. The
+    # equality still guards every gate that has something left to execute.
+    # Returns non-zero when the probe refused, having changed nothing; the
+    # caller wakes a session with PROBE_TEXT.
+    local status=$1 from=$2 kind=$3 want=$4 name=$5
+    local root before_main before_feat subject
+    root=$(task_root "$TASK_ID") || die "cannot locate the task root of $TASK_ID"
     before_main=$(ref_head HEAD)
     before_feat=$(ref_head "refs/heads/$(feature_branch "$TASK_ID")")
-    if ! gate "$TASK_ID" "$1" "$3" "$6"; then
-        report_phase "$TASK_ID"
-        report_commits "$TASK_ID" "$before_main" "$before_feat"
-        return 1
+
+    if at_or_past "$TASK_ID" "$kind" "$want"; then
+        line "$C_GATE" gate "$name - approved automatically, already recorded"
+        subject="docs: record $TASK_ID at $(task_activity "$TASK_ID")"
+    else
+        require_activity "$TASK_ID" "$from" "the session reported $status"
+        line "$C_GATE" gate \
+            "$name - approved automatically, starting an afk run approves the flow gates"
+        probe "$root" "$TASK_ID" || return 1
+        tatr -r "$root" flow "$TASK_ID" > /dev/null ||
+            die "the $name gate probed clean but 'tatr flow' refused $TASK_ID"
+        subject="docs: advance $TASK_ID to $(task_activity "$TASK_ID")"
     fi
-    case "$4" in
-        gate) require_gate "$TASK_ID" "$5" "the $6 gate was approved" ;;
-        activity) require_activity_at_least "$TASK_ID" "$5" "the $6 gate was approved" ;;
-        *) die "internal error: unknown postcondition kind '$4'" ;;
+    # Outside the branch on purpose: the records a session left uncommitted are
+    # dirt either way, and `sprout land` refuses a dirty main checkout, so a
+    # skipped execute must not leave the landing to trip over it.
+    commit_records "$root" "$TASK_ID" "$subject"
+
+    case "$kind" in
+        gate) require_gate "$TASK_ID" "$want" "the $name gate was approved" ;;
+        activity) require_activity_at_least "$TASK_ID" "$want" "the $name gate was approved" ;;
+        *) die "internal error: unknown postcondition kind '$kind'" ;;
     esac
     report_phase "$TASK_ID"
     report_commits "$TASK_ID" "$before_main" "$before_feat"
 }
 
+# The landing commit message compound recorded, split into its subject and its
+# body. Set by landing_message, read by land.
+LAND_SUBJECT=""
+LAND_BODY=""
+
+landing_message() {
+    # $1: root  $2: task ID. Reads the fenced block under '## Landing message'
+    # in RETRO.md, which is where compound writes one clean summary of the
+    # finished task. A missing section or an empty subject is a refusal, never
+    # a guess: afk has not read the diff and has nothing to compose from.
+    local file="$1/tasks/$2/RETRO.md" block
+    [[ -f $file ]] ||
+        die "$2 has no RETRO.md, so there is no landing message to land with"
+    block=$(awk '
+        /^## Landing message[[:space:]]*$/ { section = 1; next }
+        section && /^## / { exit }
+        section && /^```/ { if (fence) exit; fence = 1; next }
+        section && fence { print }
+    ' "$file" | sed '/./,$!d')
+    LAND_SUBJECT=${block%%$'\n'*}
+    [[ -n $LAND_SUBJECT ]] ||
+        die "$2 has no fenced '## Landing message' subject in RETRO.md"
+    LAND_BODY=$(printf '%s' "${block#"$LAND_SUBJECT"}" | sed '/./,$!d')
+}
+
+land() {
+    # $1: task ID  $2: its feature branch. Reads the landing message FIRST,
+    # because `sprout land -n` needs a subject and a missing one must refuse
+    # before anything is merged; commits the records so `sprout land` is not
+    # refused for a dirty checkout; then syncs and lands. There is deliberately
+    # no re-verification between the sync and the land: review already proved
+    # the branch, and the user inspects the default branch after a run.
+    # Returns non-zero when a probe refused, having changed nothing that
+    # cannot be re-driven by 'afk run <task-id>'.
+    local id=$1 branch=$2 root msgs
+    root=$(task_root "$id") || die "cannot locate the task root of $id"
+    landing_message "$root" "$id"
+    commit_records "$root" "$id" "docs: close $id"
+    # After that commit anything still dirty is implementation work, and a
+    # squash would drop it silently. The remedy is in the worktree.
+    [[ -z $(git -C "$root" status --porcelain) ]] ||
+        die "the $branch worktree still has uncommitted changes after the record commit"
+
+    # Every sprout call goes through capture_refusal, the writes included: git's
+    # merge and cleanup chatter is not afk's report, but a write that fails
+    # after a green probe has to say why before the run dies.
+    capture_refusal sprout sync "$branch" -n || return 1
+    capture_refusal sprout sync "$branch" || {
+        err "$PROBE_TEXT"
+        die "'sprout sync $branch' probed clean but failed"
+    }
+
+    capture_refusal sprout land "$branch" -n -m "$LAND_SUBJECT" || return 1
+    msgs=(-m "$LAND_SUBJECT")
+    [[ -z $LAND_BODY ]] || msgs+=(-m "$LAND_BODY")
+    capture_refusal sprout land "$branch" "${msgs[@]}" || {
+        err "$PROBE_TEXT"
+        die "'sprout land $branch' probed clean but failed"
+    }
+    PROBE_TEXT=""
+}
+
 run_item() {
     # $1: one goal string, or one task ID that has already been verified to
     # exist. Drives it from its current activity to a landed commit and reports
-    # its own summary. TASK_ID is a global because gate and lifecycle_gate read
-    # it, and prev_fp is a local because require_progress reads it from here -
-    # that is what "two consecutive sessions" means, and it is scoped to the
-    # item so one item's history cannot judge the next one's. Leaves the
-    # session count in ITEM_SESSIONS.
+    # its own summary. TASK_ID is a global because advance reads it, and
+    # prev_fp is a local because require_progress reads it from here - that is
+    # what "two consecutive sessions" means, and it is scoped to the item so
+    # one item's history cannot judge the next one's. Leaves the session count
+    # in ITEM_SESSIONS.
     local input=$1 goal="" prompt
     TASK_ID=""
+    # The refusal text a probe left behind, waiting to be appended to the next
+    # session's prompt. Cleared as soon as it is used: a session is woken with
+    # the block it exists to resolve, once.
+    PENDING_UNMET=""
     if [[ $input =~ ^[0-9]{8}-[0-9]{6}$ ]]; then
         TASK_ID=$input
     else
@@ -824,7 +991,7 @@ run_item() {
         head_line "$C_AFK" goal "$goal"
     fi
 
-    local session=0 prev_fp="" main_before feat_before branch landed phase
+    local session=0 prev_fp="" main_before feat_before branch landed phase carried
     # $SECONDS is process-wide, so the item's own elapsed time is a difference
     # from where it started, not the counter itself.
     local item_started=$SECONDS
@@ -845,11 +1012,20 @@ run_item() {
         else
             prompt="/flow \"$goal\""
         fi
-        line "$C_PROMPT" prompt "$prompt"
+        carried=""
+        if [[ -n $PENDING_UNMET ]]; then
+            prompt+=$'\n\n'"The runner's gate probe refused:"$'\n\n'"$PENDING_UNMET"
+            PENDING_UNMET=""
+            carried="  + the gate refusal reported above"
+        fi
+        # Reported after the append, so the line cannot claim a prompt that is
+        # not the one sent. The refusal is named rather than repeated: it is
+        # several lines long and wake_on_refusal already printed it.
+        line "$C_PROMPT" prompt "${prompt%%$'\n'*}$carried"
 
         main_before=$(ref_head HEAD)
         feat_before=$(ref_head "refs/heads/$(feature_branch "${TASK_ID:-none}")")
-        run_claude fresh "$SESSION_UUID" "$prompt"
+        run_claude "$SESSION_UUID" "$prompt"
 
         if [[ -n $KILL_REASON ]]; then
             [[ -n $TASK_ID ]] ||
@@ -883,35 +1059,30 @@ run_item() {
                 # Leaving UNDERSTANDING earns no gate, so the cursor reaching
                 # PLANNING is the only durable evidence the approval landed,
                 # and NOTES.md is the only evidence there was anything to
-                # approve. The activity is checked here as well as inside
-                # lifecycle_gate to order the two failures: a task already
-                # past UNDERSTANDING should report that disagreement about
-                # durable state, not a scratchpad it was never asked for.
-                require_activity "$TASK_ID" UNDERSTANDING \
-                    "the session reported NOTES_READY"
+                # approve. The artifact is checked out here, before advance,
+                # because advance skips a gate whose postcondition already
+                # holds: a task walked to PLANNING with nothing written down
+                # would otherwise slip through the skip unexamined.
                 require_record "$TASK_ID" NOTES.md \
                     "the session reported NOTES_READY"
-                if lifecycle_gate NOTES_READY UNDERSTANDING \
-                    "Approve understanding - move to PLANNING" activity PLANNING "understanding ready"; then
+                if advance NOTES_READY UNDERSTANDING activity PLANNING "understanding ready"; then
                     prev_fp=""
                 else
-                    rotate_stopped "$TASK_ID"
+                    wake_on_refusal "$TASK_ID"
                 fi
                 ;;
             PLAN_READY)
-                if lifecycle_gate PLAN_READY PLANNING \
-                    "Approve plan - earn the PLAN gate" gate PLAN "plan ready"; then
+                if advance PLAN_READY PLANNING gate PLAN "plan ready"; then
                     prev_fp=""
                 else
-                    rotate_stopped "$TASK_ID"
+                    wake_on_refusal "$TASK_ID"
                 fi
                 ;;
             WORK_DONE)
-                if lifecycle_gate WORK_DONE WORKING \
-                    "Approve review - move to REVIEWING" activity REVIEWING "work done"; then
+                if advance WORK_DONE WORKING activity REVIEWING "work done"; then
                     prev_fp=""
                 else
-                    rotate_stopped "$TASK_ID"
+                    wake_on_refusal "$TASK_ID"
                 fi
                 ;;
             LAND_READY)
@@ -921,10 +1092,12 @@ run_item() {
                     die "$TASK_ID has no sprout worktree, so there is no branch to land"
                 main_before=$(ref_head HEAD)
                 feat_before=$(ref_head "refs/heads/$branch")
-                if ! gate "$TASK_ID" LAND_READY "Approve landing - land the branch" landing; then
+                line "$C_GATE" gate \
+                    "landing - approved automatically, starting an afk run approves the flow gates"
+                if ! land "$TASK_ID" "$branch"; then
                     report_phase "$TASK_ID"
                     report_commits "$TASK_ID" "$main_before" "$feat_before"
-                    rotate_stopped "$TASK_ID"
+                    wake_on_refusal "$TASK_ID"
                     continue
                 fi
                 landed=$(ref_head HEAD)

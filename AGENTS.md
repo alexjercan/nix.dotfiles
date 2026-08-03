@@ -47,8 +47,8 @@ Detail: the Check suite section below.
 - `bash home/modules/scripts/sprout-test.sh` - the sprout CLI's test suite.
 - `bash home/modules/scripts/afk-test.sh` - the afk runner's test suite. It
   drives the real script against throwaway repos with a fake `claude` first on
-  PATH, so it proves the control logic (session rotation, gate resumes, state
-  cross-checks, stop policy) without spending model quota. Like
+  PATH, so it proves the control logic (session rotation, the mechanical
+  gates, state cross-checks, stop policy) without spending model quota. Like
   `sprout-test.sh` it is a hand-run check, not part of `nix flake check`.
 - `bash home/modules/agents/skills/check.sh` - the skill-suite conformance
   gate: context budgets, the conditional-reference graph, the invocation
@@ -78,13 +78,14 @@ per the docs-sync rule, update those surfaces in the same task, and keep the
 skills generic - they run in every repo, not just this one.
 
 The flow skill also has a MACHINE consumer now: `home/modules/scripts/afk.sh`.
-Two vocabularies meet there, and only one is shared. `afk.sh` sends the four
-approve labels in `flow/gates.md` verbatim, and routes on `SPIKED`,
-`NOTES_READY`, `PLAN_READY`, `WORK_DONE` and `LAND_READY` from the skills'
-`## Output` contracts. `ROTATE`, `DONE` and `BLOCKED` are afk's own, defined
-only in its
-PROTOCOL heredoc; no skill declares them. Changing a label or a shared status
-means changing `afk.sh` and `afk-test.sh` in the same task.
+Two vocabularies meet there, and only one is shared. `afk.sh` routes on
+`SPIKED`, `NOTES_READY`, `PLAN_READY`, `WORK_DONE` and `LAND_READY` from the
+skills' `## Output` contracts; it answers each gate itself with `tatr flow` or
+`sprout sync`/`sprout land`, so it never sends an approve label back to a
+session and does not depend on the gate prose in `flow/gates.md`. `ROTATE`,
+`DONE` and `BLOCKED` are afk's own, defined only in its
+PROTOCOL heredoc; no skill declares them. Changing a shared status means
+changing `afk.sh` and `afk-test.sh` in the same task.
 
 They are also budgeted. `flow/SKILL.md` is at most 300 words; each other skill
 body is at most 400; each conditional reference is at most 600, pointed at
