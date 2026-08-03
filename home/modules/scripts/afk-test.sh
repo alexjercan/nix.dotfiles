@@ -667,6 +667,33 @@ test_gates_are_mechanical() {
         not str_contains "$(git -C "$REPO" log --format=%s)" "docs: advance $id to REVIEWING"
 }
 
+test_entry_edge_is_afks() {
+    # No activity -> UNDERSTANDING runs no gate and takes no approval, so afk
+    # performs it rather than requiring a session to. A session is told not to
+    # advance the task, and that reads across this edge too - it is the same
+    # `tatr flow <id>` call - so before afk owned it, a NOTES_READY reported
+    # from a task still OPEN stopped the run outright.
+    local out id
+    id=$(seed_task)
+    printf '# notes\n' > "$REPO/tasks/$id/NOTES.md"
+    reply 1 "AFK NOTES_READY $id"
+    # Session 2 has no scripted reply, so the run still fails on the missing
+    # marker; what falsifies here is whether it got past the entry edge at all.
+    out=$(afk run "$id" 2>&1)
+
+    check "afk performed the entry transition" \
+        str_contains "$out" "$id entered UNDERSTANDING"
+    check "afk committed it" \
+        str_contains "$(git -C "$REPO" log --format=%s)" "docs: start $id at UNDERSTANDING"
+    check "the session was dispatched onto the lifecycle" \
+        not str_contains "$out" "is in no activity"
+    check "the understanding gate was then answered" \
+        str_contains "$out" "docs: advance $id to PLANNING"
+    check "the task reached PLANNING" \
+        str_contains "$(cd "$REPO" && tatr show "$id")" "ACTIVITY: PLANNING"
+    check "the entry edge cost no session of its own" test "$(invocations)" -eq 2
+}
+
 test_refused_probe_wakes_a_session() {
     # A refused probe is not a failed run. It changed nothing, so afk wakes a
     # fresh /flow carrying the refusal and re-probes the gate afterwards.
@@ -990,18 +1017,9 @@ EOF
     check "the inconsistency is named" str_contains "$out" "is in UNDERSTANDING, not PLANNING"
     check "the gate was never answered" test "$(invocations)" -eq 1
 
-    # The same shape one gate earlier: NOTES_READY from a task still OPEN,
-    # carrying the scratchpad so the artifact check cannot be what bites.
-    restart_sandbox
-    id=$(seed_task)
-    printf '# notes\n' > "$REPO/tasks/$id/NOTES.md"
-    reply 1 "AFK NOTES_READY $id"
-    out=$(afk run "$id" 2>&1)
-    rc=$?
-    check "an understanding gate behind its activity fails the run" test "$rc" -ne 0
-    check "the activity it is actually in is named" \
-        str_contains "$out" "is in no activity, not UNDERSTANDING"
-    check "the understanding gate was never answered" test "$(invocations)" -eq 1
+    # NOTES_READY from a task still OPEN is NOT this shape: the entry edge is
+    # afk's own, so that case starts the task instead of failing the run. See
+    # test_entry_edge_is_afks.
 
     # NOTES_READY with no NOTES.md. tatr grants UNDERSTANDING -> PLANNING
     # unconditionally, so without this the gate degrades to a bare stop that
@@ -1665,6 +1683,7 @@ run_test test_run_report_reads_as_a_report
 run_test test_session_header_names_the_claude_session_id
 run_test test_argv_every_session_is_fresh
 run_test test_gates_are_mechanical
+run_test test_entry_edge_is_afks
 run_test test_refused_probe_wakes_a_session
 run_test test_gate_already_advanced_is_a_skip
 run_test test_gate_overshoot_is_a_skip

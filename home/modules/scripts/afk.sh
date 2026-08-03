@@ -830,6 +830,26 @@ commit_records() {
         die "cannot commit the task records of $2 in $1"
 }
 
+enter_understanding() {
+    # $1: task ID. The lifecycle's entry edge, no activity -> UNDERSTANDING.
+    # It runs no gate and takes no approval, so it is the one transition afk
+    # performs outside a gate rather than a disagreement worth stopping for:
+    # a session is told not to advance the task, and that instruction reads
+    # across this edge too, since it is the same `tatr flow <id>` call. Making
+    # afk responsible for it means no run depends on a session having drawn the
+    # distinction. A no-op once the task carries any activity, which every
+    # started task does - including a resolved one, which keeps the activity it
+    # closed in.
+    local root
+    [[ -z $(task_activity "$1") ]] || return 0
+    root=$(task_root "$1") || die "cannot locate the task root of $1"
+    tatr -r "$root" flow "$1" > /dev/null ||
+        die "'tatr flow' refused to start $1"
+    require_activity "$1" UNDERSTANDING "afk started $1"
+    commit_records "$root" "$1" "docs: start $1 at UNDERSTANDING"
+    line "$C_PHASE" start "$1 entered UNDERSTANDING"
+}
+
 at_or_past() {
     # $1: task ID  $2: postcondition kind, 'gate' or 'activity'  $3: its value.
     # True when the postcondition is ALREADY satisfied, which is the one shape
@@ -1002,11 +1022,15 @@ run_item() {
         fi
 
         SESSION_UUID=$(uuidgen)
+        say ""
+        head_line "$C_SESSION" "session $session" "$SESSION_UUID"
+        # Before the phase is read, so the session is dispatched onto a task
+        # that is already on the lifecycle and every line below names where it
+        # really is.
+        [[ -z $TASK_ID ]] || enter_understanding "$TASK_ID"
         phase=""
         [[ -z $TASK_ID ]] || phase=$(phase_label "$TASK_ID")
         SPIN_PHASE=${phase:-starting}
-        say ""
-        head_line "$C_SESSION" "session $session" "$SESSION_UUID"
         if [[ -n $TASK_ID ]]; then
             prompt="/flow $TASK_ID"
         else
@@ -1043,6 +1067,10 @@ run_item() {
             task_exists "$TASK_ID" ||
                 die "the session reported task $TASK_ID, but no such record exists"
             line "$C_PHASE" task "$TASK_ID created"
+            # A goal's first session mints the task, so this is the earliest
+            # afk can put it on the lifecycle - and it has to happen before the
+            # routes below, which all read an activity.
+            enter_understanding "$TASK_ID"
         elif [[ $MARKER_ID != "$TASK_ID" ]]; then
             die "the session reported task $MARKER_ID, not $TASK_ID"
         fi
