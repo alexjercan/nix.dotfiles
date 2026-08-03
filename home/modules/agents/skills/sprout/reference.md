@@ -41,7 +41,8 @@ parent directories under the cache root after removing a worktree.
    collides.
 3. `sprout ls` prints `BRANCH TASK PATH` for each worktree; an absent task or
    detached branch prints `-`. `sprout show <feature>` prints its path.
-4. When a branch is ready, `sprout land <feature> -m "<subject>"` squash-
+4. When a branch is ready, `sprout sync <feature>` brings the landing target
+   into it, and `sprout land <feature> -m "<subject>"` squash-
    merges it into the main checkout's branch and cleans everything up; for
    a merged-elsewhere or abandoned branch, `sprout rm <feature>` removes
    the worktree, deletes the branch, and closes its session.

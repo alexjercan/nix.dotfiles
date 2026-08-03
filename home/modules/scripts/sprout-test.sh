@@ -122,6 +122,23 @@ test_new_rejects_duplicate_task() {
     check "a different task still sprouts" quiet sprout new feat/other --task 20260802-192700
 }
 
+test_new_records_target() {
+    local path
+    path=$(sprout new feat 2> /dev/null)
+    check "target recorded from the main checkout's branch" test "$(git -C "$path" config --worktree --get sprout.target)" = "master"
+}
+
+test_new_detached_records_no_target() {
+    # --task so the config write actually runs: the case is "the missing
+    # target does not break recording", not "nothing is recorded".
+    local path
+    git checkout -q --detach
+    path=$(sprout new feat --task 20260803-105234 2> /dev/null)
+    check "new succeeds on a detached main checkout" test -d "$path"
+    check "the task is still recorded" test "$(git -C "$path" config --worktree --get sprout.task)" = "20260803-105234"
+    check "no target recorded" test -z "$(git -C "$path" config --worktree --get sprout.target)"
+}
+
 test_new_rejects_bad_task() {
     check "rejects missing task ID" not quiet sprout new feat --task
     check "rejects malformed task ID" not quiet sprout new feat --task not-an-id
@@ -133,6 +150,142 @@ test_new_rejects_bad_names() {
     check "rejects '..' segments" not quiet sprout new ../escape
     check "rejects leading '/'" not quiet sprout new /abs
     check "rejects leading '-'" not quiet sprout new -flag
+}
+
+# Move master on by one commit touching $1 with content $2.
+advance_master() {
+    echo "$2" > "$REPO/$1"
+    git -C "$REPO" add "$1"
+    git -C "$REPO" commit -qm "master: $1"
+}
+
+test_sync_merges_target() {
+    local wt rc
+    wt=$(make_feature feat)
+    advance_master other.txt diverge
+    sprout sync feat > /dev/null 2>&1
+    rc=$?
+    check "sync exits 0" test "$rc" -eq 0
+    check "target content is in the worktree" test -f "$wt/other.txt"
+    check "branch now contains the target tip" git merge-base --is-ancestor master feat
+    check "master untouched" test "$(git rev-list --count master)" -eq 2
+    check "main checkout clean" test -z "$(git status --porcelain --untracked-files=no)"
+}
+
+test_sync_already_up_to_date() {
+    local wt rc before
+    wt=$(make_feature feat)
+    before=$(git -C "$wt" rev-parse HEAD)
+    sprout sync feat > /dev/null 2>&1
+    rc=$?
+    check "an already up to date sync succeeds" test "$rc" -eq 0
+    check "branch tip unchanged" test "$(git -C "$wt" rev-parse HEAD)" = "$before"
+}
+
+test_sync_dry_run_clean() {
+    local wt rc before out
+    wt=$(make_feature feat)
+    before=$(git -C "$wt" rev-parse HEAD)
+    advance_master other.txt diverge
+    out=$(sprout sync feat -n 2> /dev/null)
+    rc=$?
+    check "a clean dry run exits 0" test "$rc" -eq 0
+    check "it reports the merge on stdout" str_contains "$out" "would merge cleanly"
+    check "branch tip unchanged" test "$(git -C "$wt" rev-parse HEAD)" = "$before"
+    check "nothing merged into the worktree" not test -f "$wt/other.txt"
+    check "worktree clean" test -z "$(git -C "$wt" status --porcelain)"
+}
+
+test_sync_dry_run_conflict() {
+    local wt err rc before
+    wt=$(make_feature feat)
+    echo "feature side" > "$wt/base.txt"
+    git -C "$wt" commit -aqm "wip: base.txt"
+    before=$(git -C "$wt" rev-parse HEAD)
+    advance_master base.txt "master side"
+    err=$(sprout sync feat --dry-run 2>&1 > /dev/null)
+    rc=$?
+    check "a conflicting dry run exits non-zero" test "$rc" -ne 0
+    check "it names the conflicting path" str_contains "$err" "base.txt"
+    check "it says the merge would conflict" str_contains "$err" "would conflict"
+    check "branch tip unchanged" test "$(git -C "$wt" rev-parse HEAD)" = "$before"
+    check "worktree clean" test -z "$(git -C "$wt" status --porcelain)"
+}
+
+test_sync_conflict_stays_in_worktree() {
+    local wt rc
+    wt=$(make_feature feat)
+    echo "feature side" > "$wt/base.txt"
+    git -C "$wt" commit -aqm "wip: base.txt"
+    advance_master base.txt "master side"
+    sprout sync feat > /dev/null 2>&1
+    rc=$?
+    check "a conflicting sync exits non-zero" test "$rc" -ne 0
+    check "the conflict is left in the worktree" str_contains "$(git -C "$wt" status --porcelain)" "UU base.txt"
+    check "master untouched" test "$(git rev-list --count master)" -eq 2
+    check "main checkout clean" test -z "$(git status --porcelain --untracked-files=no)"
+}
+
+test_sync_rejects_bad_args() {
+    # Each case asserts its OWN message: an exit code alone cannot tell a
+    # refusal by `sync` from `sync` not existing at all.
+    local err rc
+    make_feature feat > /dev/null
+    mkdir -p "$XDG_CACHE_HOME/sprouts/repo/master"
+
+    err=$(sprout sync 2>&1 > /dev/null)
+    rc=$?
+    check "rejects a missing feature" test "$rc" -ne 0
+    check "reason is the missing name" str_contains "$err" "missing <feature>"
+
+    err=$(sprout sync feat --force 2>&1 > /dev/null)
+    rc=$?
+    check "rejects an unknown flag" test "$rc" -ne 0
+    check "reason names the argument" str_contains "$err" "unexpected argument '--force'"
+
+    err=$(sprout sync nope 2>&1 > /dev/null)
+    rc=$?
+    check "rejects an unknown feature" test "$rc" -ne 0
+    check "reason is the missing worktree" str_contains "$err" "no worktree"
+
+    err=$(sprout sync master 2>&1 > /dev/null)
+    rc=$?
+    check "rejects a feature equal to the target" test "$rc" -ne 0
+    check "reason is the self-target" str_contains "$err" "own landing target"
+}
+
+test_sync_refuses_missing_target() {
+    local wt err rc
+    git checkout -qb release
+    wt=$(make_feature feat)
+    git checkout -q master
+    git branch -qD release
+    err=$(sprout sync feat 2>&1 > /dev/null)
+    rc=$?
+    check "refuses when the recorded target is gone" test "$rc" -ne 0
+    check "reason names the missing target" str_contains "$err" "no target branch 'release'"
+    check "it does not claim a conflict" not str_contains "$err" "conflict"
+    err=$(sprout sync feat -n 2>&1 > /dev/null)
+    rc=$?
+    check "the dry run refuses the same way" test "$rc" -ne 0
+    check "the dry run names the missing target" str_contains "$err" "no target branch 'release'"
+    check "worktree clean" test -z "$(git -C "$wt" status --porcelain)"
+}
+
+test_sync_refuses_detached_worktree() {
+    # A detached sprout worktree would merge into HEAD, not into the branch:
+    # sync must refuse rather than report a success that lands nothing.
+    local wt err rc before
+    wt=$(make_feature feat)
+    advance_master other.txt diverge
+    git -C "$wt" checkout -q --detach
+    before=$(git rev-parse feat)
+    err=$(sprout sync feat 2>&1 > /dev/null)
+    rc=$?
+    check "refuses a detached worktree" test "$rc" -ne 0
+    check "reason names the worktree" str_contains "$err" "$wt"
+    check "branch tip unchanged" test "$(git rev-parse feat)" = "$before"
+    check "the dry run refuses too" not quiet sprout sync feat -n
 }
 
 test_land_happy() {
@@ -153,6 +306,73 @@ test_land_happy() {
     check "branch deleted" not git show-ref --verify --quiet refs/heads/feature/demo
 }
 
+test_land_dry_run_ok() {
+    local out rc
+    make_feature feat > /dev/null
+    out=$(sprout land feat -n -m "feat: x" 2> /dev/null)
+    rc=$?
+    check "a landable branch dry runs green" test "$rc" -eq 0
+    check "it reports the land it would do" str_contains "$out" "'feat' would land onto 'master'"
+}
+
+test_land_dry_run_writes_nothing() {
+    local wt rc
+    wt=$(make_feature feat)
+    sprout land feat --dry-run -m "feat: x" > /dev/null 2>&1
+    rc=$?
+    check "the dry run exits 0" test "$rc" -eq 0
+    check "master untouched" test "$(git rev-list --count master)" -eq 1
+    check "main checkout clean" test -z "$(git status --porcelain)"
+    check "worktree kept" test -d "$wt"
+    check "branch kept" git show-ref --verify --quiet refs/heads/feat
+}
+
+test_land_dry_run_refuses_behind() {
+    local wt err rc
+    wt=$(make_feature feat)
+    advance_master other.txt diverge
+    err=$(sprout land feat -n -m "x" 2>&1 > /dev/null)
+    rc=$?
+    check "a stale branch dry runs red" test "$rc" -ne 0
+    check "reason is the real refusal" str_contains "$err" "not up to date"
+    check "worktree kept" test -d "$wt"
+}
+
+test_land_dry_run_requires_message() {
+    local err rc
+    make_feature feat > /dev/null
+    err=$(sprout land feat -n 2>&1 > /dev/null)
+    rc=$?
+    check "a message-less dry run is refused" test "$rc" -ne 0
+    check "reason is the missing message" str_contains "$err" "commit message"
+}
+
+test_land_refuses_target_mismatch() {
+    local wt err rc
+    wt=$(make_feature feat)
+    git checkout -qb release
+    err=$(sprout land feat -m "x" 2>&1 > /dev/null)
+    rc=$?
+    check "refuses when the main checkout left the recorded target" test "$rc" -ne 0
+    check "reason names the recorded target" str_contains "$err" "master"
+    check "reason names the current branch" str_contains "$err" "release"
+    check "release untouched" test "$(git rev-list --count release)" -eq 1
+    check "worktree kept" test -d "$wt"
+}
+
+test_land_uses_recorded_target() {
+    local wt rc
+    wt=$(make_feature feat)
+    git checkout -qb release
+    check "the recorded target refuses the land" not quiet sprout land feat -m "x"
+    git -C "$wt" config --worktree --unset sprout.target
+    sprout land feat -m "feat: landed via fallback" > /dev/null 2>&1
+    rc=$?
+    check "without a recorded target it falls back to the current branch" test "$rc" -eq 0
+    check "the commit landed on the current branch" test "$(git log -1 --format=%s release)" = "feat: landed via fallback"
+    check "master untouched" test "$(git rev-list --count master)" -eq 1
+}
+
 test_land_refuses_behind() {
     local wt err rc
     wt=$(make_feature feat)
@@ -163,6 +383,7 @@ test_land_refuses_behind() {
     rc=$?
     check "land refuses a stale branch" test "$rc" -ne 0
     check "reason is the sync gate" str_contains "$err" "not up to date"
+    check "the remedy is the sync command" str_contains "$err" "sprout sync feat"
     check "master untouched" test "$(git rev-list --count master)" -eq 2
     check "worktree kept for the sync" test -d "$wt"
 }
@@ -283,9 +504,25 @@ echo "== sprout integration tests =="
 run_test test_new_show_rm
 run_test test_new_task_association
 run_test test_new_rejects_duplicate_task
+run_test test_new_records_target
+run_test test_new_detached_records_no_target
 run_test test_new_rejects_bad_task
 run_test test_new_rejects_bad_names
+run_test test_sync_merges_target
+run_test test_sync_already_up_to_date
+run_test test_sync_dry_run_clean
+run_test test_sync_dry_run_conflict
+run_test test_sync_conflict_stays_in_worktree
+run_test test_sync_rejects_bad_args
+run_test test_sync_refuses_missing_target
+run_test test_sync_refuses_detached_worktree
 run_test test_land_happy
+run_test test_land_dry_run_ok
+run_test test_land_dry_run_writes_nothing
+run_test test_land_dry_run_refuses_behind
+run_test test_land_dry_run_requires_message
+run_test test_land_refuses_target_mismatch
+run_test test_land_uses_recorded_target
 run_test test_land_refuses_behind
 run_test test_land_refuses_dirty_main
 run_test test_land_allows_untracked_main

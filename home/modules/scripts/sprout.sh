@@ -21,10 +21,14 @@ usage() {
     echo "                   associated with a task ID"
     echo "  ls               List this project's worktrees"
     echo "  show <feature>   Print the path to <feature>'s worktree"
-    echo "  land <feature> -m <subject> [-m <body>]"
+    echo "  sync <feature> [-n|--dry-run]"
+    echo "                   Merge the landing target into <feature> inside its"
+    echo "                   worktree; --dry-run only probes for conflicts"
+    echo "  land <feature> [-n|--dry-run] -m <subject> [-m <body>]"
     echo "                   Squash-merge <feature> into the main checkout's"
     echo "                   branch as one commit, then remove its worktree,"
-    echo "                   branch and tmux session"
+    echo "                   branch and tmux session; --dry-run runs every"
+    echo "                   guard and writes nothing"
     echo "  rm <feature>     Remove <feature>'s worktree, branch and tmux session"
     echo "  help             Show this help message"
     echo
@@ -56,6 +60,21 @@ sprouts_root="$cache_home/sprouts/$project"
 worktree_path() {
     # $1: feature name -> prints its worktree path
     echo "$sprouts_root/$1"
+}
+
+resolve_target() {
+    # $1: worktree path -> prints the branch this sprout was cut from and
+    # should land onto: the one 'new' recorded, else whatever the main
+    # checkout currently has checked out, which is what worktrees created
+    # before sprout.target existed have to fall back to. Prints nothing and
+    # fails when neither resolves.
+    local recorded
+    recorded=$(git -C "$1" config --worktree --get sprout.target 2> /dev/null)
+    if [[ -z $recorded ]]; then
+        recorded=$(git -C "$main_worktree" symbolic-ref --quiet --short HEAD)
+    fi
+    [[ -n $recorded ]] || return 1
+    echo "$recorded"
 }
 
 require_feature() {
@@ -158,6 +177,12 @@ cmd_new() {
         exit 1
     fi
 
+    # The branch the sprout is cut from, read BEFORE the worktree exists so a
+    # later land compares against where the work actually started rather than
+    # wherever the shared main checkout has drifted to. A detached main
+    # checkout records nothing and is not an error.
+    target=$(git -C "$main_worktree" symbolic-ref --quiet --short HEAD)
+
     mkdir -p "$(dirname "$path")"
 
     # Reuse the branch if it already exists, otherwise create it off HEAD.
@@ -177,16 +202,18 @@ cmd_new() {
         exit 1
     fi
 
-    if [[ -n $task ]]; then
-        if ! git -C "$main_worktree" config extensions.worktreeConfig true ||
-           ! git -C "$path" config --worktree sprout.task "$task"; then
-            git worktree remove --force "$path" 1>&2
-            if [[ $created_branch == true ]]; then
-                git branch -D "$feature" 1>&2
-            fi
-            echo "sprout: failed to associate task '$task' with '$feature'" >&2
-            exit 1
+    # Record the task and the landing target in the worktree-local config.
+    # extensions.worktreeConfig is the repo-level switch --worktree needs; the
+    # write is idempotent, so a plain 'new' performing it too costs nothing.
+    if ! git -C "$main_worktree" config extensions.worktreeConfig true ||
+       { [[ -n $task ]] && ! git -C "$path" config --worktree sprout.task "$task"; } ||
+       { [[ -n $target ]] && ! git -C "$path" config --worktree sprout.target "$target"; }; then
+        git worktree remove --force "$path" 1>&2
+        if [[ $created_branch == true ]]; then
+            git branch -D "$feature" 1>&2
         fi
+        echo "sprout: failed to record the worktree config for '$feature'" >&2
+        exit 1
     fi
 
     echo "$path"
@@ -240,6 +267,89 @@ cmd_show() {
     echo "$path"
 }
 
+cmd_sync() {
+    # Merge the landing target into <feature> INSIDE its own worktree. A
+    # conflict is deliberately left there, where whoever called sync can
+    # resolve and re-verify it; the shared main checkout is never touched.
+    feature=$1
+    shift
+    require_feature "$feature" || exit 1
+
+    dry_run=false
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -n | --dry-run)
+                dry_run=true
+                shift
+                ;;
+            *)
+                echo "sprout: unexpected argument '$1' (usage: sprout sync <feature> [-n|--dry-run])" >&2
+                exit 1
+                ;;
+        esac
+    done
+
+    path=$(worktree_path "$feature")
+    if [[ ! -d $path ]]; then
+        echo "sprout: no worktree for '$feature' at $path" >&2
+        exit 1
+    fi
+    if ! git show-ref --verify --quiet "refs/heads/$feature"; then
+        echo "sprout: no branch '$feature'" >&2
+        exit 1
+    fi
+
+    target=$(resolve_target "$path")
+    if [[ -z $target ]]; then
+        echo "sprout: no landing target for '$feature'; check out the target branch in the main checkout" >&2
+        exit 1
+    fi
+    if [[ $target == "$feature" ]]; then
+        echo "sprout: '$feature' is its own landing target; nothing to sync" >&2
+        exit 1
+    fi
+    # A recorded target that was since renamed or deleted must not be reported
+    # as a conflict: the remedy is a different branch, or unsetting
+    # sprout.target, not resolving anything.
+    if ! git show-ref --verify --quiet "refs/heads/$target"; then
+        echo "sprout: no target branch '$target' for '$feature'; check it out again or 'git -C $path config --worktree --unset sprout.target'" >&2
+        exit 1
+    fi
+    # git merge merges into the worktree's HEAD, not into refs/heads/$feature,
+    # so a detached (or re-pointed) worktree would report a success that leaves
+    # the branch untouched until land refuses it.
+    head=$(git -C "$path" symbolic-ref --quiet --short HEAD)
+    if [[ $head != "$feature" ]]; then
+        echo "sprout: the worktree at $path is on '${head:-a detached HEAD}', not '$feature'; check '$feature' out there before syncing" >&2
+        exit 1
+    fi
+
+    if [[ $dry_run == true ]]; then
+        # merge-tree --write-tree only writes loose objects: no ref, index or
+        # worktree changes. It prints the merged tree's OID, and on a conflict
+        # exits non-zero with the conflicting paths after that OID line.
+        if probe=$(git -C "$path" merge-tree --write-tree --name-only --no-messages "$target" "$feature"); then
+            echo "sprout: '$target' would merge cleanly into '$feature'"
+            return 0
+        fi
+        echo "$probe" | tail -n +2 >&2
+        echo "sprout: merging '$target' into '$feature' would conflict" >&2
+        exit 1
+    fi
+
+    if ! git -C "$path" merge "$target" 1>&2; then
+        # Only unmerged index entries mean there is something to resolve; any
+        # other merge failure (a dirty worktree, a hook) must not send the
+        # caller looking for a conflict that is not there.
+        if [[ -n $(git -C "$path" ls-files -u) ]]; then
+            echo "sprout: merging '$target' into '$feature' conflicted; resolve it in $path, then commit" >&2
+        else
+            echo "sprout: merging '$target' into '$feature' failed in $path" >&2
+        fi
+        exit 1
+    fi
+}
+
 cmd_land() {
     # Land <feature> onto the main checkout's branch as ONE squash commit,
     # then clean up the worktree, branch and tmux session. The whole landing
@@ -272,9 +382,16 @@ cmd_land() {
     esac
 
     # Collect -m parts exactly like git commit; at least a subject is needed.
+    # -n still needs one, so that a green dry run describes a call the real
+    # land would accept.
     msgs=()
+    dry_run=false
     while [[ $# -gt 0 ]]; do
         case "$1" in
+            -n | --dry-run)
+                dry_run=true
+                shift
+                ;;
             -m)
                 shift
                 if [[ $# -eq 0 ]]; then
@@ -285,7 +402,7 @@ cmd_land() {
                 shift
                 ;;
             *)
-                echo "sprout: unexpected argument '$1' (usage: sprout land <feature> -m <subject> [-m <body>])" >&2
+                echo "sprout: unexpected argument '$1' (usage: sprout land <feature> [-n] -m <subject> [-m <body>])" >&2
                 exit 1
                 ;;
         esac
@@ -295,15 +412,22 @@ cmd_land() {
         exit 1
     fi
 
-    # The landing target is whatever branch the MAIN checkout has checked
-    # out. Flow keeps that on the default branch; refuse the degenerate cases.
-    target=$(git -C "$main_worktree" symbolic-ref --quiet --short HEAD)
-    if [[ -z $target ]]; then
+    # The squash below commits onto whatever branch the MAIN checkout has
+    # checked out, so that branch has to BE the target the sprout was cut
+    # from. Flow keeps both on the default branch; refuse the degenerate cases
+    # and the disagreement rather than landing somewhere unintended.
+    target=$(resolve_target "$path")
+    current=$(git -C "$main_worktree" symbolic-ref --quiet --short HEAD)
+    if [[ -z $current ]]; then
         echo "sprout: main checkout is on a detached HEAD; check out the target branch first" >&2
         exit 1
     fi
     if [[ $target == "$feature" ]]; then
         echo "sprout: main checkout has '$feature' itself checked out; nothing to land onto" >&2
+        exit 1
+    fi
+    if [[ $target != "$current" ]]; then
+        echo "sprout: '$feature' was cut from '$target' but the main checkout is on '$current'; check out '$target' before landing" >&2
         exit 1
     fi
 
@@ -320,8 +444,15 @@ cmd_land() {
     # conflicts) happens on the branch, per the work skill. This also means
     # the squash below is a pure fast-forward of content and cannot conflict.
     if ! git -C "$main_worktree" merge-base --is-ancestor "$target" "$feature"; then
-        echo "sprout: '$feature' is not up to date with '$target'; merge '$target' into it in the worktree, re-verify, then land" >&2
+        echo "sprout: '$feature' is not up to date with '$target'; run 'sprout sync $feature', re-verify, then land" >&2
         exit 1
+    fi
+
+    # Every guard has now run read-only, so a dry run has proven everything it
+    # can without writing.
+    if [[ $dry_run == true ]]; then
+        echo "'$feature' would land onto '$target'"
+        return 0
     fi
 
     # Squash and commit, rolling back to a clean tree on any failure (hook
@@ -414,6 +545,7 @@ case "$cmd" in
         fi
         ;;
     show)            cmd_show "$@" ;;
+    sync)            cmd_sync "$@" ;;
     land)            cmd_land "$@" ;;
     rm)              cmd_rm "$@" ;;
     help | -h | --help) usage ;;

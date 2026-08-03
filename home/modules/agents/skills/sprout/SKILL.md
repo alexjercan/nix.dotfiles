@@ -17,7 +17,8 @@ worktree operations.
 cd "$(sprout new <feature> [--task <id>])"
 cd "$(sprout show <feature>)"
 sprout ls
-sprout land <feature> -m "<subject>" [-m "<body>"]
+sprout sync <feature> [-n]
+sprout land <feature> [-n] -m "<subject>" [-m "<body>"]
 sprout rm <feature>
 ```
 
@@ -29,10 +30,19 @@ sprout rm <feature>
   associations and detached branches show `-`.
 - `rm` force-deletes the branch and tmux session. Use only when truly done;
   nonzero means nothing existed.
+- `new` records the main checkout's current branch as `sprout.target`; a
+  detached one records nothing. `sync` and `land` prefer it, falling back to
+  that current branch when absent. Both refuse once a recorded target is
+  renamed or deleted; the escape is `git config --worktree --unset
+  sprout.target`.
+- `sync` merges that target into the branch INSIDE its worktree; a conflict is
+  left there to resolve. `-n` probes without writing, printing the paths that
+  would conflict.
 - `land` squash-merges one commit into the main checkout's current branch,
   then removes the feature. It refuses dirty tracked main, detached HEAD,
-  invocation inside the feature, or a feature missing the target tip. Failure
-  rolls main back to a clean tracked tree.
+  invocation inside the feature, a target the main checkout no longer has
+  checked out, or a feature missing the target tip. Failure rolls main back to
+  a clean tracked tree. `-n` runs every guard and writes nothing.
 
 ## Rules
 

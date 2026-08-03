@@ -31,11 +31,12 @@ observers/queries across code, comments, docs, examples, tests, and changelog.
 
 ## Sync base
 
-Before landing, merge local default into the feature inside its worktree,
-resolve/commit there, then rerun all verification. Require:
+Before landing, merge the landing target into the feature inside its worktree,
+resolve/commit there, then rerun all verification:
 
 ```bash
-git merge-base --is-ancestor <default> <branch>
+sprout sync <feature> -n   # probe: which paths would conflict
+sprout sync <feature>
 ```
 
 `work` never merges the feature into default.

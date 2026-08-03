@@ -3,9 +3,9 @@
 - PRIORITY: 70
 - TAGS: sprout, scripts, skills, afk
 - KIND: TASK
-- ACTIVITY: WORKING
-- GATES: PLAN
-- RESOLUTION: -
+- ACTIVITY: COMPOUNDING
+- GATES: PLAN REVIEW RETRO
+- RESOLUTION: DONE
 
 Landing is currently three things an agent does by hand from `landing.md`:
 merge the target branch into the feature branch, write the squash commit
@@ -62,7 +62,7 @@ state it in the skill.
 Test-first: every `sprout-test.sh` case below is added and watched fail before
 the `sprout.sh` change it pins.
 
-1. **`resolve_target`, and record `sprout.target` at `new`.** In
+1. [x] **`resolve_target`, and record `sprout.target` at `new`.** In
    `home/modules/scripts/sprout.sh`, add `resolve_target <worktree-path>`: print
    `git -C <wt> config --worktree --get sprout.target`, else
    `git -C "$main_worktree" symbolic-ref --quiet --short HEAD`, else print
@@ -75,7 +75,7 @@ the `sprout.sh` change it pins.
    detached main checkout records nothing and is not an error.
    Tests: `test_new_records_target`, `test_new_detached_records_no_target`.
 
-2. **`cmd_sync`.** New function, dispatched from the bottom `case` as `sync)`.
+2. [x] **`cmd_sync`.** New function, dispatched from the bottom `case` as `sync)`.
    Signature `sprout sync <feature> [-n|--dry-run]` - feature first, flags
    after, matching `land`, because `require_feature` rejects a name starting
    with `-`. Reject any other argument with the same `unexpected argument`
@@ -95,7 +95,7 @@ the `sprout.sh` change it pins.
    `test_sync_dry_run_clean`, `test_sync_dry_run_conflict`,
    `test_sync_conflict_stays_in_worktree`, `test_sync_rejects_bad_args`.
 
-3. **`land -n` and the target guard.** In `cmd_land`, accept `-n|--dry-run` in
+3. [x] **`land -n` and the target guard.** In `cmd_land`, accept `-n|--dry-run` in
    the existing `-m` parsing loop. Replace the inline `symbolic-ref` derivation
    with `resolve_target "$path"`, then add one guard: when the resolved target
    differs from the main checkout's current branch, refuse, naming both and
@@ -112,30 +112,30 @@ the `sprout.sh` change it pins.
    `test_land_dry_run_refuses_behind`, `test_land_dry_run_requires_message`,
    `test_land_refuses_target_mismatch`, `test_land_uses_recorded_target`.
 
-4. **Usage text.** Add `sync` and the `land` `-n` form to `usage()` in
+4. [x] **Usage text.** Add `sync` and the `land` `-n` form to `usage()` in
    `sprout.sh`.
 
-5. **`sprout/SKILL.md`.** Add `sprout sync <feature> [-n]` and the `land -n`
+5. [x] **`sprout/SKILL.md`.** Add `sprout sync <feature> [-n]` and the `land -n`
    form to the `## Commands` block, plus one `## Commands` bullet each for
    `sync` (merges the recorded target into the branch inside its worktree;
    conflicts stay there) and the recorded `sprout.target`. 254 of 400 body
    words available.
 
-6. **`flow/landing.md`.** Step 1 becomes `sprout sync <feature>` (with
+6. [x] **`flow/landing.md`.** Step 1 becomes `sprout sync <feature>` (with
    `sprout sync -n` as the probe); step 3's manual ancestry check becomes
    `sprout land -n`; step 4 reads the subject and body from the committed
    RETRO.md `## Landing message` section instead of composing them. Keep the
    inherited-red guidance in step 1 and the unchanged re-verify step 2. 466 of
    600 words available.
 
-7. **`compound/SKILL.md`.** Add the landing-message obligation to step 3 of
+7. [x] **`compound/SKILL.md`.** Add the landing-message obligation to step 3 of
    `## Workflow`: after filling RETRO.md, append a `## Landing message` section
    holding a fenced Conventional-Commit subject, blank line, short body - one
    summary of the finished task, not the concatenated branch messages. Body is
    at 390 of a 400-word `phase-body-budget`, so trim existing prose to pay for
    it; `check.sh` is the arbiter.
 
-8. **Run the canonical checks** from `AGENTS.md`: `bash
+8. [x] **Run the canonical checks** from `AGENTS.md`: `bash
    home/modules/scripts/sprout-test.sh`, `bash
    home/modules/agents/skills/check.sh`, `bash
    home/modules/scripts/afk-test.sh`, `tatr check`, `nix flake check`.
@@ -208,3 +208,52 @@ the `sprout.sh` change it pins.
 - Assumption: `sprout new` may write `extensions.worktreeConfig` at repo level
   on every call, not just `--task` ones - the same idempotent write `--task`
   already performs.
+
+## Close-out
+
+**What and why.** `sprout.sh` gained `resolve_target`, `cmd_sync`, a `sprout.target`
+write at `new`, `land -n`, and a target-mismatch guard; `usage()` documents both new
+forms. The doc surfaces that describe those behaviours moved with them:
+`sprout/SKILL.md`, `sprout/reference.md`, `flow/landing.md`, `work/verify.md`, and
+`compound/SKILL.md` (which now owes a `## Landing message` section in RETRO.md). The
+landing sequence is now three mechanical commands a runner can drive, with the one
+judgement call - the commit message - written by `compound` while the task is still
+in context.
+
+**Alternatives.** The two load-bearing forks are in `DECISION.md` (refuse a target
+mismatch rather than redirect the land; put the message in RETRO.md rather than a new
+tatr record kind). Two smaller ones taken here: no `land_guards` extraction, because
+the guards are one linear sequence and `-n` is a single early exit inside it; and
+`land -n` still requires `-m`, so a green dry run describes a call the real `land`
+would accept.
+
+**Difficulties.** `test_land_uses_recorded_target` cannot be written as a passing
+land: the mismatch guard means a recorded target is only observable when it DIFFERS
+from the main checkout's branch, so the test proves it by contrast - the land is
+refused with `sprout.target` set, and succeeds through the fallback once it is unset.
+`shellcheck` (which `writeShellApplication` runs at build time, and which
+`nix flake check` does NOT reach) rejected the dry-run probe's `$?` test as SC2181;
+rewritten as `if probe=$(...)`. The detached-HEAD guard had to move onto the main
+checkout's CURRENT branch rather than the resolved target, or a worktree with a
+recorded target would have reported a mismatch where it used to report the detached
+HEAD.
+
+**Evidence.** `sprout-test.sh` 17 -> 33 tests, all green. Discrimination was measured,
+not assumed: the branch's test file run against `git show master:.../sprout.sh` fails
+15 of the 16 new cases. The exception is `test_new_detached_records_no_target`, which
+cannot discriminate - a detached main checkout records no target on either version -
+so it is a regression guard for the hoisted `extensions.worktreeConfig` write, and now
+asserts `sprout.task` is still recorded so it cannot pass vacuously. Round 1 found
+three cases that were then non-discriminating for reasons that were NOT inherent
+(`test_land_dry_run_writes_nothing` asserted no exit code, `test_sync_rejects_bad_args`
+asserted no messages); both are fixed. `check.sh` clean, `afk-test.sh` 19 green,
+`tatr check` clean, `nix flake check` all checks passed, `shellcheck` clean on both
+scripts.
+
+**Reflection.** The plan named each new test but never what it had to discriminate
+against, which is exactly where three non-discriminating cases got through to review;
+running the branch's tests against the base `sprout.sh` is cheap and would have caught
+them at write time. The plan's step list otherwise survived contact intact except for
+the one test name whose semantics had to change. The word budget in `compound/SKILL.md` cost four
+rounds of trimming against `check.sh`; planning the trims as part of the step (as the
+plan did) was what made that mechanical rather than a redesign.
