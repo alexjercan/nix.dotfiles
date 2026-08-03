@@ -33,7 +33,7 @@
     };
 
     tatr = {
-      url = "github:alexjercan/tatr/v1.0.0";
+      url = "github:alexjercan/tatr/v1.0.1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     agent-knowledge = {
