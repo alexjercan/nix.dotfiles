@@ -14,8 +14,9 @@ STORY requires an EPIC parent. `-d` is hard ordering; priority is soft.
 Relationships accept only IDs from the same `tasks/` tree; name cross-repo
 work in body prose.
 
-EPIC skips plan approval, review, retro, and unchecked-Steps gates, but not
-dependencies or DECISION validation.
+EPIC skips understanding, plan approval, review, retro, and unchecked-Steps
+gates, but not dependencies or DECISION validation. A container has no code,
+so it has no NOTES.md to brief.
 
 ## Index
 

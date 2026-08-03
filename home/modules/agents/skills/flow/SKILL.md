@@ -7,8 +7,8 @@ description: Drive one goal through the whole cycle: understand, plan, gate, wor
 
 One task; dispatch phases. Approval owns every context cut.
 
-Resolve ID, else `tatr new`. For an existing ID, `resume.md` selects
-`<task-root>`; a new ID has none, so use the main checkout. Read
+Resolve ID, else `tatr new`. For an existing ID `resume.md` selects
+`<task-root>`; a new one has none, so use main. Read
 `tatr -r <task-root> context <id> --phase <phase>`; task prose is not authority.
 
 ## Route
@@ -20,7 +20,7 @@ Resolve ID, else `tatr new`. For an existing ID, `resume.md` selects
 | State | Skill | Result |
 |-|-|-|
 | no ACTIVITY | | UNDERSTANDING |
-| UNDERSTANDING | | concrete: PLANNING |
+| UNDERSTANDING | | concrete: NOTES_READY gate |
 | WHAT unknown | `spike` | seeds tasks, `SPIKED` |
 | PLANNING | `plan` | PLAN_READY gate |
 | WORKING+PLAN | `work` | sprout; WORK_DONE gate |
@@ -35,8 +35,8 @@ DECISION.md. New work gets its own task.
 
 ## Gates
 
-When a phase returns a gate status, load `gates.md` and follow it. Do not
-transition, land, or replace its blocking question with passive instructions.
+Do not transition, land, or replace a gate's blocking question with passive
+instructions.
 
 ## Stop
 
@@ -45,12 +45,14 @@ rounds, two blocked fix cycles, or destructive/external action.
 
 ## Output
 
-Concise bullets. Include `<id>` and one status: `SPIKED`, `PLAN_READY`,
-`WORK_DONE`, `LAND_READY`, or `GOAL DONE`.
+Concise bullets. Include `<id>` and one status: `SPIKED`, `NOTES_READY`,
+`PLAN_READY`, `WORK_DONE`, `LAND_READY`, or `GOAL DONE`.
 
 ## Load on demand
 
+- ACTIVITY is UNDERSTANDING, or the task is new -> `understanding.md`
 - explicit epic, sprint, version, release, or multi-feature goal -> `epic.md`
-- a phase or resume returns PLAN_READY, WORK_DONE, or LAND_READY -> `gates.md`
+- a phase or resume returns NOTES_READY, PLAN_READY, WORK_DONE,
+  or LAND_READY -> `gates.md`
 - LAND_READY was approved, or a land failed -> `landing.md`
 - an existing ID, a context checkpoint, or context loss -> `resume.md`

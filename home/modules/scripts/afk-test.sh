@@ -229,9 +229,11 @@ EOF
 }
 
 gen_goal_cycle() {
-    # Invocation 1 of a goal run: create the task, take it to PLANNING, and -
-    # now that the ID exists - write every later fixture, including its own
-    # reply (the fake claude runs the side script before replaying the reply).
+    # Invocation 1 of a goal run: create the task, take it to UNDERSTANDING,
+    # and - now that the ID exists - write every later fixture, including its
+    # own reply (the fake claude runs the side script before replaying the
+    # reply). A goal is four worker sessions, each answered by its own gate
+    # resume: understanding, plan, work, then review-retro-and-land.
     side 1 << 'EOF'
 set -e
 source "$AFK_TEST_TMP/fixtures.sh"
@@ -239,27 +241,44 @@ cd "$REPO"
 id=$(tatr new "afk goal" -t feature -p 50 | grep -oE '[0-9]{8}-[0-9]{6}' | tail -1)
 printf '%s\n' "$id" > "$AFK_TEST_TMP/task_id"
 tatr flow "$id" > /dev/null            # no activity -> UNDERSTANDING
-tatr flow "$id" > /dev/null            # UNDERSTANDING -> PLANNING
+printf '# Notes: afk goal\n\n## What changes\n\nthe thing\n' > "$REPO/tasks/$id/NOTES.md"
+git -C "$REPO" add -A
+git -C "$REPO" commit -qm "docs: understand the goal"
+reply 1 "AFK NOTES_READY $id"
+# Gate: approve understanding.
+side 2 << 'INNER_NOTES'
+set -e
+id=$(cat "$AFK_TEST_TMP/task_id")
+tatr -r "$REPO" flow "$id" > /dev/null  # UNDERSTANDING -> PLANNING
+git -C "$REPO" add -A
+git -C "$REPO" commit -qm "docs: understanding approved"
+INNER_NOTES
+reply 2 ""
+# Worker: write the plan.
+side 3 << 'INNER_PLAN'
+set -e
+source "$AFK_TEST_TMP/fixtures.sh"
+id=$(cat "$AFK_TEST_TMP/task_id")
 plan_sections "$REPO/tasks/$id/TASK.md"
 git -C "$REPO" add -A
 git -C "$REPO" commit -qm "docs: plan the goal"
-reply 1 "AFK PLAN_READY $id"
+INNER_PLAN
+reply 3 "AFK PLAN_READY $id"
 # Gate: approve the plan.
-side 2 << 'INNER'
+side 4 << 'INNER_APPROVE'
 set -e
 id=$(cat "$AFK_TEST_TMP/task_id")
 tatr -r "$REPO" flow "$id" > /dev/null
 git -C "$REPO" add -A
 git -C "$REPO" commit -qm "docs: plan approved"
-INNER
-reply 2 ""
-gen_work_to_land 2 "$id"
+INNER_APPROVE
+reply 4 ""
+gen_work_to_land 4 "$id"
 EOF
 }
 
-seed_working_task() {
-    # Create a task walked to WORKING with the PLAN gate earned, committed,
-    # and record its ID.
+seed_task() {
+    # Mint a task in $REPO, record its ID, and print it.
     # tatr mints IDs from the wall clock at second resolution, so seeding two
     # tasks in one second collides; wait the clock out rather than guessing.
     local id=""
@@ -269,6 +288,50 @@ seed_working_task() {
         [[ -n $id ]] || sleep 1
     done
     printf '%s\n' "$id" > "$TMP/task_id"
+    printf '%s\n' "$id"
+}
+
+seed_task_at() {
+    # $1: UNDERSTANDING or PLANNING -> a task parked at that activity and
+    # committed. WORKING has its own seeder below, because it also needs a
+    # plan.
+    local id
+    id=$(seed_task)
+    (
+        cd "$REPO" || exit 1
+        tatr flow "$id" > /dev/null
+        case "$1" in
+            UNDERSTANDING) ;;
+            PLANNING) tatr flow "$id" > /dev/null ;;
+            *)
+                printf 'seed_task_at: unknown activity %s\n' "$1" >&2
+                exit 1
+                ;;
+        esac
+        git add -A
+        git commit -qm "docs: seed $id at $1"
+    ) || return 1
+    printf '%s\n' "$id"
+}
+
+write_notes() {
+    # $1: task ID. afk's understanding gate refuses to answer without a
+    # NOTES.md, so any fixture meant to exercise something past that
+    # precondition has to write one.
+    (
+        cd "$REPO" || exit 1
+        printf '# Notes: afk goal\n\n## What changes\n\nthe thing\n' \
+            > "tasks/$1/NOTES.md"
+        git add -A
+        git commit -qm "docs: notes for $1"
+    )
+}
+
+seed_working_task() {
+    # Create a task walked to WORKING with the PLAN gate earned, committed,
+    # and record its ID.
+    local id
+    id=$(seed_task)
     (
         cd "$REPO" || exit 1
         tatr flow "$id" > /dev/null
@@ -396,8 +459,8 @@ test_run_goal_full_cycle() {
     check "goal run exits 0" test "$rc" -eq 0
     check "the created task is reported" str_contains "$out" "task    $id created"
     check "the run ends with a done line" str_contains "$out" "done  $id landed"
-    check "the summary counts the 3 worker sessions" str_matches "$out" '3 sessions, [0-9]+m[0-9]{2}s'
-    check "3 fresh sessions and 3 gate resumes ran" test "$(invocations)" -eq 6
+    check "the summary counts the 4 worker sessions" str_matches "$out" '4 sessions, [0-9]+m[0-9]{2}s'
+    check "4 fresh sessions and 4 gate resumes ran" test "$(invocations)" -eq 8
     check "the work landed on master" test -f "$REPO/thing.txt"
     check "the landing commit is on master" test "$(git -C "$REPO" log -1 --format=%s)" = "feat: land thing"
     check "the branch is gone" not git -C "$REPO" show-ref --verify --quiet refs/heads/feature/thing
@@ -435,27 +498,30 @@ test_run_report_reads_as_a_report() {
         'prompt  /flow "add a thing"' \
         "tokens  57.6K" \
         "task    $id created" \
-        "phase   PLANNING  writing the plan" \
+        "phase   UNDERSTANDING  working out what to build" \
         "commit  " \
-        "gate    plan ready - approved automatically" \
-        "phase   WORKING+PLAN  building on the feature branch" \
+        "gate    understanding ready - approved automatically" \
+        "phase   PLANNING  writing the plan" \
         "session 2" \
         "prompt  /flow $id" \
+        "gate    plan ready - approved automatically" \
+        "phase   WORKING+PLAN  building on the feature branch" \
+        "session 3" \
         "gate    work done - approved automatically" \
         "phase   REVIEWING+PLAN  reviewing the branch" \
-        "session 3" \
+        "session 4" \
         "phase   DONE  finished, ready to land" \
         "gate    landing - approved automatically" \
         "landed  " \
         "cleanup feature/thing worktree removed" \
         "done  $id landed" \
-        "3 sessions, "
+        "4 sessions, "
     check "the repository is named up front" str_contains "$out" "repo  $REPO"
     check "the branch commit is reported" str_matches "$out" 'commit  [0-9a-f]{7} feat: thing'
     check "the landing commit is reported" str_matches "$out" 'landed  [0-9a-f]{7} feat: land thing'
-    check "elapsed time is reported" str_matches "$out" '3 sessions, [0-9]+m[0-9]{2}s'
+    check "elapsed time is reported" str_matches "$out" '4 sessions, [0-9]+m[0-9]{2}s'
     check "every auto-approved gate says why it was automatic" \
-        test "$(printf '%s\n' "$out" | grep -c 'approved automatically, starting an afk run approves the flow gates')" -eq 3
+        test "$(printf '%s\n' "$out" | grep -c 'approved automatically, starting an afk run approves the flow gates')" -eq 4
 }
 
 test_session_header_names_the_claude_session_id() {
@@ -464,7 +530,7 @@ test_session_header_names_the_claude_session_id() {
     out=$(afk run "add a thing" 2>&1)
 
     session=0
-    for i in 1 3 5; do
+    for i in 1 3 5 7; do
         session=$((session + 1))
         uuid=$(printf '%s\n' "$(argv_line "$i")" |
             sed -n 's/.*<--session-id> <\([0-9a-f-]*\)>.*/\1/p')
@@ -483,7 +549,7 @@ test_argv_session_and_resume_policy() {
     gen_goal_cycle
     afk run "add a thing" > /dev/null 2>&1
 
-    for i in 1 2 3 4 5 6; do
+    for i in 1 2 3 4 5 6 7 8; do
         line=$(argv_line "$i")
         check "invocation $i skips permission prompts" str_contains "$line" "<--dangerously-skip-permissions>"
         check "invocation $i denies the question tool" str_contains "$line" "<--disallowed-tools> <AskUserQuestion>"
@@ -492,16 +558,16 @@ test_argv_session_and_resume_policy() {
     done
 
     fresh_ids=""
-    for i in 1 3 5; do
+    for i in 1 3 5 7; do
         line=$(argv_line "$i")
         check "worker invocation $i starts a fresh session" str_matches "$line" '<--session-id> <[0-9a-f-]{36}>'
         check "worker invocation $i never resumes" not str_contains "$line" "<--resume>"
         fresh_ids="$fresh_ids$(printf '%s\n' "$line" | sed -n 's/.*<--session-id> <\([0-9a-f-]*\)>.*/\1/p')
 "
     done
-    check "each worker session has its own ID" test "$(printf '%s' "$fresh_ids" | sort -u | wc -l)" -eq 3
+    check "each worker session has its own ID" test "$(printf '%s' "$fresh_ids" | sort -u | wc -l)" -eq 4
 
-    for i in 2 4 6; do
+    for i in 2 4 6 8; do
         line=$(argv_line "$i")
         check "gate invocation $i resumes exactly one session" \
             test "$(printf '%s\n' "$line" | grep -oc -- '<--resume>')" -eq 1
@@ -511,12 +577,14 @@ test_argv_session_and_resume_policy() {
             str_contains "$fresh_ids" "$resume_id"
     done
 
+    check "the understanding gate sends the exact label" \
+        str_contains "$(argv_line 2)" "<Approve understanding - move to PLANNING>"
     check "the plan gate sends the exact label" \
-        str_contains "$(argv_line 2)" "<Approve plan - earn the PLAN gate>"
+        str_contains "$(argv_line 4)" "<Approve plan - earn the PLAN gate>"
     check "the review gate sends the exact label" \
-        str_contains "$(argv_line 4)" "<Approve review - move to REVIEWING>"
+        str_contains "$(argv_line 6)" "<Approve review - move to REVIEWING>"
     check "the landing gate sends the exact label" \
-        str_contains "$(argv_line 6)" "<Approve landing - land the branch>"
+        str_contains "$(argv_line 8)" "<Approve landing - land the branch>"
 }
 
 test_failure_paths() {
@@ -603,6 +671,45 @@ EOF
     check "a gate at the wrong activity fails the run" test "$rc" -ne 0
     check "the inconsistency is named" str_contains "$out" "PLANNING"
     check "the gate was never answered" test "$(invocations)" -eq 1
+
+    # The same shape one gate earlier: NOTES_READY from a task whose
+    # understanding is already behind it.
+    restart_sandbox
+    id=$(seed_task_at PLANNING)
+    reply 1 "AFK NOTES_READY $id"
+    out=$(afk run "$id" 2>&1)
+    rc=$?
+    check "an understanding gate past its activity fails the run" test "$rc" -ne 0
+    check "the activity it is actually in is named" str_contains "$out" "is in PLANNING"
+    check "the understanding gate was never answered" test "$(invocations)" -eq 1
+
+    # NOTES_READY with no NOTES.md. tatr grants UNDERSTANDING -> PLANNING
+    # unconditionally, so without this the gate degrades to a bare stop that
+    # any session can earn by running `tatr flow` twice.
+    restart_sandbox
+    id=$(seed_task_at UNDERSTANDING)
+    reply 1 "AFK NOTES_READY $id"
+    out=$(afk run "$id" 2>&1)
+    # No `rc -ne 0` check here: with the precondition removed the run still
+    # fails, because session 2 has no scripted reply and dies on the missing
+    # control marker. Only the reason and the invocation count falsify.
+    check "the missing scratchpad is named" str_contains "$out" "no NOTES.md"
+    check "the unbriefed gate was never answered" test "$(invocations)" -eq 1
+
+    # An understanding approval that leaves the cursor where it was. Leaving
+    # UNDERSTANDING earns no gate, so this postcondition is the only evidence
+    # the gate had any effect.
+    restart_sandbox
+    id=$(seed_task_at UNDERSTANDING)
+    write_notes "$id"
+    reply 1 "AFK NOTES_READY $id"
+    reply 2 ""
+    out=$(afk run "$id" 2>&1)
+    rc=$?
+    check "an ineffective understanding approval fails the run" test "$rc" -ne 0
+    check "the expected activity is named" str_contains "$out" "PLANNING or later"
+    check "the activity it stayed in is named" str_contains "$out" "is in UNDERSTANDING"
+    check "the understanding gate was answered once" test "$(invocations)" -eq 2
 
     # A gate approval that does not cause its transition. The cursor is BEHIND
     # the gate's target, which the floor postcondition still refuses.

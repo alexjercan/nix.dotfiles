@@ -78,10 +78,11 @@ per the docs-sync rule, update those surfaces in the same task, and keep the
 skills generic - they run in every repo, not just this one.
 
 The flow skill also has a MACHINE consumer now: `home/modules/scripts/afk.sh`.
-Two vocabularies meet there, and only one is shared. `afk.sh` sends the three
+Two vocabularies meet there, and only one is shared. `afk.sh` sends the four
 approve labels in `flow/gates.md` verbatim, and routes on `SPIKED`,
-`PLAN_READY`, `WORK_DONE` and `LAND_READY` from the skills' `## Output`
-contracts. `ROTATE`, `DONE` and `BLOCKED` are afk's own, defined only in its
+`NOTES_READY`, `PLAN_READY`, `WORK_DONE` and `LAND_READY` from the skills'
+`## Output` contracts. `ROTATE`, `DONE` and `BLOCKED` are afk's own, defined
+only in its
 PROTOCOL heredoc; no skill declares them. Changing a label or a shared status
 means changing `afk.sh` and `afk-test.sh` in the same task.
 

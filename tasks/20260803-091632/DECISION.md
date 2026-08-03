@@ -58,5 +58,6 @@ skills' status vocabulary and dies on an unknown status.
   unattended runs.
 - Two skill bodies (`flow/SKILL.md`, `plan/SKILL.md`) must be trimmed to
   absorb the new text; both sit within two words of their budget.
-- Reviews gain a cold-read reference: `review/dimensions.md` already treats
-  NOTES.md as a documentation surface.
+- `review/dimensions.md` must stop treating NOTES.md as a documentation
+  surface. A scratchpad that is not maintained past understanding cannot carry
+  the docs dimension, so a stale section in it is not a finding.

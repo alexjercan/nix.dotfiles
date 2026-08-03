@@ -77,6 +77,7 @@ it:
 
 <STATUS> is one of:
 
+  NOTES_READY the understanding gate is pending
   PLAN_READY  the plan gate is pending
   WORK_DONE   the review gate is pending
   LAND_READY  the landing gate is pending
@@ -685,6 +686,17 @@ require_activity() {
         die "$3 but $1 is in ${actual:-no activity}, not $2"
 }
 
+require_record() {
+    # $1: task ID  $2: record file name  $3: what claimed it.
+    # Every other gate takes its teeth from tatr refusing the transition, so
+    # afk only has to check the lifecycle moved. UNDERSTANDING -> PLANNING is
+    # unconditional, so the understanding gate's only evidence that the phase
+    # did anything is its artifact on disk.
+    local root
+    root=$(task_root "$1") || die "cannot locate the task root of $1"
+    [[ -f $root/tasks/$1/$2 ]] || die "$3 but $1 has no $2"
+}
+
 require_activity_at_least() {
     # $1: task ID  $2: the earliest acceptable ACTIVITY  $3: what claimed it.
     # A floor, not an equality: the lifecycle only ever guarantees the cursor
@@ -866,6 +878,25 @@ run_item() {
             ROTATE)
                 require_progress "$TASK_ID"
                 line "$C_NEXT" next "rotating to a fresh context"
+                ;;
+            NOTES_READY)
+                # Leaving UNDERSTANDING earns no gate, so the cursor reaching
+                # PLANNING is the only durable evidence the approval landed,
+                # and NOTES.md is the only evidence there was anything to
+                # approve. The activity is checked here as well as inside
+                # lifecycle_gate to order the two failures: a task already
+                # past UNDERSTANDING should report that disagreement about
+                # durable state, not a scratchpad it was never asked for.
+                require_activity "$TASK_ID" UNDERSTANDING \
+                    "the session reported NOTES_READY"
+                require_record "$TASK_ID" NOTES.md \
+                    "the session reported NOTES_READY"
+                if lifecycle_gate NOTES_READY UNDERSTANDING \
+                    "Approve understanding - move to PLANNING" activity PLANNING "understanding ready"; then
+                    prev_fp=""
+                else
+                    rotate_stopped "$TASK_ID"
+                fi
                 ;;
             PLAN_READY)
                 if lifecycle_gate PLAN_READY PLANNING \

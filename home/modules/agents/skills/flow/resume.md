@@ -53,6 +53,9 @@ Dispatch from ACTIVITY plus GATES, not old intent.
 
 No gate gets a lifecycle marker. Recompute evidence, then use `gates.md`:
 
+- UNDERSTANDING -> NOTES_READY only with a `tasks/<id>/NOTES.md` carrying
+  every required section and no unanswered blocking question. Anything less
+  resumes understanding and rewrites it.
 - PLANNING -> PLAN_READY only with executable Story, Steps, and DoD, plus
   `cmd:` proofs red on the base for the intended missing change. `PLAN` already
   earned with the cursor still at PLANNING is a blocked dependency: the gate

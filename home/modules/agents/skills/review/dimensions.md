@@ -59,8 +59,9 @@ genuinely load-bearing choice is MINOR, not BLOCKER.
 
 ## Docs
 
-Behavior changes worth documenting are covered in the task's NOTES.md or the
-project's reference docs, and the doc-surface sweep ran. Spot-check it: pick
+Behavior changes worth documenting are covered in the project's reference
+docs, and the doc-surface sweep ran. NOTES.md is a scratchpad, not a doc
+surface: a stale section there is not a finding. Spot-check it: pick
 one renamed or changed symbol, flag or path from the diff and grep README, the
 reference docs, AGENTS.md and the skill files for stale mentions. When the
 repository ships skills, an edit to what a skill describes invalidates that
