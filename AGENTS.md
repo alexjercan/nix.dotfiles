@@ -18,10 +18,10 @@ global `home/modules/agents/AGENTS.md` to `~/AGENTS.md`.
 
 ## Agent workflow
 
-- Tracker: tatr, records under `tasks/<id>/`. Epics are `KIND: EPIC` with
-  `KIND: STORY` children; one requested thing is one task.
-- Examples and prototypes: none in-tree; a spike's exploratory prototype is
-  retained under `tasks/<id>/prototype/`. Verification lives in
+- Tracker: tatr, records under `tasks/<id>/`. Tasks have no kind; a
+  multi-task goal is a `-d` dependency graph. One requested thing is one task.
+- Examples and prototypes: none in-tree; an understand phase's exploratory
+  prototype is retained under `tasks/<id>/prototype/`. Verification lives in
   `flake/checks*.nix` and the shell test scripts under `home/modules/scripts/`.
 - Domain docs: none. `README.md` plus the module comments are the reference.
 - Research: local sources first; no network is required by any check.
@@ -35,8 +35,8 @@ Detail: the Check suite section below.
 
 ## Development flow
 
-- `/flow` drives development here: plan/work/review/compound as tatr tasks
-  under `tasks/`, each task implemented in a sprout worktree, round-1 reviews
+- `/flow` drives development here: understand/plan/work/review/compound as
+  tatr tasks under `tasks/`, each in a sprout worktree, round-1 reviews
   by an out-of-context reviewer, DoD items with test:/cmd:/manual: proofs.
 - Records live in the task folders (`tasks/<id>/`). `/compound` writes RETRO
   and routes reusable observations through the `knowledge` skill.
@@ -79,11 +79,12 @@ skills generic - they run in every repo, not just this one.
 
 The flow skill also has a MACHINE consumer now: `home/modules/scripts/afk.sh`.
 Two vocabularies meet there, and only one is shared. `afk.sh` routes on
-`SPIKED`, `NOTES_READY`, `PLAN_READY`, `WORK_DONE` and `LAND_READY` from the
+`UNDERSTANDING_DONE`, `PLANNING_DONE`, `WORKING_DONE`, `COMPOUNDING_DONE` and
+`FLOW_DONE` from the
 skills' `## Output` contracts; it answers each gate itself with `tatr flow` or
 `sprout sync`/`sprout land`, so it never sends an approve label back to a
-session and does not depend on the gate prose in `flow/gates.md`. `ROTATE`,
-`DONE` and `BLOCKED` are afk's own, defined only in its
+session and does not depend on the gate prose in `flow/gates.md`. `ROTATE`
+and `BLOCKED` are afk's own, defined only in its
 PROTOCOL heredoc; no skill declares them. Changing a shared status means
 changing `afk.sh` and `afk-test.sh` in the same task.
 

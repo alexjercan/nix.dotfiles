@@ -1,37 +1,41 @@
 # Decision records
 
-A `DECISION.md` records a load-bearing choice that was made, and why, so the
-reasoning survives the chat and the next session does not re-litigate it.
+A `DECISION.md` records the choice this phase settled on, and why, so the
+reasoning survives the chat and the next session does not re-litigate it. It
+closes understanding, and planning reads it as authority: what TASK.md's Steps
+build is whatever this record says.
 
 Writing one is MANDATORY for any load-bearing build-shape fork - which
 artifact, which mechanism, and the constraint that forced the choice. The
 confirm and the record are one move: confirm the concrete artifact with the
 user, then capture the confirmed choice, the rejected alternative, AND the
-constraint that separated them, before the build.
+constraint that separated them, before anything is planned.
 
 A choice made by inferring a shape, or confirmed in chat but never recorded,
-is exactly the failure this record guards against. When you find mid-build
-that the confirmed choice cannot satisfy every stated want at once, STOP and
-re-confirm; do not quietly ship a compromise.
+is exactly the failure this record guards against. When a later phase finds
+that the confirmed choice cannot satisfy every stated want at once, the task
+rewinds here and the choice is re-confirmed; a quiet compromise is not an
+option.
 
-## Decision is not spike
+## Decision is not evidence
 
-- A `SPIKE.md` reduces uncertainty about *what to build* when the direction is
-  fuzzy. It is optional and only fires when there is something to explore.
-- A `DECISION.md` records *a choice that was made*, whether or not a spike
-  happened. A dead-obvious choice with no alternatives worth weighing still
-  gets a record if it is load-bearing; a choice reached by a spike cites that
-  `SPIKE.md` as context rather than repeating it.
+- A `SPIKE.md` holds the investigation the understand phase ran to reduce
+  uncertainty about *what to build*. It is optional and only exists where
+  there was something to explore.
+- A `DECISION.md` records *a choice that was made*, whether or not any
+  investigation preceded it. A dead-obvious choice with no alternatives worth
+  weighing still gets a record if it is load-bearing; a choice reached through
+  evidence cites that `SPIKE.md` rather than repeating it.
 
-Do not force a spike to justify a decision you never actually explored. Write
-the record directly.
+Do not manufacture an investigation to justify a decision you never actually
+explored. Write the record directly.
 
 ## Where it lives
 
-`tasks/<id>/DECISION.md`, in the folder of the task that owns the choice. For
-a choice spanning an epic, the container's folder, plus a one-line pointer in
-the container TASK.md `## Decisions` section so it is findable without
-grepping every task folder.
+`tasks/<id>/DECISION.md`, in the folder of the task that owns the choice. A
+choice that binds several tasks lives with the one they all depend on, and
+each dependent's body carries a one-line pointer to it, so it is findable
+without grepping every task folder.
 
 Scaffold it - the generated record passes `tatr check` with its placeholders
 in place:
@@ -55,8 +59,8 @@ one as `dangling-supersede`.
 `tatr scaffold` writes the headings and the metadata block; you fill them in.
 
 - `## Context` - the forces that make this a real choice: constraints,
-  requirements, what already exists. One paragraph. Cite a `SPIKE.md` here if a
-  spike fed it.
+  requirements, what already exists. One paragraph. Cite a `SPIKE.md` here if
+  one fed it.
 - `## Decision` - the choice, in active voice, and why you would build it from
   scratch under today's constraints, not merely that it is what exists.
 - `## Alternatives considered` - each rejected option, how it would have worked

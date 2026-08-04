@@ -29,7 +29,7 @@ change; REVIEW records findings.
    unavailable; keep that signal in RETRO.
 5. Under flow, run `tatr -r <task-root> flow <id>`, which earns the `RETRO`
    gate and resolves the record `DONE`, then commit retro and close
-   together. DONE -> LAND_READY without landing. Outside flow,
+   together. DONE -> COMPOUNDING_DONE without landing. Outside flow,
    commit retro on the feature branch. If already landed, first verify the
    main checkout branch, then commit there.
 
@@ -55,4 +55,4 @@ Answer three questions, each only from what the records show:
 ## Output
 
 New/bumped slugs and follow-up IDs; at most 100 words. Under flow, only after
-DONE return the gate status `LAND_READY <id>` without landing.
+DONE return the gate status `COMPOUNDING_DONE <id>` without landing.

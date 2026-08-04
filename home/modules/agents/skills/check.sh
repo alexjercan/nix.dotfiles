@@ -23,7 +23,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # These are CLASSIFICATION lists only - the set of skills to check is read off
 # disk below, so a directory nobody remembered to list is still checked, and is
 # reported as unclassified rather than silently skipped.
-FLOW_FAMILY=(flow plan work review spike compound sprout)
+FLOW_FAMILY=(flow understand plan work review compound sprout)
 TOOL_SKILLS=(today)
 
 # Budgets, in words. Categories came from task 20260730-142052; compact caps
@@ -45,7 +45,7 @@ BUDGET_OUTPUT_CONTRACT=150      # a phase's `## Output` contract, which is also
 # so what this check really enforces is that the policy is declared ONCE, in the
 # SKILL.md both tools read, rather than diverging into two places. If codex turns
 # out to ignore it, the fix is one frontmatter key, not two policies.
-IMPLICIT=(flow plan work review spike compound today)
+IMPLICIT=(flow understand plan work review compound today)
 
 # Every rule this gate can report. Declared rather than grepped, because two of
 # them (`router-body-budget`, `phase-body-budget`) are chosen at runtime and no
@@ -87,7 +87,7 @@ fm_value() { frontmatter_of "$1" | sed -n "s/^$2: *//p" | head -1; }
 
 # A conditional reference is an ARROW POINTER: some condition text, then `->`,
 # then a backticked lowercase `<name>.md` on the same line. A bare mention of
-# another skill's file (e.g. "flow's `epic.md`") is prose, not a pointer, and
+# another skill's file (e.g. "flow's `graph.md`") is prose, not a pointer, and
 # deliberately does not count - that is what keeps cross-skill vocabulary legal
 # while still proving every LOADABLE branch is guarded by a stated condition.
 pointer_lines() { grep -nE -- '->[^`]*`[a-z][a-z0-9-]*\.md`' "$1" 2>/dev/null; }

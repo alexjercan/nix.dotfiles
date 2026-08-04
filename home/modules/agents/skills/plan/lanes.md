@@ -1,7 +1,7 @@
 # Parallel planning lanes
 
 Default: one planner. Open two or three lanes only for an expensive or
-irreversible fork, independent domains, an Epic too large for one context, or
+irreversible fork, independent domains, a goal too large for one context, or
 an explicit request for alternatives.
 
 ## Lenses
@@ -29,10 +29,10 @@ of other lenses. No narrative, code, writes, or worktree.
 The orchestrator:
 
 1. Verifies claims, then selects or combines surviving parts.
-2. Writes one TASK.md plan.
-3. For a load-bearing choice, writes one DECISION.md with a short rejected
-   alternative per losing lane and the ruling constraint.
+2. Writes one TASK.md plan, within what `DECISION.md` already chose.
+3. A surviving part the decision record does not cover is not planned around:
+   name it and rewind to `understand`.
 
 Discard replies after synthesis; they are scratch, not task artifacts. If
 lanes disagree on fact, check it before choosing. A lane needing write access
-needs a spike instead.
+is asking for evidence the understand phase should have gathered.

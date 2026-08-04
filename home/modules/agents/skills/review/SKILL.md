@@ -34,8 +34,8 @@ Judge; do not patch. `work` owns fixes.
 
 ## Rules
 
-- Review the diff, not pre-existing repository problems; create tasks for
-  those.
+- Review the diff, not pre-existing repository problems. Record those as
+  `Out of scope:` bullets and create nothing.
 - Severity reflects impact, not effort. Ask the counterfactual: knowing
   current constraints, would we build this route from scratch? An alternative
   must preserve behavior and name the concepts, branches or indirection it

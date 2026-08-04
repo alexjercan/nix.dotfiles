@@ -34,9 +34,9 @@ Keep tool-owned skills with their tools.
 
 ## Context budgets
 
-The flow family is `flow plan work review spike compound sprout`. `flow`
-dispatches the plan, work, review, spike, and compound phases; `sprout` is the
-explicit worktree helper. The `today` and `knowledge` tools pay the same body
+The flow family is `flow understand plan work review compound sprout`.
+`flow` dispatches the understand, plan, work, review and compound
+phases; `sprout` is the explicit worktree helper. The `today` and `knowledge` tools pay the same body
 cap. Branch-specific material lives in a conditional reference, read only when
 its condition holds and pointed at from a `## Load on demand` section in this
 shape:
@@ -50,11 +50,13 @@ shape:
 `check.sh` requires condition text before the arrow, so it has to name the
 branch in words, on the arrow's own line.
 
-A skill whose work comes in several shapes routes to them the same way. `spike`
-names four modes - research, logic prototype, UI prototype, and mixed evidence
-- over two references: logic and UI prototypes share every storage and
-retention rule, so a file each would duplicate rather than separate them. One
-mode may reach two references, as mixed evidence does.
+A skill whose work comes in several shapes routes to them the same way.
+`understand` reaches `evidence.md` for both an external fact and a runnable
+prototype, because the two share every citation, storage and retention rule; a
+file each would duplicate them rather than separate them. That reference is
+also where the retired `spike` skill went - research before a decision is the
+understand phase, not a phase of its own. See
+`tasks/20260730-142052/SPIKE.md` for the split it used to carry.
 
 A phase that can run several independent contexts keeps that material behind
 the same door. `plan/lanes.md` and `review/lanes.md` hold the lane-selection

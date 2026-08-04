@@ -17,9 +17,9 @@
     "flow"
     "plan"
     "review"
-    "spike"
     "sprout"
     "today"
+    "understand"
     "work"
   ];
 

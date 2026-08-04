@@ -50,7 +50,7 @@ usage() {
     echo "gates, and afk performs them itself: 'tatr flow' for the lifecycle"
     echo "gates, 'sprout sync' and 'sprout land' for the landing. A probe that"
     echo "refuses wakes a fresh session to resolve it. Everything else - a"
-    echo "spike, a blocked flow, a marker that disagrees with tatr or git -"
+    echo "blocked flow, a marker that disagrees with tatr or git -"
     echo "stops the run non-zero, leaving the task and its worktree ready for"
     echo "'afk run <task-id>'."
     echo
@@ -88,16 +88,15 @@ it:
 
 <STATUS> is one of:
 
-  NOTES_READY the understanding gate is pending
-  PLAN_READY  the plan gate is pending
-  WORK_DONE   the review gate is pending
-  LAND_READY  the landing gate is pending
-  SPIKED      the flow answered a fuzzy question and seeded new tasks; the run
-              stops here, and a human picks which seeded task to run next
-  ROTATE      the flow asked for /clear then /flow <id>, or the phase advanced
-              and needs a fresh context
-  DONE        the branch is landed and the goal is finished
-  BLOCKED     the flow must stop for a human decision; add a one-line reason
+  UNDERSTANDING_DONE  the understanding gate is pending
+  PLANNING_DONE       the plan gate is pending
+  WORKING_DONE        the review gate is pending
+  COMPOUNDING_DONE    the landing gate is pending
+  ROTATE              the flow asked for /clear then /flow <id>, or the phase
+                      advanced and needs a fresh context
+  FLOW_DONE           the branch is landed and the goal is finished
+  BLOCKED             the flow must stop for a human decision; add a one-line
+                      reason
 
 Never invent a task ID; use the one the flow is working on.
 EOF
@@ -1083,38 +1082,43 @@ run_item() {
                 require_progress "$TASK_ID"
                 line "$C_NEXT" next "rotating to a fresh context"
                 ;;
-            NOTES_READY)
+            UNDERSTANDING_DONE)
                 # Leaving UNDERSTANDING earns no gate, so the cursor reaching
                 # PLANNING is the only durable evidence the approval landed,
-                # and NOTES.md is the only evidence there was anything to
-                # approve. The artifact is checked out here, before advance,
+                # and the phase's own records are the only evidence there was
+                # anything to approve. NOTES.md carries the problem and the
+                # ideas; DECISION.md is the ruling planning treats as
+                # authority, so a phase that wrote notes and settled nothing
+                # has not understood the task. Both are checked before advance,
                 # because advance skips a gate whose postcondition already
                 # holds: a task walked to PLANNING with nothing written down
                 # would otherwise slip through the skip unexamined.
                 require_record "$TASK_ID" NOTES.md \
-                    "the session reported NOTES_READY"
-                if advance NOTES_READY UNDERSTANDING activity PLANNING "understanding ready"; then
+                    "the session reported UNDERSTANDING_DONE"
+                require_record "$TASK_ID" DECISION.md \
+                    "the session reported UNDERSTANDING_DONE"
+                if advance UNDERSTANDING_DONE UNDERSTANDING activity PLANNING "understanding ready"; then
                     prev_fp=""
                 else
                     wake_on_refusal "$TASK_ID"
                 fi
                 ;;
-            PLAN_READY)
-                if advance PLAN_READY PLANNING gate PLAN "plan ready"; then
+            PLANNING_DONE)
+                if advance PLANNING_DONE PLANNING gate PLAN "plan ready"; then
                     prev_fp=""
                 else
                     wake_on_refusal "$TASK_ID"
                 fi
                 ;;
-            WORK_DONE)
-                if advance WORK_DONE WORKING activity REVIEWING "work done"; then
+            WORKING_DONE)
+                if advance WORKING_DONE WORKING activity REVIEWING "work done"; then
                     prev_fp=""
                 else
                     wake_on_refusal "$TASK_ID"
                 fi
                 ;;
-            LAND_READY)
-                require_resolution "$TASK_ID" DONE "the session reported LAND_READY"
+            COMPOUNDING_DONE)
+                require_resolution "$TASK_ID" DONE "the session reported COMPOUNDING_DONE"
                 branch=$(feature_branch "$TASK_ID")
                 [[ -n $branch ]] ||
                     die "$TASK_ID has no sprout worktree, so there is no branch to land"
@@ -1137,19 +1141,14 @@ run_item() {
                 line "$C_LAND" cleanup "$branch worktree removed"
                 break
                 ;;
-            DONE)
+            FLOW_DONE)
                 branch=$(feature_branch "$TASK_ID")
                 [[ -z $branch ]] ||
-                    die "the session reported DONE but branch $branch is not landed"
+                    die "the session reported FLOW_DONE but branch $branch is not landed"
                 break
                 ;;
             BLOCKED)
                 die "the flow is blocked: ${MARKER_REASON:-no reason given}"
-                ;;
-            SPIKED)
-                # A spike answers what to build and seeds new tasks; which of
-                # them to run, and in what order, is the user's call.
-                die "the flow spiked $TASK_ID; pick one of the tasks it seeded and run afk on that"
                 ;;
             *)
                 die "unknown control status '$MARKER_STATUS'"

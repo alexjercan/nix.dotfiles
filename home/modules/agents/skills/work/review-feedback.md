@@ -37,7 +37,7 @@ Commit the code AND the updated REVIEW.md together.
 
 - Latest round not a multiple of three -> REVIEWING; run
   `tatr -r <task-root> flow <id>` and dispatch review.
-- Latest round a multiple of three -> WORK_DONE without a transition; flow
+- Latest round a multiple of three -> WORKING_DONE without a transition; flow
   owns the review-continuation approval gate.
 
 ## 5. When the dispute will not resolve
@@ -48,6 +48,11 @@ cycling, and do not concede a point you believe is wrong just to converge.
 
 ## 6. Findings that are not this branch's problem
 
-A finding about a pre-existing problem the diff did not introduce becomes a
-new tatr task, created in this worktree, and its Response line names that task
-ID. It is not fixed here and it does not block the verdict.
+A finding about a pre-existing problem the diff did not introduce is answered
+`Out of scope: <one line of why>` and left. It is not fixed here, it seeds no
+task, and it does not block the verdict - an APPROVE means those bullets were
+judged ignorable, and a task nobody asked for is worse than a line in the
+record.
+
+Everything the diff DID introduce is fixed in this session. A finding is not
+deferred into a new task to get to APPROVE.

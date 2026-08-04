@@ -42,6 +42,6 @@ runs the proof independently before integrating. A returned claim is a claim,
 not evidence. The parent keeps the task records, the lifecycle transitions and
 the final verification; a subagent never runs `tatr flow` and never lands.
 
-Truly parallel work becomes its own Story and its own sprout worktree. Do not
+Truly parallel work becomes its own task and its own sprout worktree. Do not
 add a second writer to one worktree, and do not build a multi-branch
 integration scheme for it.

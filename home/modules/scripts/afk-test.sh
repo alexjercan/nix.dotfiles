@@ -154,7 +154,7 @@ EOF
 landing_message() {
     # $1: RETRO.md path  $2: the landing subject (default 'feat: land thing').
     # afk reads the landing commit message out of this section, so anything
-    # meant to reach the LAND_READY arm has to write one.
+    # meant to reach the COMPOUNDING_DONE arm has to write one.
     cat >> "$1" << EOF
 
 ## Landing message
@@ -238,13 +238,13 @@ gen_work_to_land() {
     # plan gate already left the cursor in WORKING, so there is nothing to
     # transition here.
     gen_sprout_work $((b + 1)) "$id"
-    reply $((b + 1)) "AFK WORK_DONE $id"
+    reply $((b + 1)) "AFK WORKING_DONE $id"
 
     # Worker: review APPROVE, compound, close the task. Those two transitions
     # belong to their phases, not to a gate, so the session still runs them -
     # and compound leaves the landing message afk lands with.
     gen_review_to_done $((b + 2)) "$id"
-    reply $((b + 2)) "AFK LAND_READY $id"
+    reply $((b + 2)) "AFK COMPOUNDING_DONE $id"
 }
 
 gen_goal_cycle() {
@@ -260,10 +260,11 @@ cd "$REPO"
 id=$(tatr new "afk goal" -t feature -p 50 | grep -oE '[0-9]{8}-[0-9]{6}' | tail -1)
 printf '%s\n' "$id" > "$AFK_TEST_TMP/task_id"
 tatr flow "$id" > /dev/null            # no activity -> UNDERSTANDING
-printf '# Notes: afk goal\n\n## What changes\n\nthe thing\n' > "$REPO/tasks/$id/NOTES.md"
+printf '# Notes: afk goal\n\n## Problem Statement\n\nthe thing\n' > "$REPO/tasks/$id/NOTES.md"
+tatr scaffold "$id" DECISION > /dev/null
 git -C "$REPO" add -A
 git -C "$REPO" commit -qm "docs: understand the goal"
-reply 1 "AFK NOTES_READY $id"
+reply 1 "AFK UNDERSTANDING_DONE $id"
 # Worker: write the plan.
 side 2 << 'INNER_PLAN'
 set -e
@@ -273,7 +274,7 @@ plan_sections "$REPO/tasks/$id/TASK.md"
 git -C "$REPO" add -A
 git -C "$REPO" commit -qm "docs: plan the goal"
 INNER_PLAN
-reply 2 "AFK PLAN_READY $id"
+reply 2 "AFK PLANNING_DONE $id"
 gen_work_to_land 2 "$id"
 EOF
 }
@@ -315,16 +316,17 @@ seed_task_at() {
     printf '%s\n' "$id"
 }
 
-write_notes() {
-    # $1: task ID. afk's understanding gate refuses to answer without a
-    # NOTES.md, so any fixture meant to exercise something past that
-    # precondition has to write one.
+write_understanding() {
+    # $1: task ID. afk's understanding gate refuses to answer without both
+    # NOTES.md and DECISION.md, so any fixture meant to exercise something
+    # past that precondition has to write both.
     (
         cd "$REPO" || exit 1
-        printf '# Notes: afk goal\n\n## What changes\n\nthe thing\n' \
+        printf '# Notes: afk goal\n\n## Problem Statement\n\nthe thing\n' \
             > "tasks/$1/NOTES.md"
+        tatr scaffold "$1" DECISION > /dev/null
         git add -A
-        git commit -qm "docs: notes for $1"
+        git commit -qm "docs: understanding for $1"
     )
 }
 
@@ -374,7 +376,7 @@ token_band_color() {
     restart_sandbox
     local id
     id=$(seed_working_task)
-    reply 1 "AFK DONE $id" "$1"
+    reply 1 "AFK FLOW_DONE $id" "$1"
     script -qec "bash '$AFK' run '$id'" /dev/null > "$TMP/pty.out" 2>&1
     grep -oE $'\033\\[[0-9;]*m''tokens' "$TMP/pty.out" | head -1
 }
@@ -671,12 +673,13 @@ test_entry_edge_is_afks() {
     # No activity -> UNDERSTANDING runs no gate and takes no approval, so afk
     # performs it rather than requiring a session to. A session is told not to
     # advance the task, and that reads across this edge too - it is the same
-    # `tatr flow <id>` call - so before afk owned it, a NOTES_READY reported
+    # `tatr flow <id>` call - so before afk owned it, a UNDERSTANDING_DONE reported
     # from a task still OPEN stopped the run outright.
     local out id
     id=$(seed_task)
     printf '# notes\n' > "$REPO/tasks/$id/NOTES.md"
-    reply 1 "AFK NOTES_READY $id"
+    (cd "$REPO" && tatr scaffold "$id" DECISION > /dev/null)
+    reply 1 "AFK UNDERSTANDING_DONE $id"
     # Session 2 has no scripted reply, so the run still fails on the missing
     # marker; what falsifies here is whether it got past the entry edge at all.
     out=$(afk run "$id" 2>&1)
@@ -700,7 +703,7 @@ test_refused_probe_wakes_a_session() {
     local out rc id
     # PLANNING with no '## Steps': tatr refuses to leave it.
     id=$(seed_task_at PLANNING)
-    reply 1 "AFK PLAN_READY $id"
+    reply 1 "AFK PLANNING_DONE $id"
     # The woken session writes the plan the probe asked for.
     side 2 << EOF
 set -e
@@ -710,7 +713,7 @@ plan_sections "\$REPO/tasks/\$id/TASK.md"
 git -C "\$REPO" add -A
 git -C "\$REPO" commit -qm "docs: plan \$id"
 EOF
-    reply 2 "AFK PLAN_READY $id"
+    reply 2 "AFK PLANNING_DONE $id"
     gen_work_to_land 2 "$id"
     out=$(afk run "$id" 2>&1)
     rc=$?
@@ -750,7 +753,7 @@ tatr flow $id > /dev/null 2>&1 || true
 git add -A
 git commit -qm "docs: earn the plan gate of $id"
 EOF
-    reply 1 "AFK PLAN_READY $id"
+    reply 1 "AFK PLANNING_DONE $id"
     # The next session clears the dependency and does the work.
     side 2 << EOF
 set -e
@@ -765,9 +768,9 @@ echo work > "\$wt/thing.txt"
 git -C "\$wt" add -A
 git -C "\$wt" commit -qm "feat: thing"
 EOF
-    reply 2 "AFK WORK_DONE $id"
+    reply 2 "AFK WORKING_DONE $id"
     gen_review_to_done 3 "$id"
-    reply 3 "AFK LAND_READY $id"
+    reply 3 "AFK COMPOUNDING_DONE $id"
     out=$(afk run "$id" 2>&1)
     rc=$?
 
@@ -799,9 +802,9 @@ git -C "\$wt" add -A
 git -C "\$wt" commit -qm "feat: thing"
 tatr -r "\$wt" flow "\$id" > /dev/null
 EOF
-    reply 1 "AFK WORK_DONE $id"
+    reply 1 "AFK WORKING_DONE $id"
     gen_review_to_done 2 "$id"
-    reply 2 "AFK LAND_READY $id"
+    reply 2 "AFK COMPOUNDING_DONE $id"
     out=$(afk run "$id" 2>&1)
     rc=$?
 
@@ -890,7 +893,7 @@ echo merged > "\$wt/thing.txt"
 git -C "\$wt" add -A
 git -C "\$wt" commit -qm "fix: resolve the landing target conflict"
 EOF
-    reply 3 "AFK LAND_READY $id"
+    reply 3 "AFK COMPOUNDING_DONE $id"
     out=$(afk run "$id" 2>&1)
     rc=$?
 
@@ -1006,33 +1009,44 @@ EOF
     check "the phantom task is not adopted" not str_contains "$out" "created"
 
     # A marker whose gate disagrees with durable state, in the direction the
-    # skip does not cover: PLAN_READY from a task that has not even reached
+    # skip does not cover: PLANNING_DONE from a task that has not even reached
     # PLANNING, so the PLAN gate is unearned and there is nothing to skip.
     restart_sandbox
     id=$(seed_task_at UNDERSTANDING)
-    reply 1 "AFK PLAN_READY $id"
+    reply 1 "AFK PLANNING_DONE $id"
     out=$(afk run "$id" 2>&1)
     rc=$?
     check "a gate behind its activity fails the run" test "$rc" -ne 0
     check "the inconsistency is named" str_contains "$out" "is in UNDERSTANDING, not PLANNING"
     check "the gate was never answered" test "$(invocations)" -eq 1
 
-    # NOTES_READY from a task still OPEN is NOT this shape: the entry edge is
+    # UNDERSTANDING_DONE from a task still OPEN is NOT this shape: the entry edge is
     # afk's own, so that case starts the task instead of failing the run. See
     # test_entry_edge_is_afks.
 
-    # NOTES_READY with no NOTES.md. tatr grants UNDERSTANDING -> PLANNING
+    # UNDERSTANDING_DONE with no NOTES.md. tatr grants UNDERSTANDING -> PLANNING
     # unconditionally, so without this the gate degrades to a bare stop that
     # any session can earn by running `tatr flow` twice.
     restart_sandbox
     id=$(seed_task_at UNDERSTANDING)
-    reply 1 "AFK NOTES_READY $id"
+    reply 1 "AFK UNDERSTANDING_DONE $id"
     out=$(afk run "$id" 2>&1)
     # No `rc -ne 0` check here: with the precondition removed the run still
     # fails, because session 2 has no scripted reply and dies on the missing
     # control marker. Only the reason and the invocation count falsify.
     check "the missing scratchpad is named" str_contains "$out" "no NOTES.md"
     check "the unbriefed gate was never answered" test "$(invocations)" -eq 1
+
+    # UNDERSTANDING_DONE with notes but no DECISION.md: the phase wrote its
+    # scratchpad and settled nothing, which is the failure planning inherits
+    # when it reads the decision record as authority.
+    restart_sandbox
+    id=$(seed_task_at UNDERSTANDING)
+    printf '# notes\n' > "$REPO/tasks/$id/NOTES.md"
+    reply 1 "AFK UNDERSTANDING_DONE $id"
+    out=$(afk run "$id" 2>&1)
+    check "the missing decision is named" str_contains "$out" "no DECISION.md"
+    check "the undecided gate was never answered" test "$(invocations)" -eq 1
 
     # An approval that leaves the cursor where it was. afk performs the
     # transition itself now, so "ineffective" means tatr accepted the call and
@@ -1041,9 +1055,9 @@ EOF
     # the gate had any effect at all.
     restart_sandbox
     id=$(seed_task_at UNDERSTANDING)
-    write_notes "$id"
+    write_understanding "$id"
     stub_inert_tatr_flow
-    reply 1 "AFK NOTES_READY $id"
+    reply 1 "AFK UNDERSTANDING_DONE $id"
     out=$(afk run "$id" 2>&1)
     rc=$?
     check "an ineffective understanding approval fails the run" test "$rc" -ne 0
@@ -1056,7 +1070,7 @@ EOF
     restart_sandbox
     id=$(seed_working_task)
     stub_inert_tatr_flow
-    reply 1 "AFK WORK_DONE $id"
+    reply 1 "AFK WORKING_DONE $id"
     out=$(afk run "$id" 2>&1)
     rc=$?
     check "an ineffective approval fails the run" test "$rc" -ne 0
@@ -1064,7 +1078,7 @@ EOF
     check "the activity it stayed in is named" str_contains "$out" "is in WORKING"
     check "no session was spent on that gate either" test "$(invocations)" -eq 1
 
-    # LAND_READY answered, but the branch never landed: a `sprout land` that
+    # COMPOUNDING_DONE answered, but the branch never landed: a `sprout land` that
     # passes every guard and writes nothing.
     restart_sandbox
     id=$(seed_working_task)
@@ -1081,20 +1095,21 @@ EOF
     rm -f "$TMP/n" "$TMP/argv.log"
     stub_half_landing_sprout
     side 1 < /dev/null
-    reply 1 "AFK LAND_READY $id"
+    reply 1 "AFK COMPOUNDING_DONE $id"
     out=$(afk run "$id" 2>&1)
     rc=$?
     check "a half-landing fails the run" test "$rc" -ne 0
     check "the surviving branch is named" str_contains "$out" "branch feature/thing still exists"
 
-    # A spiked flow: the runner must not pick a seeded task by itself.
+    # SPIKED is retired: the spike skill merged into understand, so the runner
+    # must not still route a status no skill declares.
     restart_sandbox
     id=$(seed_working_task)
     reply 1 "AFK SPIKED $id"
     out=$(afk run "$id" 2>&1)
     rc=$?
-    check "a spiked flow fails the run" test "$rc" -ne 0
-    check "the spike hands back to the user" str_contains "$out" "seeded"
+    check "a retired status fails the run" test "$rc" -ne 0
+    check "the retired status is named" str_contains "$out" "SPIKED"
 
     # The rotation bound.
     restart_sandbox
@@ -1149,7 +1164,7 @@ test_session_token_report() {
 
     restart_sandbox
     id=$(seed_working_task)
-    reply 1 "AFK DONE $id" 119999
+    reply 1 "AFK FLOW_DONE $id" 119999
     out=$(afk run "$id" 2>&1)
     check "the count is formatted in K with one decimal" \
         str_contains "$out" "tokens  119.9K"
@@ -1172,7 +1187,7 @@ test_session_token_report() {
     reply_raw 1 << EOF
 {"type":"system","subtype":"init","session_id":"fake"}
 {"type":"assistant","message":{"content":[{"type":"text","text":"phase running"}]}}
-{"type":"result","subtype":"success","is_error":false,"result":"phase summary\\nAFK DONE $id"}
+{"type":"result","subtype":"success","is_error":false,"result":"phase summary\\nAFK FLOW_DONE $id"}
 EOF
     out=$(afk run "$id" 2>&1)
     rc=$?
@@ -1230,7 +1245,7 @@ test_spinner_and_color_only_on_a_tty() {
 
     id=$(seed_working_task)
     gen_work_to_land 0 "$id"
-    reply_slow 1 "AFK WORK_DONE $id" 1.2
+    reply_slow 1 "AFK WORKING_DONE $id" 1.2
     script -qec "bash '$AFK' run '$id'" /dev/null > "$TMP/pty.out" 2>&1
     rc=$?
     pty=$(cat "$TMP/pty.out")
@@ -1248,7 +1263,7 @@ test_spinner_and_color_only_on_a_tty() {
     restart_sandbox
     id=$(seed_working_task)
     gen_work_to_land 0 "$id"
-    reply_slow 1 "AFK WORK_DONE $id" 1.2
+    reply_slow 1 "AFK WORKING_DONE $id" 1.2
     plain=$(afk run "$id" 2>&1)
     rc=$?
 
@@ -1270,7 +1285,7 @@ test_spinner_never_wraps() {
 
     id=$(seed_working_task)
     gen_work_to_land 0 "$id"
-    reply_slow 1 "AFK WORK_DONE $id" 1.2
+    reply_slow 1 "AFK WORKING_DONE $id" 1.2
     # 80 double-width glyphs: 160 display columns, and exactly the input the
     # character-counting truncation under-measures. reply_slow's transcript is
     # replaced, but its pause is kept, so at least one frame is drawn.
@@ -1278,7 +1293,7 @@ test_spinner_never_wraps() {
     reply_raw 1 << EOF
 {"type":"system","subtype":"init","session_id":"fake"}
 {"type":"assistant","message":{"content":[{"type":"text","text":"$wide"}],"usage":{"input_tokens":57594,"cache_creation_input_tokens":1,"cache_read_input_tokens":2,"output_tokens":3}}}
-{"type":"result","subtype":"success","is_error":false,"result":"phase summary\nAFK WORK_DONE $id"}
+{"type":"result","subtype":"success","is_error":false,"result":"phase summary\nAFK WORKING_DONE $id"}
 EOF
 
     # The pty is forced narrow so the payload also over-runs afk's own idea of
@@ -1330,7 +1345,7 @@ test_spinner_strips_control_bytes() {
 
     id=$(seed_working_task)
     gen_work_to_land 0 "$id"
-    reply_slow 1 "AFK WORK_DONE $id" 1.2
+    reply_slow 1 "AFK WORKING_DONE $id" 1.2
     # Built with printf, not written literally, so the control bytes cannot be
     # lost to an editor or a diff. jq -Rs makes the JSON string, so the
     # transcript stays valid input for afk's own jq extraction. reply_slow's
@@ -1339,7 +1354,7 @@ test_spinner_strips_control_bytes() {
     reply_raw 1 << EOF
 {"type":"system","subtype":"init","session_id":"fake"}
 {"type":"assistant","message":{"content":[{"type":"text","text":$payload}],"usage":{"input_tokens":57594,"cache_creation_input_tokens":1,"cache_read_input_tokens":2,"output_tokens":3}}}
-{"type":"result","subtype":"success","is_error":false,"result":"phase summary\nAFK WORK_DONE $id"}
+{"type":"result","subtype":"success","is_error":false,"result":"phase summary\nAFK WORKING_DONE $id"}
 EOF
 
     # 80 columns, unlike the wrap test's 40: the sanitized message must SURVIVE
@@ -1554,7 +1569,7 @@ EOF
 {"type":"result","subtype":"success","is_error":false,"result":"phase summary\nAFK BLOCKED $id"}
 EOF
     gen_review_to_done 3 "$id"
-    reply 3 "AFK LAND_READY $id"
+    reply 3 "AFK COMPOUNDING_DONE $id"
     out=$(AFK_SOFT_TOKENS=100000 AFK_HARD_TOKENS=200000 afk run "$id" 2>&1)
     rc=$?
 

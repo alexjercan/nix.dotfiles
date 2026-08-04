@@ -53,26 +53,27 @@ Dispatch from ACTIVITY plus GATES, not old intent.
 
 No gate gets a lifecycle marker. Recompute evidence, then use `gates.md`:
 
-- UNDERSTANDING -> NOTES_READY only with a `tasks/<id>/NOTES.md` carrying
-  every required section and no unanswered blocking question. Anything less
-  resumes understanding and rewrites it.
-- PLANNING -> PLAN_READY only with executable Story, Steps, and DoD, plus
+- UNDERSTANDING -> UNDERSTANDING_DONE only with a `tasks/<id>/NOTES.md`
+  carrying a confirmed problem, context and ranked ideas, plus a `DECISION.md`
+  naming the choice. Anything less dispatches `understand` from its first gap.
+- PLANNING -> PLANNING_DONE only with executable Story, Steps, and DoD, plus
   `cmd:` proofs red on the base for the intended missing change. `PLAN` already
   earned with the cursor still at PLANNING is a blocked dependency: the gate
   landed, so resolve the block and re-run rather than re-planning.
-- WORKING with `PLAN` earned and no review feedback -> WORK_DONE only with all
-  Steps complete, committed implementation and records, a clean tree, and green
-  automation.
+- WORKING with `PLAN` earned and no review feedback -> WORKING_DONE only with
+  all Steps complete, committed implementation and records, a clean tree, and
+  green automation.
 - WORKING after REQUEST_CHANGES -> require answered findings, committed fixes,
   a clean tree, and green verification. Latest round divisible by three means
-  WORK_DONE; otherwise transition to REVIEWING and dispatch review.
-- `RESOLUTION: DONE` with its branch in `sprout ls` -> LAND_READY. Without the
-  branch, use the default log to distinguish landed work from branch loss.
+  WORKING_DONE; otherwise transition to REVIEWING and dispatch review.
+- `RESOLUTION: DONE` with its branch in `sprout ls` -> COMPOUNDING_DONE.
+  Without the branch, use the default log to distinguish landed work from
+  branch loss.
 
 Missing evidence resumes the phase. `manual:` stays pending; never self-confirm
 it. A committed APPROVE still in REVIEWING is an interrupted handoff: run
 `tatr -r <task-root> flow <id>`. A committed retro in COMPOUNDING closes the
-record through the same command, then LAND_READY.
+record through the same command, then COMPOUNDING_DONE.
 
 ## Reconcile and report
 

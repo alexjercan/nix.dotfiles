@@ -11,6 +11,26 @@ Backtick test names/commands. A whole manual criterion stays inside its group.
 Move unprovable statements to Notes. Manual checks remain pending through
 review/landing and are batched to the user.
 
+## What earns which proof
+
+A `test:` proof requires observable behavior with a failure mode a test can
+provoke. Nothing else earns one:
+
+- Documentation, comments, README and skill prose: no test. Where the content
+  is load-bearing - a checklist a tool reads, a command someone will paste -
+  the proof is a `cmd:` that runs it or greps for it, not a test asserting the
+  words exist.
+- Examples and prototypes: the proof is that the documented run command works,
+  as a `cmd:`. A test wrapping an example tests the example, not the change.
+- Renames, moves and internal refactors: the existing suite is the proof. A
+  `cmd:` absence search covers the old name; nothing new is written.
+- Config, packaging and wiring: a `cmd:` that evaluates or builds it.
+- Taste, naming and structure: `manual:`, or nothing. Review reads the diff.
+
+A DoD item whose honest proof is `manual:` gets `manual:`. Inventing a test to
+avoid it produces a test that asserts the implementation back to itself, and
+that is worse than the unproven line it replaced.
+
 ## Test-first contract
 
 Phrase proofs so `work` can encode and watch them fail before implementation.

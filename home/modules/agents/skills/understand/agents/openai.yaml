@@ -1,0 +1,4 @@
+interface:
+  display_name: "Understand"
+  short_description: "Decide what to build before planning"
+  default_prompt: "Use $understand to confirm the problem, weigh ideas, and record the decision."

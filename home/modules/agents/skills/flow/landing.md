@@ -1,6 +1,6 @@
 # Landing a reviewed branch
 
-Read this only after `compound` closes the task and the LAND_READY gate in
+Read this only after `compound` closes the task and the COMPOUNDING_DONE gate in
 `gates.md` approves landing. Landing is PR-shaped: bring the branch up to date
 with its base, re-verify, then squash it back as ONE commit.
 
@@ -61,9 +61,10 @@ Do not push; that is the user's call.
 
 ## 5. Finish
 
-Under an epic, tick the task in the container TASK.md `## Child Tasks` and
-move its open `manual:` DoD items into the container's `## Manual Acceptance`.
-Report final verification and usage guidance. End `GOAL DONE <id>`.
+Where other tasks depend on this one, say which of them the landing unblocks,
+and carry its open `manual:` DoD items to the user rather than leaving them in
+a closed record. Report final verification and usage guidance. End
+`FLOW_DONE <id>`.
 
 ## Failure modes
 

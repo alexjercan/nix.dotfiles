@@ -63,6 +63,9 @@ Unexpected scope, a missed task split, or review-driven restructuring is one
 such bullet, prefixed `Process signal:` for the retro to mine. It is evidence
 about the plan, not a code finding, and never blocks a verdict.
 
+A problem the diff did not introduce is the other, prefixed `Out of scope:`:
+no severity, no new task, never a blocker. An APPROVE says they are ignorable.
+
 ## Required fields
 
 - `- VERDICT:` per round, `APPROVE` or `REQUEST_CHANGES` and nothing else

@@ -20,18 +20,17 @@ Resolve ID, else `tatr new`. For an existing ID `resume.md` selects
 | State | Skill | Result |
 |-|-|-|
 | no ACTIVITY | | UNDERSTANDING |
-| UNDERSTANDING | | concrete: NOTES_READY gate |
-| WHAT unknown | `spike` | seeds tasks, `SPIKED` |
-| PLANNING | `plan` | PLAN_READY gate |
-| WORKING+PLAN | `work` | sprout; WORK_DONE gate |
+| UNDERSTANDING | `understand` | NOTES, DECISION; UNDERSTANDING_DONE gate |
+| PLANNING | `plan` | PLANNING_DONE gate |
+| WORKING+PLAN | `work` | sprout; WORKING_DONE gate |
 | REVIEWING | `review` | verdict |
 | REVIEWING+REQUEST_CHANGES | `work` | rewind; fix |
 | REVIEWING+APPROVE | `review` | REVIEW earned; compound |
-| COMPOUNDING | `compound` | RETRO earned, DONE; LAND_READY gate |
-| RESOLUTION DONE, branch | | LAND_READY gate |
+| COMPOUNDING | `compound` | RETRO earned, DONE; COMPOUNDING_DONE gate |
+| RESOLUTION DONE, branch | | COMPOUNDING_DONE gate |
 
-`spike` is a handoff. Unknown WHAT: ask one constraint; record it in
-DECISION.md. New work gets its own task.
+An unknown WHAT stays inside `understand`, which gathers the evidence and
+records the choice. New work found there gets its own task.
 
 ## Gates
 
@@ -45,14 +44,13 @@ rounds, two blocked fix cycles, or destructive/external action.
 
 ## Output
 
-Concise bullets. Include `<id>` and one status: `SPIKED`, `NOTES_READY`,
-`PLAN_READY`, `WORK_DONE`, `LAND_READY`, or `GOAL DONE`.
+Concise bullets. Include `<id>` and one status: `UNDERSTANDING_DONE`,
+`PLANNING_DONE`, `WORKING_DONE`, `COMPOUNDING_DONE`, or `FLOW_DONE`.
 
 ## Load on demand
 
-- ACTIVITY is UNDERSTANDING, or the task is new -> `understanding.md`
-- explicit epic, sprint, version, release, or multi-feature goal -> `epic.md`
-- a phase or resume returns NOTES_READY, PLAN_READY, WORK_DONE,
-  or LAND_READY -> `gates.md`
-- LAND_READY was approved, or a land failed -> `landing.md`
+- explicit sprint, version, release, or multi-feature goal -> `graph.md`
+- a phase or resume returns UNDERSTANDING_DONE, PLANNING_DONE, WORKING_DONE,
+  or COMPOUNDING_DONE -> `gates.md`
+- COMPOUNDING_DONE was approved, or a land failed -> `landing.md`
 - an existing ID, a context checkpoint, or context loss -> `resume.md`

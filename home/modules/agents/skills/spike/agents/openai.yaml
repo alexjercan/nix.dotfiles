@@ -1,4 +1,0 @@
-interface:
-  display_name: "Spike"
-  short_description: "Research a fuzzy question"
-  default_prompt: "Use $spike to research this question and seed direction-level tasks."

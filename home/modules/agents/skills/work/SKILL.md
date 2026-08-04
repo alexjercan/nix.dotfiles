@@ -22,16 +22,16 @@ Ship the maintainable solution, not the smallest plausible diff.
    implementation.
 4. For each `test:` or `cmd:` proof, make it fail for the intended reason,
    implement minimally, then refactor green. Prefer an integration/example
-   boundary; use a unit test only for a unit-shaped seam. Never weaken a test.
-   Keep `manual:` pending. Code comments are only for docstrings or essential
-   implementation notes; put explanatory prose in task records. Never prune a
-   comment that guards a value or explains a non-obvious setting. Update
-   invalidated docs; record new load-bearing choices in DECISION.md.
+   boundary; use a unit test only for a unit-shaped seam. The DoD's proofs are
+   the whole test contract; write no others, and weaken none.
+   Keep `manual:` pending. Code comments are docstrings or essential
+   implementation notes only; never prune one that guards a value. Update
+   invalidated docs; an uncovered load-bearing choice stops for the user.
 5. Run the full suite and every `tatr -r <task-root> proofs <id>` proof.
 6. Tick a Step only after re-reading and completing every clause. Add TASK.md
    close-out: what/why, alternatives, difficulties/diagnosis, evidence, and
    reflection. Commit implementation and records together.
-   Initial work returns WORK_DONE without a transition.
+   Initial work returns WORKING_DONE without a transition.
    Flow owns approval to REVIEWING; `review-feedback.md` owns later handoffs.
 
 ## Rules
@@ -48,7 +48,7 @@ Ship the maintainable solution, not the smallest plausible diff.
 
 Worktree, branch, task ID, changed files, proof results, confidence/risk, and
 inspection commands; at most 150 words. Return the gate status
-`WORK_DONE <id>` without changing lifecycle state. Leave the worktree. Do not
+`WORKING_DONE <id>` without changing lifecycle state. Leave the worktree. Do not
 merge, remove, or push.
 
 ## Load on demand

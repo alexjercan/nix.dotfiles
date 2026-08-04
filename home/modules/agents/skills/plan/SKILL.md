@@ -3,43 +3,39 @@ name: plan
 description: Turn a request into tatr tasks with ordered Steps and proof-bearing done criteria. Use for `/plan`, or for work needing scoping first.
 ---
 
-# Plan - Request to Implementable Tasks
+# Plan - Decision to Implementable Task
 
-Output: `tasks/<id>/TASK.md` a cold session can execute top to bottom.
+Understanding chose what to build. This phase asks whether that is a sound
+starting point, then writes `tasks/<id>/TASK.md` a cold session can execute.
 
 ## Workflow
 
-1. Read the request, named task,
-   `tatr -r <task-root> context <id> --phase plan` artifacts, relevant code,
-   and `tatr ls --sort priority`. Read `tasks/<id>/NOTES.md` when present:
-   input, not authority. Use `spike` when WHAT is unknown. Ask only when code
-   cannot answer; state the mutually exclusive constraint.
-2. Keep one cohesive change as one task. Split only independently
-   committable pieces or an explicit multi-feature container. Name touched
-   ownership boundaries. Size to one understand-build-review pass. A task
-   needing a throwaway shim or broken intermediate state does not split -
-   record the reason and its breadth instead.
-3. Create with
-   `tatr new "<imperative title>" -p <priority> -t <tags> -b <body-file>`.
-   Run one creation per command. Priority is soft ordering; `-d` is hard
-   ordering. Update a named existing task, never duplicate it.
+1. Read `tatr -r <task-root> context <id> --phase plan`, `DECISION.md`,
+   NOTES.md and the code they name. The decision is authority; NOTES.md is
+   input. Ask only what neither the records nor the code answer.
+2. Challenge the starting point before writing Steps: does the chosen shape
+   survive the code as it is now? A real problem goes to the user with what it
+   breaks, and rewinds to `understand` rather than being planned around.
+3. Keep one cohesive change as one task. Split only independently committable
+   pieces, wiring the split with `-d`. Name touched ownership boundaries. Size
+   to one understand-build-review pass. A task needing a throwaway shim or
+   broken intermediate state does not split - record the reason instead.
+   Create with
+   `tatr new "<imperative title>" -p <priority> -t <tags> -b <body-file>`,
+   one per command, updating a named existing task rather than duplicating it.
 4. Write ordered, verifiable Steps naming touched files. Every DoD item names
    its proof. Notes hold discovered files/facts, assumptions, and questions.
-   Cite evidence for mechanisms and ordering, or say `confirm X, then ...`.
    Verify load-bearing git/Nix semantics in scratch. Phrase conditional
-   work as `decide X: do, or defer with reason`. Record load-bearing choices
-   in DECISION.md.
+   work as `decide X: do, or defer with reason`.
 5. Present via Output. Under `flow`, lifecycle stays PLANNING; its approved
    `tatr -r <task-root> flow <id>` earns the `PLAN` gate.
 
 ## Rules
 
-- No padding. Plan from the system, not a remembered model.
-- Plan the simplest design that satisfies the DoD: knowing the current
-  constraints, would we build this route from scratch? Keep a concept budget -
-  every mode, branch, option, wrapper, extension point, generality, or
-  abstraction needs a
-  named requirement, caller, or invariant in this task, or it is deferred.
+- No padding; plan from the code, not a remembered model.
+- Plan the decision, nothing beside it. A mode, option, wrapper or
+  abstraction the decision did not choose needs a named requirement or caller
+  in this task, or it is deferred.
 - File and line counts prompt an inspection, never a design verdict.
 - Run each `cmd:` proof on the base branch; it must be red for the intended
   missing change.
@@ -50,11 +46,11 @@ Output: `tasks/<id>/TASK.md` a cold session can execute top to bottom.
 
 `/plan`: IDs, titles, assumptions; offer to commit task files. No
 implementation. Under `/flow`: concise operator plan - what changes, ordered
-Steps, DoD proofs, assumptions, decisions, and inspection commands. Return
-the gate status `PLAN_READY <id>` without changing lifecycle state.
+Steps, DoD proofs, assumptions, and inspection commands, plus any reason this
+plan might not hold, stated as a risk rather than buried. Return the gate
+status `PLANNING_DONE <id>` without changing lifecycle state.
 
 ## Load on demand
 
 - writing DoD or judging a proof -> `proofs.md`
-- load-bearing architecture/interface choice -> `decision.md`
-- irreversible fork, independent domains, oversized Epic, or requested lanes -> `lanes.md`
+- irreversible fork, independent domains, oversized goal, or requested lanes -> `lanes.md`
