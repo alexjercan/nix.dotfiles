@@ -2,7 +2,6 @@
 
 - PRIORITY: 90
 - TAGS: nix, security, sops, scufris
-- KIND: TASK
 - ACTIVITY: COMPOUNDING
 - GATES: PLAN REVIEW RETRO
 - RESOLUTION: DONE

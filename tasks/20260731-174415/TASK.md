@@ -2,7 +2,6 @@
 
 - PRIORITY: 75
 - TAGS: skills, compound, lessons, docs, flow
-- KIND: STORY
 - ACTIVITY: COMPOUNDING
 - GATES: PLAN REVIEW RETRO
 - RESOLUTION: DONE

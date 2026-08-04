@@ -2,7 +2,6 @@
 
 - PRIORITY: 70
 - TAGS: skills, flow, docs, refactor
-- KIND: TASK
 - ACTIVITY: COMPOUNDING
 - GATES: PLAN REVIEW RETRO
 - RESOLUTION: DONE

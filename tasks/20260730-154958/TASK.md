@@ -2,7 +2,6 @@
 
 - PRIORITY: 65
 - TAGS: feature, skills, flow, parallel, review
-- KIND: STORY
 - ACTIVITY: COMPOUNDING
 - GATES: PLAN REVIEW RETRO
 - RESOLUTION: DONE

@@ -2,7 +2,6 @@
 
 - PRIORITY: 70
 - TAGS: feature, skills, flow, spike
-- KIND: STORY
 - ACTIVITY: COMPOUNDING
 - GATES: PLAN REVIEW RETRO
 - RESOLUTION: DONE

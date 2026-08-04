@@ -2,7 +2,6 @@
 
 - PRIORITY: 1
 - TAGS: feature, docs, skills, historical
-- KIND: TASK
 - ACTIVITY: COMPOUNDING
 - GATES: PLAN REVIEW RETRO
 - RESOLUTION: DONE

@@ -2,7 +2,6 @@
 
 - PRIORITY: 50
 - TAGS: feature, flow, tatr, migration, testing
-- KIND: STORY
 - ACTIVITY: COMPOUNDING
 - GATES: PLAN REVIEW RETRO
 - RESOLUTION: DONE

@@ -2,7 +2,6 @@
 
 - PRIORITY: 80
 - TAGS: feature, agents, flow, claude
-- KIND: TASK
 - ACTIVITY: COMPOUNDING
 - GATES: PLAN REVIEW RETRO
 - RESOLUTION: DONE

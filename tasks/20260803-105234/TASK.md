@@ -2,7 +2,6 @@
 
 - PRIORITY: 70
 - TAGS: sprout, scripts, skills, afk
-- KIND: TASK
 - ACTIVITY: COMPOUNDING
 - GATES: PLAN REVIEW RETRO
 - RESOLUTION: DONE

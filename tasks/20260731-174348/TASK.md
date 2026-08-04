@@ -2,7 +2,6 @@
 
 - PRIORITY: 85
 - TAGS: skills, work, parallel, docs, flow
-- KIND: STORY
 - ACTIVITY: COMPOUNDING
 - GATES: PLAN REVIEW RETRO
 - RESOLUTION: DONE
