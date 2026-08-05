@@ -5,6 +5,7 @@ Global agent guidelines.
 ## Core rules
 
 - Brevity first. Sacrifice grammar for concision.
+- Use ASD-STE100 Simplified Technical English.
 - Fragments over full sentences.
 - Bullets over prose.
 - Flat structure. Tables instead of 3+ bullet levels.
