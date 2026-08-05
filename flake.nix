@@ -48,17 +48,6 @@
       url = "github:alexjercan/macros.nvim/v0.1.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    scufris = {
-      # DELIBERATELY tracking master instead of the release tag this normally
-      # pins: `nixosModules.scufris-hostd` (the privileged host helper wired up
-      # in hosts/nixos) exists only on master and does not ship until v0.2.0.
-      # Re-pin to `github:alexjercan/scufris/v0.2.0` once that is released - a
-      # floating input moves the whole app on every `nix flake update`, not just
-      # the helper being tested.
-      # Releases: https://github.com/alexjercan/scufris/releases
-      url = "github:alexjercan/scufris";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs = inputs:
