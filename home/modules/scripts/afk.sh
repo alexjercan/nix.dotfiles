@@ -419,7 +419,7 @@ run_item() {
         IN_PROGRESS) ;;
         CLOSED)
             [[ -z $(task_worktree "$id") ]] || die "$id is CLOSED but still has a worktree"
-            line "$C_LAND" done "$id already CLOSED"
+            line "$C_LAND" "done" "$id already CLOSED"
             ITEM_SESSIONS=0
             return 0
             ;;
@@ -474,7 +474,7 @@ run_item() {
 
     local elapsed=$((SECONDS - item_started))
     say ""
-    head_line "$C_LAND" done "$id landed"
+    head_line "$C_LAND" "done" "$id landed"
     say "$(printf '      %d sessions, %dm%02ds' "$session" $((elapsed / 60)) $((elapsed % 60)))"
     ITEM_SESSIONS=$session
 }
