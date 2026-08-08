@@ -36,7 +36,6 @@ budget_for() {
     work)       echo 250 ;;
     review)     echo 250 ;;
     compound)   echo 250 ;;
-    flow)       echo 250 ;;
     sprout)     echo 250 ;;
     *)          echo 250 ;;
   esac
@@ -99,4 +98,3 @@ if [ "$findings" -gt 0 ]; then
 fi
 
 printf 'skills: clean (%d skills)\n' "$skills"
-

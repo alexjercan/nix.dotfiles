@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-# afk - run /flow unattended through disposable Claude Code sessions.
-# /flow owns the workflow. afk only creates/resumes tasks, rotates context,
-# checks durable progress, and stops on completion or a human blocker.
+# afk - complete planned tasks through disposable Claude Code sessions.
 
 set +o errexit
 set +o pipefail
@@ -9,10 +7,10 @@ set +o nounset
 
 usage() {
     echo "Usage: afk <COMMAND> [ARGS]"
-    echo "Run /flow unattended through fresh Claude Code sessions."
+    echo "Complete planned tasks through fresh Claude Code sessions."
     echo
     echo "Commands:"
-    echo "  run <goal|task-id>...  Run goals/tasks sequentially until landed"
+    echo "  run <task-id>...  Run planned tasks sequentially until landed"
     echo "  help                   Show this help message"
     echo
     echo "Environment:"
@@ -26,8 +24,23 @@ usage() {
 read -r -d '' PROTOCOL <<'EOF_PROTOCOL'
 AFK RUNNER PROTOCOL
 
-You are running unattended. AskUserQuestion is disabled. Run the requested
-/flow autonomously and use durable task artifacts for handoff across sessions.
+You are running unattended. AskUserQuestion is disabled. Continue the planned
+task autonomously from durable task artifacts and repository state.
+
+The task already has non-empty Steps and Definition of Done. Run this cycle:
+
+1. Use the work skill. Create or reuse one sprout worktree. Implement, verify,
+   update the task record, and commit task-owned changes.
+2. Use the review skill. Open BLOCKER or MAJOR findings return to work. MINOR,
+   NIT, and pending human proofs do not block APPROVE.
+3. On APPROVE, use the compound skill to write RETRO.md. Then follow AGENTS.md
+   knowledge instructions and close the task. Knowledge write failures stay in
+   RETRO and do not block completion.
+4. From main, sync, run final verification, and land. Never push. A dirty main
+   checkout or unrelated user changes block landing. Do not stash them.
+
+Resume from visible state. Use safe, reversible recovery for task-owned
+failures. Stop for destructive, external, uncertain, or user-owned actions.
 
 For a task, keep its tatr STATUS IN_PROGRESS while work is active. Before the
 final sprout land, set it CLOSED so the landed commit contains the closed task.
@@ -40,7 +53,7 @@ End every response with exactly one final line:
 
   CONTINUE   useful durable progress was made, but another fresh context is useful
   FLOW_DONE  the branch is landed and the task is finished
-  BLOCKED    a human decision or human: proof is required; add a short reason
+  BLOCKED    a human decision or unsafe recovery is required; add a short reason
 
 Never invent a task ID. Never report FLOW_DONE while a sprout worktree/branch
 for the task still exists.
@@ -171,6 +184,19 @@ task_file() { printf '%s/tasks/%s/TASK.md\n' "$(task_root "$1")" "$1"; }
 
 task_exists() { [[ -f $(task_file "$1") ]]; }
 
+task_is_planned() {
+    local file
+    file=$(task_file "$1") || return 1
+    awk '
+        /^## Steps$/ { section="steps"; next }
+        /^## Definition of Done$/ { section="dod"; next }
+        /^## / { section="" }
+        section == "steps" && /^- \[[ xX]\] .+/ { steps=1 }
+        section == "dod" && /^- .+/ { dod=1 }
+        END { exit !(steps && dod) }
+    ' "$file"
+}
+
 task_status() {
     local file
     file=$(task_file "$1") || return 1
@@ -234,24 +260,6 @@ report_commits() {
     if [[ -n $after && $after != "$main_before" ]]; then
         line "$C_COMMIT" commit "${after:0:7} $(git -C "$main_worktree" log -1 --format=%s "$after")"
     fi
-}
-
-create_task() {
-    local goal=$1 out id before after
-    before=$(mktemp)
-    after=$(mktemp)
-    find "$main_worktree/tasks" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null | sort >"$before"
-    out=$(tatr -r "$main_worktree" new "$goal" 2>&1)
-    [[ $? -eq 0 ]] || { rm -f "$before" "$after"; die "tatr new failed: $out"; }
-    id=$(printf '%s\n' "$out" | grep -oE '[0-9]{8}-[0-9]{6}' | tail -1)
-    if [[ -z $id ]]; then
-        find "$main_worktree/tasks" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null | sort >"$after"
-        id=$(comm -13 "$before" "$after" | grep -E '^[0-9]{8}-[0-9]{6}$' | head -1)
-        [[ $(comm -13 "$before" "$after" | grep -Ec '^[0-9]{8}-[0-9]{6}$') -eq 1 ]] || id=""
-    fi
-    rm -f "$before" "$after"
-    [[ -n $id ]] || die "tatr created a task but afk could not identify its ID"
-    printf '%s\n' "$id"
 }
 
 on_signal() {
@@ -397,19 +405,13 @@ require_progress() {
 }
 
 run_item() {
-    local input=$1 goal="" id="" session=0 prev_fp="" prompt
+    local id=$1 session=0 prev_fp="" prompt
     local main_before feature_before branch status item_started=$SECONDS
 
-    if [[ $input =~ ^[0-9]{8}-[0-9]{6}$ ]]; then
-        id=$input
-        task_exists "$id" || die "no task $id"
-        head_line "$C_AFK" task "$id"
-    else
-        goal=$input
-        head_line "$C_AFK" goal "$goal"
-        id=$(create_task "$goal")
-        line "$C_PHASE" task "$id created"
-    fi
+    task_exists "$id" || die "no task $id"
+    task_is_planned "$id" ||
+        die "$id is not planned; TASK.md needs non-empty Steps and Definition of Done"
+    head_line "$C_AFK" task "$id"
 
     status=$(task_status "$id")
     case "$status" in
@@ -433,7 +435,7 @@ run_item() {
         say ""
         head_line "$C_SESSION" "session $session" "$SESSION_UUID"
         report_state "$id"
-        prompt="/flow $id"
+        prompt="Continue planned task $id under the AFK runner protocol."
         line "$C_PROMPT" prompt "$prompt"
 
         main_before=$(ref_head HEAD)
@@ -460,7 +462,7 @@ run_item() {
                 line "$C_NEXT" next "rotating to fresh context"
                 ;;
             BLOCKED)
-                die "flow blocked: ${MARKER_REASON:-human input required}"
+                die "afk blocked: ${MARKER_REASON:-human input required}"
                 ;;
             FLOW_DONE)
                 [[ -z $(task_worktree "$id") ]] || die "FLOW_DONE but task $id still has a worktree"
@@ -478,18 +480,20 @@ run_item() {
 }
 
 cmd_run() {
-    [[ $# -ge 1 ]] || die "run takes at least one goal or task ID"
+    [[ $# -ge 1 ]] || die "run takes at least one task ID"
     [[ -n $main_worktree ]] || die "not inside a git repository"
     cd "$main_worktree" || die "cannot enter $main_worktree"
 
     local arg
     for arg in "$@"; do [[ -n $arg ]] || die "empty run argument"; done
     for arg in "$@"; do
-        [[ $arg =~ ^[0-9]{8}-[0-9]{6}$ ]] || continue
+        [[ $arg =~ ^[0-9]{8}-[0-9]{6}$ ]] || die "invalid task ID '$arg'"
         task_exists "$arg" || die "no task $arg"
+        task_is_planned "$arg" ||
+            die "$arg is not planned; TASK.md needs non-empty Steps and Definition of Done"
     done
 
-    head_line "$C_AFK" afk "unattended flow runner"
+    head_line "$C_AFK" afk "planned task runner"
     head_line "$C_AFK" repo "$main_worktree"
 
     local total=$# index=0 sessions=0 started=$SECONDS

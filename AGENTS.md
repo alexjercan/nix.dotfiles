@@ -7,7 +7,7 @@ what is specific to this repository.
 
 My NixOS and home-manager configuration (flake at the root, hosts under
 `hosts/`, home modules under `home/modules/`). It is also the SOURCE of most
-agent tooling: the flow-family skills live in `home/modules/agents/skills/`
+agent tooling: the agent skills live in `home/modules/agents/skills/`
 and the sprout/afk/today CLIs live in `home/modules/scripts/`. Tool-owned
 skills can come from their own flakes; `tatr` and `knowledge` are imported
 from their locked inputs when exposed. The home-manager
@@ -29,18 +29,20 @@ global `home/modules/agents/AGENTS.md` to `~/AGENTS.md`.
   `bash home/modules/agents/skills/check.sh`,
   `bash home/modules/scripts/sprout-test.sh`,
   `bash home/modules/scripts/afk-test.sh`, `tatr check`.
-- Knowledge: central repo `/home/alex/personal/agent-knowledge`; project=nix.dotfiles; tags=agents,nix,flow,skills. Advisory only; failed writes stay in RETRO.
+- Knowledge: central repo `/home/alex/personal/agent-knowledge`; project=nix.dotfiles; tags=agents,nix,afk,skills. Advisory only; failed writes stay in RETRO.
 
 Detail: the Check suite section below.
 
-## Development flow
+## Development workflow
 
-- `/flow` drives development here: understand/plan/work/review/compound as
-  tatr tasks under `tasks/`, each in a sprout worktree, round-1 reviews
-  by an out-of-context reviewer, DoD items with test:/cmd:/manual: proofs.
-- Records live in the task folders (`tasks/<id>/`). `/compound` writes RETRO
-  and routes reusable observations through the `knowledge` skill.
-- The conformance gate is `tatr check`; it must exit 0.
+- Prepare tasks with `understand` and `plan`. `afk run <task-id>` accepts only
+  a TASK.md with non-empty Steps and Definition of Done.
+- `afk` drives work, review, compound, sync, verification, and landing. Each
+  task uses one sprout worktree. BLOCKER/MAJOR findings return to work.
+- `compound` writes RETRO. `afk` then applies the knowledge policy, closes the
+  task, syncs, verifies, and lands.
+- `human:` proofs stay pending and do not block review approval.
+- Records live under `tasks/<id>/`. The conformance gate is `tatr check`.
 
 ## Check suite
 
@@ -50,15 +52,9 @@ Detail: the Check suite section below.
   PATH, so it proves the control logic (session rotation, the mechanical
   gates, state cross-checks, stop policy) without spending model quota. Like
   `sprout-test.sh` it is a hand-run check, not part of `nix flake check`.
-- `bash home/modules/agents/skills/check.sh` - the skill-suite conformance
-  gate: context budgets, the conditional-reference graph, the invocation
-  policy, duplicated rules, a present `## Output` contract, and
-  `direct-state-edit` (no flow-family skill may tell an agent to write a
-  lifecycle marker by hand - `tatr flow` owns those). `--rules` prints the
-  rule inventory. Runs in about
-  two seconds; every rule is structural, so it proves the files have the right
-  SHAPE and never that a reference still states the rule it carries. That is a
-  review question.
+- `bash home/modules/agents/skills/check.sh` - structural skill checks:
+  frontmatter, metadata, ASCII-adjacent writing, and 250-word body budgets.
+  It does not prove instruction quality.
 - `nix flake check` - flake evaluation AND the `checks` outputs under
   `flake/`, which assert wiring spanning two evaluations (the NixOS config and
   the standalone home config) that evaluating either one alone cannot catch.
@@ -72,25 +68,15 @@ Detail: the Check suite section below.
 
 ## Skills are a doc surface
 
-Editing anything the skills describe (sprout behavior, tatr conventions, the
-flow itself) invalidates the skill texts in `home/modules/agents/skills/`;
+Editing anything the skills describe (sprout behavior, tatr conventions, or
+the afk workflow) invalidates the skill texts in `home/modules/agents/skills/`;
 per the docs-sync rule, update those surfaces in the same task, and keep the
 skills generic - they run in every repo, not just this one.
 
-The flow skill also has a MACHINE consumer now: `home/modules/scripts/afk.sh`.
-Two vocabularies meet there, and only one is shared. `afk.sh` routes on
-`UNDERSTANDING_DONE`, `PLANNING_DONE`, `WORKING_DONE`, `COMPOUNDING_DONE` and
-`FLOW_DONE` from the
-skills' `## Output` contracts; it answers each gate itself with `tatr flow` or
-`sprout sync`/`sprout land`, so it never sends an approve label back to a
-session and does not depend on the gate prose in `flow/gates.md`. `ROTATE`
-and `BLOCKED` are afk's own, defined only in its
-PROTOCOL heredoc; no skill declares them. Changing a shared status means
-changing `afk.sh` and `afk-test.sh` in the same task.
+`home/modules/scripts/afk.sh` owns autonomous orchestration and its private
+`CONTINUE`, `FLOW_DONE`, and `BLOCKED` protocol. It requires an existing
+planned task. Change `afk.sh` and `afk-test.sh` together when this contract
+changes.
 
-They are also budgeted. `flow/SKILL.md` is at most 300 words; each other skill
-body is at most 400; each conditional reference is at most 600, pointed at
-from a `## Load on demand` section and read
-only when its condition holds. A rule a tool or template can enforce belongs
-there, and the prose it replaces is deleted in the same change. See
-`home/modules/agents/skills/README.md`.
+Every managed SKILL.md body is at most 250 words. Put enforceable rules in
+tools or templates. See `home/modules/agents/skills/README.md`.

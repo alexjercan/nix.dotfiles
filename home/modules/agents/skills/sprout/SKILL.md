@@ -28,3 +28,7 @@ sprout rm <feature>
 * One task per worktree.
 * Use absolute paths across agent calls.
 * Run `sprout land` from main, never from the feature worktree.
+* Recover automatically only when the action is safe, reversible, and owned
+  by the task. Stop for destructive, uncertain, or unrelated user changes.
+* A dirty main checkout blocks landing. Report exact paths. Do not stash
+  unrelated changes without user permission.

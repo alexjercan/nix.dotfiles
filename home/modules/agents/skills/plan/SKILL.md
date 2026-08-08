@@ -13,7 +13,7 @@ Turn completed understanding into an implementation plan. No understanding -> no
 * Requires `NOTES.md` from `/understand`.
 * Read referenced PoCs, scripts, diagrams, experiments, and code.
 * Do not use existing `TASK.md` content as planning context.
-* Missing `NOTES.md` -> refuse: "I am a clanker. I cannot plan without understanding. Use /understand first."
+* Missing `NOTES.md` -> stop: "Missing NOTES.md. Run /understand first."
 
 ## Output
 
@@ -45,4 +45,3 @@ Write these sections to `TASK.md`:
   * `human:` naming, UX, structure, taste, or other judgement.
 * Do not invent tests to avoid `human:`.
 * Replace existing `## Steps` and `## Definition of Done`. Preserve other `TASK.md` content without using it as input.
-

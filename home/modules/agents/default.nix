@@ -14,7 +14,6 @@
   # being deployed.
   localSkills = [
     "compound"
-    "flow"
     "plan"
     "review"
     "sprout"

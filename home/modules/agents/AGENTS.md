@@ -4,9 +4,9 @@ Global agent guidelines.
 
 ## Core rules
 
-- Brevity first. Sacrifice grammar for concision.
+- Brevity first. Remove preambles, repetition, and filler.
 - Use ASD-STE100 Simplified Technical English.
-- Fragments over full sentences.
+- Prefer fragments and short sentences. Keep enough grammar for precision.
 - Bullets over prose. Flat structure.
 - Direct statements. No hedging or preambles.
 - Reference prior context instead of repeating it.
@@ -24,8 +24,14 @@ Global agent guidelines.
 - Optimize for correctness, maintainability, and design quality.
 - Ignore implementation time. Refactoring and tests are valid costs.
 - Quality is a cost worth paying; scope is not.
-- Code comments: docstrings or essential implementation notes only.
-- Code comments: Put explanatory prose in task records.
+- Keep architecture simple. Avoid spaghetti code and speculative machinery.
+- Code comments: docstrings or essential implementation notes only. Put
+  explanatory prose in task records.
+- Keep comments that guard values or explain non-obvious settings.
+
+## Commits
+
+- User authorship only. No AI attribution or co-author trailers.
 
 ## Testing
 

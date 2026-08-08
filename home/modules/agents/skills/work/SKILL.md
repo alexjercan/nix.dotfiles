@@ -16,9 +16,11 @@ Implement the requested change.
 
 ## Rules
 
-* Use TDD: red -> green -> refactor.
-* Bug -> reproduce with a failing test before fixing it.
-* Prefer tests at the behavior boundary. Add unit tests where useful.
+* Use red -> green -> refactor when behavior has a meaningful automated test.
+* Bug -> reproduce with a failing test before fixing it when practical.
+* Prefer tests at the behavior boundary. Add unit tests for unit-shaped seams.
+* Docs, prose, simple configuration, packaging, and mechanical changes do not
+  require invented tests. Use the most direct `cmd:` or `human:` proof.
 * Follow `CONVENTIONS.md` and `AGENTS.md`.
 * Keep scope focused. No unrelated cleanup or speculative abstractions.
 * Run relevant tests and checks after implementation.

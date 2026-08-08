@@ -11,7 +11,7 @@ Understand the problem before solving it. No production implementation.
 ## Workspace
 
 * Task ID -> `<task-dir>/NOTES.md`.
-* No task ID -> `/tmp/understand-XXXXXX/NOTES.md`.
+* No task ID -> create a directory with `mktemp -d`; write `NOTES.md` there.
 * Do not modify task state.
 
 ## Notes

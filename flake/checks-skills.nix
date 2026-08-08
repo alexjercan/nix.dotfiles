@@ -236,14 +236,8 @@
       } ''
         fail() { echo "compound-observation-failure-is-non-blocking: $1" >&2; exit 1; }
 
-        grep -q 'through the `knowledge` skill with project and' "$compound" ||
-          fail "compound does not route observations through the knowledge skill"
-        grep -q 'failed observation writes' "$compound" ||
-          fail "compound does not keep failed observation writes in RETRO"
-        grep -q 'Do not search' "$compound" ||
-          fail "compound still owns lifecycle lookup decisions"
-        grep -zq 'block DONE when[[:space:]]*the central checkout is[[:space:]]*unavailable' "$compound" ||
-          fail "compound does not state unavailable knowledge writes are non-blocking"
+        grep -q 'AGENTS.md reflection and knowledge instructions' "$compound" ||
+          fail "compound does not defer reflection policy to AGENTS.md"
         ! grep -nE 'LESSONS\.md|tatr ledger|--ledger|Pending promotions|PROMOTE|DEFER|RETIRE|ABSORBED' "$compound" ||
           fail "compound still contains local ledger or disposition vocabulary"
 
@@ -252,7 +246,6 @@
 
     checks.knowledge_workflow_conformance =
       pkgs.runCommand "knowledge-workflow-conformance" {
-        flow = "${source}/flow";
         compound = "${source}/compound/SKILL.md";
         readme = "${source}/README.md";
         rootAgents = "${inputs.self}/AGENTS.md";
@@ -261,12 +254,8 @@
       } ''
         fail() { echo "knowledge-workflow-conformance: $1" >&2; exit 1; }
 
-        ! grep -R -nE 'land, then lessons|DONE \+ landed|Run .*lessons|including land and lessons|PROMOTE|DEFER|RETIRE|ABSORBED' "$flow" ||
-          fail "flow still contains post-land lessons or disposition vocabulary"
         ! grep -nE 'LESSONS\.md|tatr ledger|--ledger|Pending promotions|PROMOTE|DEFER|RETIRE|ABSORBED' "$compound" ||
           fail "compound still contains local ledger or disposition vocabulary"
-        grep -q 'through the `knowledge` skill with project and' "$compound" ||
-          fail "compound does not route observations through the knowledge skill"
         grep -q 'Knowledge repository: /home/alex/personal/agent-knowledge' "$globalAgents" ||
           fail "global AGENTS.md does not name the central knowledge path"
         grep -q '^[-] Knowledge: .*project=nix\.dotfiles.*tags=' "$rootAgents" ||

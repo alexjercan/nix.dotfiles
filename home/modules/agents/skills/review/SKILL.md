@@ -52,5 +52,5 @@ REQUEST_CHANGES
 * `MAJOR`: should not ship.
 * `MINOR`: worth fixing.
 * `NIT`: optional.
-* Verdict: `APPROVE` or `REQUEST_CHANGES`.
-
+* Open BLOCKER or MAJOR -> `REQUEST_CHANGES`; otherwise -> `APPROVE`.
+* `human:` proofs stay pending, are reported, and do not block approval.
