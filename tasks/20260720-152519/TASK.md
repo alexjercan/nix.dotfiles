@@ -1,10 +1,8 @@
 # Work skill: docs-sync rule - doc surfaces update in the same task
 
+- STATUS: CLOSED
 - PRIORITY: 65
 - TAGS: feature, skills
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Story
 

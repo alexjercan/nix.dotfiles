@@ -1,10 +1,8 @@
 # Add sprout sync and land --dry-run, remember the target branch, and have compound write the landing message
 
+- STATUS: CLOSED
 - PRIORITY: 70
 - TAGS: sprout, scripts, skills, afk
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 Landing is currently three things an agent does by hand from `landing.md`:
 merge the target branch into the feature branch, write the squash commit

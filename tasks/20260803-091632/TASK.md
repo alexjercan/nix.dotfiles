@@ -1,10 +1,8 @@
 # Gate understanding on a NOTES.md scratchpad the user approves
 
+- STATUS: CLOSED
 - PRIORITY: 90
 - TAGS: skills, flow, afk, docs
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 Understanding is the one flow phase with no skill text and no stop. The router
 walks `no ACTIVITY -> UNDERSTANDING -> PLANNING` in one motion, so the first

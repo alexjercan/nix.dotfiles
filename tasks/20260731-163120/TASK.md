@@ -1,10 +1,8 @@
 # Keep agent code comments minimal
 
+- STATUS: CLOSED
 - PRIORITY: 70
 - TAGS: skills, flow, docs, refactor
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Why
 

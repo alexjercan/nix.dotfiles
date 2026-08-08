@@ -1,10 +1,8 @@
 # lessons: resolve 3 pending promotions (dod-grep x5, edit-worktree, dry-run-scratch)
 
+- STATUS: CLOSED
 - PRIORITY: 50
 - TAGS: chore
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Story
 

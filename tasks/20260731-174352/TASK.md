@@ -1,12 +1,8 @@
 # Make fresh-session handoff a flow contract
 
+- STATUS: CLOSED
 - PRIORITY: 80
 - TAGS: skills, flow, context, docs
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
-- PARENT: 20260731-174333
-- DEPENDS ON: 20260731-174348
 
 ## Story
 

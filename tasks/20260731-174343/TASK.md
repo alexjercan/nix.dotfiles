@@ -1,12 +1,8 @@
 # Plan simple reviewable one-context changes
 
+- STATUS: CLOSED
 - PRIORITY: 90
 - TAGS: skills, plan, docs, flow
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
-- PARENT: 20260731-174333
-- DEPENDS ON: 20260731-142000
 
 ## Story
 

@@ -1,10 +1,8 @@
 # Update flow skills and afk for tatr v1.0.0 lifecycle
 
+- STATUS: CLOSED
 - PRIORITY: 20
 - TAGS: chore, tooling
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 tatr v1.0.0 replaced the single `FLOW STEP` chain with three independent
 fields - `ACTIVITY` (a nullable cursor), `GATES` (an accumulating set) and

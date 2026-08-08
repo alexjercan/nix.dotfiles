@@ -1,10 +1,8 @@
 # PoC: migrate scufris env to sops-nix (dummy secret)
 
+- STATUS: CLOSED
 - PRIORITY: 40
 - TAGS: chore, nix, security
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Story
 

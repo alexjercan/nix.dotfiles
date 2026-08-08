@@ -1,10 +1,8 @@
 # Investigate nixvim not following nixpkgs
 
+- STATUS: CLOSED
 - PRIORITY: 35
 - TAGS: chore, nix
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Story
 

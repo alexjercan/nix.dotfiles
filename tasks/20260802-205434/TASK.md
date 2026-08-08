@@ -1,10 +1,8 @@
 # cover the afk SPIN_MSG CR/ESC sanitizer with a test
 
+- STATUS: CLOSED
 - PRIORITY: 30
 - TAGS: agents, afk, test
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Why
 

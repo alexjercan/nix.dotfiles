@@ -1,10 +1,8 @@
 # flow docs: write cross-repo task-history immutability policy
 
+- STATUS: CLOSED
 - PRIORITY: 55
 - TAGS: docs, flow
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Story
 

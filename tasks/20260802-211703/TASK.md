@@ -1,10 +1,8 @@
 # afk: rotate the session on a soft/hard context token limit
 
+- STATUS: CLOSED
 - PRIORITY: 70
 - TAGS: agents, afk, feature
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 As an afk user I want a long-running session to be rotated on context size
 instead of being allowed to run into the context window.

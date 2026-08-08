@@ -1,10 +1,8 @@
 # Fix nix flake check: 'path ...-hosts is not valid'
 
+- STATUS: CLOSED
 - PRIORITY: 60
 - TAGS: bug
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Goal
 

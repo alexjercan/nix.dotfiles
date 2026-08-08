@@ -1,10 +1,8 @@
 # Make the afk runner's output human readable
 
+- STATUS: CLOSED
 - PRIORITY: 60
 - TAGS: agents, afk, ux
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 `afk run` currently prints a flat machine log (`CREATE CLAUDE SESSION <uuid>`,
 `RUN /flow "<goal>"`, `AUTO_APPROVE WORK_DONE`). A watching human cannot tell

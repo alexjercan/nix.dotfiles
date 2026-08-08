@@ -1,10 +1,8 @@
 # Replace PoC dummy with real SCUFRIS_TELEGRAM_BOT_TOKEN sops secret
 
+- STATUS: CLOSED
 - PRIORITY: 45
 - TAGS: nix, security
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Story
 

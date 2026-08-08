@@ -1,10 +1,8 @@
 # Goal: flow-v2 adoption - root LESSONS.md, clean tatr check, AGENTS.md flow pointers across six repos
 
+- STATUS: CLOSED
 - PRIORITY: 0
 - TAGS: goal
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW
-- RESOLUTION: DONE
 
 ## Goal
 

@@ -1,10 +1,8 @@
 # Add tmux integration and fzf-switch to sprout
 
+- STATUS: CLOSED
 - PRIORITY: 50
 - TAGS: feature, historical
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Goal
 

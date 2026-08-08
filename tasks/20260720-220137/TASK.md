@@ -1,10 +1,8 @@
 # retro-completeness: mark pre-flow (Jul 3/4) tasks historical
 
+- STATUS: CLOSED
 - PRIORITY: 30
 - TAGS: chore
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Story
 

@@ -1,11 +1,8 @@
 # Add tatr-native wayfinding, web research, and retained prototypes
 
+- STATUS: CLOSED
 - PRIORITY: 70
 - TAGS: feature, skills, flow, spike
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
-- PARENT: 20260730-153122
 
 ## Story
 

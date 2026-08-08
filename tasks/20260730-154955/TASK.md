@@ -1,11 +1,8 @@
 # Integrate guarded flow lifecycle and lesson decisions
 
+- STATUS: CLOSED
 - PRIORITY: 75
 - TAGS: feature, skills, flow, lessons
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
-- PARENT: 20260730-153122
 
 ## Story
 

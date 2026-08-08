@@ -1,10 +1,8 @@
 # DoD items name their proof (test/cmd/manual) across plan, work, review, flow
 
+- STATUS: CLOSED
 - PRIORITY: 85
 - TAGS: feature, skills
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Story
 

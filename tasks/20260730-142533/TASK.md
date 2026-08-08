@@ -1,11 +1,8 @@
 # Refactor flow skills for bounded context and concise output
 
+- STATUS: CLOSED
 - PRIORITY: 80
 - TAGS: feature, skills, flow, docs, spike
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
-- PARENT: 20260730-153122
 
 ## Story
 

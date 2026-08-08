@@ -1,10 +1,8 @@
 # Swap den scripts to the packaged today CLI (add today, drop today/daily.nix, update skills)
 
+- STATUS: CLOSED
 - PRIORITY: 40
 - TAGS: infra, nix, skills
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Goal
 

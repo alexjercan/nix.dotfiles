@@ -1,10 +1,8 @@
 # make round-1 review unconditionally out-of-context and survive a gate overshoot in afk
 
+- STATUS: CLOSED
 - PRIORITY: 60
 - TAGS: afk, scripts, agents
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 An `afk run` of `nova-protocol` task `20260802-183352` died with:
 

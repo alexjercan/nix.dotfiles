@@ -1,10 +1,8 @@
 # Harden flow planning and resume gates
 
+- STATUS: CLOSED
 - PRIORITY: 85
 - TAGS: feature, skills, flow
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Story
 

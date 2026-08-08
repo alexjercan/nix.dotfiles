@@ -1,10 +1,8 @@
 # Remove inert allowUnfree from the home user module
 
+- STATUS: CLOSED
 - PRIORITY: 30
 - TAGS: chore, nix
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Story
 

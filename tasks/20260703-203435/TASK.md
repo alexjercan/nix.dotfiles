@@ -1,10 +1,8 @@
 # Make the `today` script agent-friendly (non-interactive, exit codes, print path)
 
+- STATUS: CLOSED
 - PRIORITY: 100
 - TAGS: feature, historical
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Goal
 

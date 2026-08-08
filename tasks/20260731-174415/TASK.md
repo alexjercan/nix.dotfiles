@@ -1,12 +1,8 @@
 # Turn review and context overruns into planning lessons
 
+- STATUS: CLOSED
 - PRIORITY: 75
 - TAGS: skills, compound, lessons, docs, flow
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
-- PARENT: 20260731-174333
-- DEPENDS ON: 20260731-142000, 20260731-174348
 
 ## Story
 

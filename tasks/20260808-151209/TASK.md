@@ -1,10 +1,8 @@
 # Quote afk status labels
 
+- STATUS: CLOSED
 - PRIORITY: 1
 - TAGS: bug, afk
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Context
 

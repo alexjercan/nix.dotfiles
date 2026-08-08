@@ -1,10 +1,8 @@
 # Epic: enforce ambitious simplicity and bounded-context flow
 
+- STATUS: CLOSED
 - PRIORITY: 0
 - TAGS: goal, skills, flow
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN
-- RESOLUTION: DONE
 
 ## Epic
 

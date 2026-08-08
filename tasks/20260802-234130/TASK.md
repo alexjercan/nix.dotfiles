@@ -1,10 +1,8 @@
 # afk run accepts a batch of goals or task IDs and runs them sequentially
 
+- STATUS: CLOSED
 - PRIORITY: 0
 - TAGS: afk, scripts
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 `afk run` takes exactly one argument today, so a person supervising an
 unattended session has to sit and wait for each goal to land before typing the

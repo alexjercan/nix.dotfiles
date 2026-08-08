@@ -1,10 +1,8 @@
 # Share one sops secret between the scufris user service and the root scufris-hostd unit
 
+- STATUS: CLOSED
 - PRIORITY: 90
 - TAGS: nix, security, sops, scufris
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Story
 

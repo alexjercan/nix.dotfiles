@@ -1,11 +1,8 @@
 # Replace afk's agent-driven gates with tatr flow and sprout land probes
 
+- STATUS: CLOSED
 - PRIORITY: 65
 - TAGS: afk, scripts, agents
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
-- DEPENDS ON: 20260803-105234
 
 Every approval gate in afk currently costs a resumed Claude session
 (`gate`/`lifecycle_gate` in `home/modules/scripts/afk.sh`), and everything

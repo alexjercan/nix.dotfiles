@@ -1,11 +1,8 @@
 # Adopt tatr v2 and revalidate nix task history
 
+- STATUS: CLOSED
 - PRIORITY: 50
 - TAGS: feature, flow, tatr, migration, testing
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
-- PARENT: 20260730-153122
 
 ## Story
 

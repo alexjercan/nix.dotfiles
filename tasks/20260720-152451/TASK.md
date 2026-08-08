@@ -1,10 +1,8 @@
 # Flow skill: step 1 creates an umbrella task with GOAL.md
 
+- STATUS: CLOSED
 - PRIORITY: 90
 - TAGS: feature, skills
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Story
 

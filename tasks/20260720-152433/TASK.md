@@ -1,10 +1,8 @@
 # Add sprout land: guarded squash-merge landing as one command
 
+- STATUS: CLOSED
 - PRIORITY: 100
 - TAGS: feature, tooling
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Story
 

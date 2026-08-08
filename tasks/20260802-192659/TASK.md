@@ -1,10 +1,8 @@
 # afk: show the session's context token count, colored by budget
 
+- STATUS: CLOSED
 - PRIORITY: 60
 - TAGS: feature, scripts, afk
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 Watching an `afk run`, a human cannot tell how full the session's context is.
 A session near the 200K window is about to compact or stall, and that is the

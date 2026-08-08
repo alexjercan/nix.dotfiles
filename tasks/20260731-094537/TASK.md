@@ -1,10 +1,8 @@
 # Widen absence-proof grep guidance to exclude prose about the removal
 
+- STATUS: CLOSED
 - PRIORITY: 55
 - TAGS: feature, skills, lessons
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Story
 

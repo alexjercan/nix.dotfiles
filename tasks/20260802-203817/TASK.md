@@ -1,10 +1,8 @@
 # afk spinner must never wrap to a second row
 
+- STATUS: CLOSED
 - PRIORITY: 70
 - TAGS: agents, afk, ux
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Why
 

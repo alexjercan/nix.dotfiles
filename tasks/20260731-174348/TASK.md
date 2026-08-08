@@ -1,11 +1,8 @@
 # Bound worker context with delegated checkpoints
 
+- STATUS: CLOSED
 - PRIORITY: 85
 - TAGS: skills, work, parallel, docs, flow
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
-- PARENT: 20260731-174333
 
 ## Story
 

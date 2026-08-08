@@ -1,10 +1,8 @@
 # Review skill: out-of-context reviewer is the round-1 default
 
+- STATUS: CLOSED
 - PRIORITY: 95
 - TAGS: feature, skills
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Story
 

@@ -1,10 +1,8 @@
 # Wire tatr check into the tatr, compound, flow and lessons skills
 
+- STATUS: CLOSED
 - PRIORITY: 75
 - TAGS: feature, skills
-- ACTIVITY: COMPOUNDING
-- GATES: PLAN REVIEW RETRO
-- RESOLUTION: DONE
 
 ## Story
 
