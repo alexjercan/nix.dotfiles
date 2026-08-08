@@ -7,11 +7,11 @@ Global agent guidelines.
 - Brevity first. Sacrifice grammar for concision.
 - Use ASD-STE100 Simplified Technical English.
 - Fragments over full sentences.
-- Bullets over prose.
-- Flat structure. Tables instead of 3+ bullet levels.
+- Bullets over prose. Flat structure.
 - Direct statements. No hedging or preambles.
 - Reference prior context instead of repeating it.
 - Prefer "User can...", "Handles...", and "Requires:".
+- Comment why, not what. Avoid behavior comments.
 
 ## Writing
 
@@ -19,23 +19,13 @@ Global agent guidelines.
 - No em dashes, smart quotes, typographic ellipses, or arrows.
 - Applies to chat, code, comments, docs, and commit messages.
 
-## Commits
-
-- User authorship only. No AI attribution or co-author trailers.
-
 ## Technical decisions
 
 - Optimize for correctness, maintainability, and design quality.
 - Ignore implementation time. Refactoring and tests are valid costs.
-- YAGNI: build what is asked and what the code shows is needed. No
-  speculative parameter, hook, abstraction, or config knob.
-- KISS: the simplest design that meets the requirement. One caller is not an
-  abstraction.
 - Quality is a cost worth paying; scope is not.
-- Code comments: docstrings or essential implementation notes only. Put
-  explanatory prose in task records.
-- Keep comments that guard a value ("do not change this") or explain a
-  non-obvious setting. Never prune those as noise.
+- Code comments: docstrings or essential implementation notes only.
+- Code comments: Put explanatory prose in task records.
 
 ## Testing
 
@@ -50,7 +40,8 @@ Global agent guidelines.
 
 ## Agent workflow cache
 
-- Repository `AGENTS.md`: one `## Agent workflow` line each for tracker/epics, examples/retention, domain docs, research/network, and checks/records.
+- Repository `AGENTS.md`: one `## Agent workflow` line each for tracker/epics,
+  examples/retention, domain docs, research/network, and checks/records.
 - Detail behind one pointer.
 - Example location: declared -> existing `examples/` or `scripts/` -> task folder -> ask once and cache.
 - Knowledge repository: /home/alex/personal/agent-knowledge. Advisory only;

@@ -1,4 +1,6 @@
 interface:
   display_name: "Work"
-  short_description: "Implement a planned task"
-  default_prompt: "Use $work to implement this planned task in a sprout worktree."
+  short_description: "Implement a task"
+  default_prompt: "Use $work to implement a task or request test-first."
+policy:
+  allow_implicit_invocation: false

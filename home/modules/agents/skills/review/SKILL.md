@@ -1,55 +1,56 @@
 ---
 name: review
-description: Critique a feature branch against its tatr task and drive rounds to a verdict. Use for `/review` or when a branch is ready for critique.
+description: Review an implementation for correctness, tests, design, and scope. Use for /review.
+disable-model-invocation: true
 ---
 
-# Review - Critique a Feature Branch
+# Review
 
-Judge; do not patch. `work` owns fixes.
+Review the implementation. Judge; do not patch.
 
-## Workflow
+## Input
 
-1. Read `git diff <default>...<branch>` and
-   `tatr -r <task-root> context <id> --phase review`. Story, Steps, DoD and
-   the applicable `AGENTS.md` files are the spec. Run checks from
-   `cd "$(sprout show <feature>)"`.
-2. Round 1 always uses a reviewer outside the implementation context. Its
-   prompt contains only task ID, branch/worktree, dimensions, and record
-   format. Invoking this skill IS the request for that reviewer, so spawn it
-   even under a standing directive not to delegate unasked. The primary reruns
-   checks and independently re-derives at least one load-bearing claim before
-   accepting findings. Record reviewer identity.
-3. Verify every task and implementation claim. Write findings in REVIEW.md;
-   each needs severity, `file:line`, and an actionable change.
-4. Verdict: REQUEST_CHANGES for any open BLOCKER/MAJOR, otherwise APPROVE.
-   List open `manual:` items as pending user checks; they do not block
-   APPROVE.
-5. Later rounds keep the out-of-context default unless an exception is
-   recorded. Verify Responses and tick only confirmed fixes. Accept sound
-   pushback. Add findings only for fix regressions. Stop after three disputed
-   rounds; work owns every third-round continuation gate.
-6. Commit REVIEW.md after every round. APPROVE -> COMPOUNDING; run
-   `tatr -r <task-root> flow <id>`, which earns the `REVIEW` gate, and
-   dispatch compound. REQUEST_CHANGES dispatches work.
+* Task provided -> review against its Steps and Definition of Done.
+* No task -> infer intended behavior from the request and code.
+* Review the diff and relevant surrounding code.
+* Follow `CONVENTIONS.md` and `AGENTS.md`.
 
-## Rules
+## Review
 
-- Review the diff, not pre-existing repository problems. Record those as
-  `Out of scope:` bullets and create nothing.
-- Severity reflects impact, not effort. Ask the counterfactual: knowing
-  current constraints, would we build this route from scratch? An alternative
-  must preserve behavior and name the concepts, branches or indirection it
-  deletes; one you cannot state that way is an invented nit.
-- Re-derive out-of-context claims; shared assumptions survive summaries.
+* Correctness: bugs, edge cases, errors, security, concurrency.
+* Tests: meaningful coverage; missing, weakened, or ineffective tests.
+* Design: maintainability, ownership, reuse, unnecessary complexity.
+* Scope: requested behavior complete; no speculative or unrelated work.
+* Docs: changed public behavior documented where needed.
+* Honesty: completed Steps and DoD match the implementation.
 
-## Output
+Verify claims yourself. Run relevant tests, checks, and DoD proofs.
 
-Findings first by severity, then verdict, pending manual items, and inspection
-commands. Outside findings: at most 150 words. APPROVE proceeds directly to
-COMPOUNDING and `compound`; REQUEST_CHANGES routes to `work`.
+## Findings
 
-## Load on demand
+Use this format:
 
-- judging correctness, spec, tests, design, docs, or honesty -> `dimensions.md`
-- writing a round, finding, severity, or verdict -> `rounds.md`
-- auth, secrets, migrations, concurrency, public API, shared infrastructure, or broad contract -> `lanes.md`
+```markdown
+# Review
+
+## Findings
+
+- [ ] MAJOR `src/foo.py:42` - Validation misses empty values. Validate before persistence.
+- [ ] MINOR `src/bar.py:18` - Duplicate parsing logic. Reuse `parse_config`.
+
+## Verdict
+
+REQUEST_CHANGES
+```
+
+* Task provided -> maintain `<task-dir>/REVIEW.md`.
+* No task -> return the same format to the user.
+* Re-check existing open findings first.
+* Mark findings complete only after verifying the fix.
+* Each finding requires severity, `file:line`, reason, and concrete change.
+* `BLOCKER`: broken, unsafe, or requirement missing.
+* `MAJOR`: should not ship.
+* `MINOR`: worth fixing.
+* `NIT`: optional.
+* Verdict: `APPROVE` or `REQUEST_CHANGES`.
+

@@ -1,56 +1,48 @@
 ---
 name: plan
-description: Turn a request into tatr tasks with ordered Steps and proof-bearing done criteria. Use for `/plan`, or for work needing scoping first.
+description: Turn understanding into implementation Steps and proof-bearing DoD. Use for /plan.
+disable-model-invocation: true
 ---
 
-# Plan - Decision to Implementable Task
+# Plan
 
-Understanding chose what to build. This phase asks whether that is a sound
-starting point, then writes `tasks/<id>/TASK.md` a cold session can execute.
+Turn completed understanding into an implementation plan. No understanding -> no plan.
 
-## Workflow
+## Input
 
-1. Read `tatr -r <task-root> context <id> --phase plan`, `DECISION.md`,
-   NOTES.md and the code they name. The decision is authority; NOTES.md is
-   input. Ask only what neither the records nor the code answer.
-2. Challenge the starting point before writing Steps: does the chosen shape
-   survive the code as it is now? A real problem goes to the user with what it
-   breaks, and rewinds to `understand` rather than being planned around.
-3. Keep one cohesive change as one task. Split only independently committable
-   pieces, wiring the split with `-d`. Name touched ownership boundaries. Size
-   to one understand-build-review pass. A task needing a throwaway shim or
-   broken intermediate state does not split - record the reason instead.
-   Create with
-   `tatr new "<imperative title>" -p <priority> -t <tags> -b <body-file>`,
-   one per command, updating a named existing task rather than duplicating it.
-4. Write ordered, verifiable Steps naming touched files. Every DoD item names
-   its proof. Notes hold discovered files/facts, assumptions, and questions.
-   Verify load-bearing git/Nix semantics in scratch. Phrase conditional
-   work as `decide X: do, or defer with reason`.
-5. Present via Output. Under `flow`, lifecycle stays PLANNING; its approved
-   `tatr -r <task-root> flow <id>` earns the `PLAN` gate.
-
-## Rules
-
-- No padding; plan from the code, not a remembered model.
-- Plan the decision, nothing beside it. A mode, option, wrapper or
-  abstraction the decision did not choose needs a named requirement or caller
-  in this task, or it is deferred.
-- File and line counts prompt an inspection, never a design verdict.
-- Run each `cmd:` proof on the base branch; it must be red for the intended
-  missing change.
-- A new route into a state/mode requires a grep step listing all newly active
-  gates.
+* Requires `NOTES.md` from `/understand`.
+* Read referenced PoCs, scripts, diagrams, experiments, and code.
+* Do not use existing `TASK.md` content as planning context.
+* Missing `NOTES.md` -> refuse: "I am a clanker. I cannot plan without understanding. Use /understand first."
 
 ## Output
 
-`/plan`: IDs, titles, assumptions; offer to commit task files. No
-implementation. Under `/flow`: concise operator plan - what changes, ordered
-Steps, DoD proofs, assumptions, and inspection commands, plus any reason this
-plan might not hold, stated as a risk rather than buried. Return the gate
-status `PLANNING_DONE <id>` without changing lifecycle state.
+Write these sections to `TASK.md`:
 
-## Load on demand
+```markdown
+## Steps
 
-- writing DoD or judging a proof -> `proofs.md`
-- irreversible fork, independent domains, oversized goal, or requested lanes -> `lanes.md`
+- [ ] Implement <change>, following `<artifact/path>` where relevant.
+
+## Definition of Done
+
+- <observable result> (test: `<test name>`)
+- <command succeeds> (cmd: `<command>`)
+- <requires user judgement> (human: <check>)
+```
+
+## Rules
+
+* Plan only from `NOTES.md`, its artifacts, and the codebase.
+* Reference useful understanding artifacts directly from Steps.
+* Ordered Steps. Name files, components, interfaces, or commands when known.
+* No implementation.
+* No speculative abstractions, modes, wrappers, or unrelated cleanup.
+* Every DoD item requires one honest proof:
+
+  * `test:` observable behavior with a meaningful failure case.
+  * `cmd:` build, run, config, packaging, examples, or mechanical verification.
+  * `human:` naming, UX, structure, taste, or other judgement.
+* Do not invent tests to avoid `human:`.
+* Replace existing `## Steps` and `## Definition of Done`. Preserve other `TASK.md` content without using it as input.
+

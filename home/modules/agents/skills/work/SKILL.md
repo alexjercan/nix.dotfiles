@@ -1,59 +1,27 @@
 ---
 name: work
-description: Implement one planned task in a sprout worktree, test-first, and verify it. Use for `/work` or to address review feedback.
+description: Implement a task or request test-first. Use for /work.
+disable-model-invocation: true
 ---
 
-# Work - Implement a Planned Task
+# Work
 
-Ship the maintainable solution, not the smallest plausible diff.
+Implement the requested change.
 
-## Workflow
+## Input
 
-1. Use the given ID, else the highest-priority OPEN task. Read
-   `tatr -r <task-root> context <id> --phase work`.
-2. Reuse the task's `sprout ls` worktree, else `sprout new <type>/<slug>
-   --task <id>` off the intended base. Transition nothing; confirm
-   `ACTIVITY: WORKING`+`PLAN`, else stop. Tags choose type
-   (`bug` -> `fix`, `refactor` -> `refactor`). Ask before touching unrelated
-   dirty main-tree changes. If sprout is unavailable, use a local feature
-   branch. The worktree becomes `<task-root>`. Shell cwd does not persist:
-   use absolute paths everywhere.
-3. Read named and neighboring code. Correct Steps that contradict it before
-   implementation.
-4. For each `test:` or `cmd:` proof, make it fail for the intended reason,
-   implement minimally, then refactor green. Prefer an integration/example
-   boundary; use a unit test only for a unit-shaped seam. The DoD's proofs are
-   the whole test contract; write no others, and weaken none.
-   Keep `manual:` pending. Code comments are docstrings or essential
-   implementation notes only; never prune one that guards a value. Update
-   invalidated docs; an uncovered load-bearing choice stops for the user.
-5. Run the full suite and every `tatr -r <task-root> proofs <id>` proof.
-6. Tick a Step only after re-reading and completing every clause. Add TASK.md
-   close-out: what/why, alternatives, difficulties/diagnosis, evidence, and
-   reflection. Commit implementation and records together.
-   Initial work returns WORKING_DONE without a transition.
-   Flow owns approval to REVIEWING; `review-feedback.md` owns later handoffs.
+* Task provided -> follow its `## Steps` and `## Definition of Done`.
+* Open findings in `REVIEW.md` -> address them first.
+* No task -> implement the request directly.
 
 ## Rules
 
-- One task per worktree. New unrelated work becomes a task there.
-- Split work that materially exceeds the plan.
-- Before a shared-main commit, check its branch.
-- Never truncate a checklist grep. Reuse production helpers in test rigs.
-- Checkpoint at 120K visible context tokens, hand off at 150K. When token
-  usage is unavailable, trigger on the first compaction warning or a working
-  set that no longer fits one focused pass. `flow/resume.md` owns the handoff.
-
-## Output
-
-Worktree, branch, task ID, changed files, proof results, confidence/risk, and
-inspection commands; at most 150 words. Return the gate status
-`WORKING_DONE <id>` without changing lifecycle state. Leave the worktree. Do not
-merge, remove, or push.
-
-## Load on demand
-
-- under context pressure, or a bounded Step a subagent could own -> `delegation.md`
-- bug, crash, regression, or falsification -> `bug.md`
-- running checks and the doc-surface sweep -> `verify.md`
-- review returned REQUEST_CHANGES -> `review-feedback.md`
+* Use TDD: red -> green -> refactor.
+* Bug -> reproduce with a failing test before fixing it.
+* Prefer tests at the behavior boundary. Add unit tests where useful.
+* Follow `CONVENTIONS.md` and `AGENTS.md`.
+* Keep scope focused. No unrelated cleanup or speculative abstractions.
+* Run relevant tests and checks after implementation.
+* Task provided -> verify every `test:` and `cmd:` DoD proof. Leave `human:` for the user.
+* Address every open review finding or record concrete pushback.
+* Do not mark review findings complete. Review owns verification.
