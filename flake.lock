@@ -14,14 +14,18 @@
         ]
       },
       "locked": {
-        "lastModified": 1786266778,
-        "narHash": "sha256-OvtBz+PTlwChfT+FCtBx7xz8qXcoL6xnjhpqvxUDV+Q=",
-        "path": "/home/alex/personal/agents.nix",
-        "type": "path"
+        "lastModified": 1786271427,
+        "narHash": "sha256-cUSGDNrvMy7MjtKsTVBvdr7t3J5GFJaY6/jQ+DU69GI=",
+        "owner": "alexjercan",
+        "repo": "agents.nix",
+        "rev": "788b3de214558e3c6fa301f40009d0c132618638",
+        "type": "github"
       },
       "original": {
-        "path": "/home/alex/personal/agents.nix",
-        "type": "path"
+        "owner": "alexjercan",
+        "ref": "v0.1.0",
+        "repo": "agents.nix",
+        "type": "github"
       }
     },
     "bun2nix": {
@@ -522,16 +526,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1786184955,
-        "narHash": "sha256-yul/ypaEwrx/lM8dPf6G49SYV5Q2MAAk/IaC38z7q48=",
+        "lastModified": 1786262623,
+        "narHash": "sha256-RgW6JTDlS1sF/SCVJvsjAvq/6mfEIM0xRRKbBjukUgo=",
         "owner": "alexjercan",
         "repo": "tatr",
-        "rev": "be35da2182c37563fdd480e3af17094846c2805d",
+        "rev": "50a5a138ee8ec825df70a4e6e6337f1afbc0a1e0",
         "type": "github"
       },
       "original": {
         "owner": "alexjercan",
-        "ref": "v2.0.1",
+        "ref": "v2.0.2",
         "repo": "tatr",
         "type": "github"
       }
@@ -547,8 +551,8 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1786266778,
-        "narHash": "sha256-gHkA4Tmb8KnvFN5xpoEX3UpQN3eiO9pOEIhFfCQezLw=",
+        "lastModified": 1786267020,
+        "narHash": "sha256-eRO6bEcgFGOaT9rGeY8tGHRv9rpSiuC2wxRWtkbEMg8=",
         "path": "/home/alex/personal/today",
         "type": "path"
       },

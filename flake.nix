@@ -33,7 +33,7 @@
     };
 
     tatr = {
-      url = "github:alexjercan/tatr/v2.0.1";
+      url = "github:alexjercan/tatr/v2.0.2";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     today = {
@@ -41,7 +41,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     agents = {
-      url = "path:/home/alex/personal/agents.nix";
+      url = "github:alexjercan/agents.nix/v0.1.0";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
       inputs.tatr.follows = "tatr";
