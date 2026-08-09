@@ -37,7 +37,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     agent-knowledge = {
-      url = "github:alexjercan/agent-knowledge/v0.1.1";
+      url = "github:alexjercan/agent-knowledge/v0.1.2";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     today = {
@@ -46,6 +46,10 @@
     };
     macros-nvim = {
       url = "github:alexjercan/macros.nvim/v0.1.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    pi = {
+      url = "github:lukasl-dev/pi.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };

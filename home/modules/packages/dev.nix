@@ -8,5 +8,6 @@
     macros
     openssl
     tatr
+    nodejs
   ];
 }

@@ -108,6 +108,10 @@ in {
     codex
   ];
 
+  programs.pi.coding-agent = {
+    enable = true;
+  };
+
   # Shared guidelines for all coding agents. `AGENTS.md` is the emerging
   # cross-tool standard (opencode, codex, etc. read it natively from the home
   # directory), so we keep the source of truth in this module and point the
@@ -162,4 +166,8 @@ in {
     run cp -L "${skillsDir}/README.md" "$codexSkills/README.md"
     run chmod u+w "$codexSkills/README.md"
   '';
+
+  imports = [
+    inputs.pi.homeModules.default
+  ];
 }

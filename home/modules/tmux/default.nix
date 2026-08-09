@@ -22,6 +22,9 @@
       set-option -g default-terminal "screen-256color"
       set -g allow-passthrough on
 
+      set -g extended-keys
+      set -g extended-keys-format csi-u
+
       set -g base-index 1
       set -g pane-base-index 1
       set-window-option -g pane-base-index 1
