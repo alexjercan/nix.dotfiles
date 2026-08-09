@@ -23,9 +23,6 @@ today skill is passed through `programs.agents.extraSkills`.
 - Research/network: local sources first; repository checks need no network.
 - Checks/records: run `nix flake check` and build the affected configuration;
   records live under `tasks/<id>/`.
-- Knowledge: central repo `/home/alex/personal/agent-knowledge`;
-  project=nix.dotfiles; tags=agents,nix,afk,skills. Advisory only; failed writes
-  stay in RETRO.
 
 ## Development workflow
 
@@ -33,8 +30,6 @@ today skill is passed through `programs.agents.extraSkills`.
   a TASK.md with non-empty Steps and Definition of Done.
 - `afk` drives work, review, compound, verification, and landing through the
   imported agent workspace. Each task uses one sprout worktree.
-- `compound` writes RETRO. Knowledge failures remain recorded and do not block
-  task closure.
 - `human:` proofs stay pending and do not block review approval.
 - The pinned tatr v2 CLI has no `check` subcommand. Use task-specific proofs;
   do not document or invoke `tatr check`.
