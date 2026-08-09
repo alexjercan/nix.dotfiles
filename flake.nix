@@ -36,20 +36,18 @@
       url = "github:alexjercan/tatr/v2.0.1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    agent-knowledge = {
-      url = "github:alexjercan/agent-knowledge/v0.1.2";
+    today = {
+      url = "path:/home/alex/personal/today";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    today = {
-      url = "github:alexjercan/today/v0.1.0";
+    agents = {
+      url = "path:/home/alex/personal/agents.nix";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+      inputs.tatr.follows = "tatr";
     };
     macros-nvim = {
       url = "github:alexjercan/macros.nvim/v0.1.0";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    pi = {
-      url = "github:lukasl-dev/pi.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };

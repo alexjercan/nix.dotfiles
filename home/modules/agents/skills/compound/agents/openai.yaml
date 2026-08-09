@@ -1,6 +1,0 @@
-interface:
-  display_name: "Compound"
-  short_description: "Reflect on work."
-  default_prompt: "Use $compound to reflect on completed work and record reusable lessons."
-policy:
-  allow_implicit_invocation: false

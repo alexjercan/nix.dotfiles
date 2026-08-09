@@ -1,6 +1,0 @@
-interface:
-  display_name: "Understand"
-  short_description: "Understand a problem"
-  default_prompt: "Use $understand to confirm the problem through questions, grounded context, and investigation."
-policy:
-  allow_implicit_invocation: false

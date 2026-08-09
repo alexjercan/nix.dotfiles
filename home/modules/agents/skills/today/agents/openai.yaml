@@ -1,6 +1,0 @@
-interface:
-  display_name: "Today"
-  short_description: "Read and edit the daily journal"
-  default_prompt: "Use $today to read and edit the daily journal with the today CLI. Use for journal, tasks, habits, macros, notes, or weight."
-policy:
-  allow_implicit_invocation: false

@@ -1,9 +1,4 @@
 {pkgs, ...}: {
-  imports = [
-    ./sprout.nix
-    ./afk.nix
-  ];
-
   # The unified `today` CLI (github:alexjercan/today) replaces the old `today` +
   # `daily` bash scripts: one command with non-interactive `--json` subcommands
   # (path/create/show + task/habit/weight/macros/note). Provided via

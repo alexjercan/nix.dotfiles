@@ -1,6 +1,0 @@
-interface:
-  display_name: "Plan"
-  short_description: "Plan a solution"
-  default_prompt: "Use $plan to turn understanding into implementation Steps and proof-bearing DoD."
-policy:
-  allow_implicit_invocation: false
