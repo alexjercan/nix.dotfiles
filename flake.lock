@@ -14,16 +14,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1786429403,
-        "narHash": "sha256-uqtZkfUzNQxvY4aJ6DGH++wlKgPMORXJ0Jkn6mrL558=",
+        "lastModified": 1786438177,
+        "narHash": "sha256-aKnHqrkfkLWunIfGpfhM7idJbZciUh2xBNg08zHFWgY=",
         "owner": "alexjercan",
         "repo": "agents.nix",
-        "rev": "a8ab35ab3ae4717e1cfb9183904cdb8eb430e802",
+        "rev": "06a45ec0cd41bd70b6ab7cb71c31ad2bc2a19f64",
         "type": "github"
       },
       "original": {
         "owner": "alexjercan",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "agents.nix",
         "type": "github"
       }

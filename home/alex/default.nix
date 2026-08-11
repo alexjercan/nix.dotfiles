@@ -50,7 +50,7 @@ in {
 
   programs.agents = {
     enable = true;
-    extraSkills.today = inputs.today.skills.today;
+    skills.today = inputs.today.skills.today;
   };
 
   programs.git = {
@@ -127,6 +127,6 @@ in {
     "${modulesPath}/dunst"
     "${modulesPath}/packages"
     "${modulesPath}/scripts"
-    inputs.agents.homeModules.default
+    inputs.agents.homeModules.personal
   ];
 }

@@ -41,7 +41,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     agents = {
-      url = "github:alexjercan/agents.nix/v0.2.0";
+      url = "github:alexjercan/agents.nix/v0.3.0";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
       inputs.tatr.follows = "tatr";
