@@ -21,6 +21,7 @@
       set -ga terminal-overrides ",screen-256color*:Tc"
       set-option -g default-terminal "screen-256color"
       set -g allow-passthrough on
+      set -g set-clipboard on
 
       set -g extended-keys
       set -g extended-keys-format csi-u
