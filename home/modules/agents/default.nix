@@ -11,6 +11,7 @@
 
     skills = {
       compound = ./skills/compound;
+      pair = ./skills/pair;
       review = ./skills/review;
       sprout = ./skills/sprout;
       tatr = inputs.tatr.skills.tatr;

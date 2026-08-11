@@ -1,0 +1,6 @@
+interface:
+  display_name: "Pair"
+  short_description: "Pair-mode session"
+  default_prompt: "Use $pair to work conversationally, stopping at decisions."
+policy:
+  allow_implicit_invocation: false
