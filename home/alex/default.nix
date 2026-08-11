@@ -48,11 +48,6 @@ in {
 
   programs.home-manager.enable = true;
 
-  programs.agents = {
-    enable = true;
-    skills.today = inputs.today.skills.today;
-  };
-
   programs.git = {
     enable = true;
     lfs.enable = true;
@@ -127,6 +122,6 @@ in {
     "${modulesPath}/dunst"
     "${modulesPath}/packages"
     "${modulesPath}/scripts"
-    inputs.agents.homeModules.personal
+    "${modulesPath}/agents"
   ];
 }

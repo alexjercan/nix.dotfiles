@@ -14,7 +14,6 @@
   directory names under `hosts/` and `home/`.
 - `hosts/<name>/` - per-machine NixOS system config.
 - `home/<user>/` - per-user home-manager config, composed from `home/modules/`.
-- `agents.nix` v0.1.0 - agent workspace flake consumed through Home Manager.
 - `~/personal/today` - local journal CLI input while its new skill output is
   under development.
 

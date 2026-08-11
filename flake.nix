@@ -41,10 +41,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     agents = {
-      url = "github:alexjercan/agents.nix/v0.3.0";
+      url = "github:alexjercan/agents.nix/v0.4.0";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
-      inputs.tatr.follows = "tatr";
     };
     macros-nvim = {
       url = "github:alexjercan/macros.nvim/v0.1.0";

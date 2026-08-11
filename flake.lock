@@ -8,22 +8,19 @@
         "nixpkgs": [
           "nixpkgs"
         ],
-        "pi": "pi",
-        "tatr": [
-          "tatr"
-        ]
+        "pi": "pi"
       },
       "locked": {
-        "lastModified": 1786438177,
-        "narHash": "sha256-aKnHqrkfkLWunIfGpfhM7idJbZciUh2xBNg08zHFWgY=",
+        "lastModified": 1786446460,
+        "narHash": "sha256-7fCHJNKW0hmh+ZrdRsAqUsG0/C//4FLSOsP9wAIsYFg=",
         "owner": "alexjercan",
         "repo": "agents.nix",
-        "rev": "06a45ec0cd41bd70b6ab7cb71c31ad2bc2a19f64",
+        "rev": "356adb8170cb7a73ef6d53ca09012e70f1027928",
         "type": "github"
       },
       "original": {
         "owner": "alexjercan",
-        "ref": "v0.3.0",
+        "ref": "v0.4.0",
         "repo": "agents.nix",
         "type": "github"
       }

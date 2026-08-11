@@ -1,0 +1,6 @@
+interface:
+  display_name: "Compound"
+  short_description: "Reflect on completed work"
+  default_prompt: "Use $compound to write RETRO.md from the task artifacts and diff."
+policy:
+  allow_implicit_invocation: false

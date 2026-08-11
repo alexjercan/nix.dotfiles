@@ -1,0 +1,6 @@
+interface:
+  display_name: "Understand"
+  short_description: "Understand a problem"
+  default_prompt: "Use $understand to explore the problem and close with implementation hints and a Definition of Done."
+policy:
+  allow_implicit_invocation: false
