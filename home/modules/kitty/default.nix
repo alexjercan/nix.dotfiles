@@ -61,7 +61,7 @@ in {
     font = {
       package = pkgs.iosevka;
       name = "Iosevka";
-      size = 10;
+      size = 14;
     };
   };
 

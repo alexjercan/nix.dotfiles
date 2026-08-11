@@ -37,7 +37,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     today = {
-      url = "path:/home/alex/personal/today";
+      url = "github:alexjercan/today/v0.2.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     agents = {
