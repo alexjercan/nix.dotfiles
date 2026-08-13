@@ -44,11 +44,6 @@
           installRustc = false;
           installCargo = false;
           enable = true;
-          settings = {
-            cargo = {
-              features = ["dev"];
-            };
-          };
         };
         gopls.enable = true;
         hls = {
