@@ -1,6 +1,6 @@
 # Extract agent tooling into an agents.nix flake
 
-- STATUS: IN_PROGRESS
+- STATUS: CLOSED
 - PRIORITY: 100
 - TAGS: agents, nix, refactor
 
