@@ -11,16 +11,16 @@
         "pi": "pi"
       },
       "locked": {
-        "lastModified": 1786446460,
-        "narHash": "sha256-7fCHJNKW0hmh+ZrdRsAqUsG0/C//4FLSOsP9wAIsYFg=",
+        "lastModified": 1786803638,
+        "narHash": "sha256-9igltoLauPEL88mnd6XYPVtLKiKJx3PMrczwd1a/5/4=",
         "owner": "alexjercan",
         "repo": "agents.nix",
-        "rev": "356adb8170cb7a73ef6d53ca09012e70f1027928",
+        "rev": "4b0127b25adf00d727c5c404aab07192ce1cfde8",
         "type": "github"
       },
       "original": {
         "owner": "alexjercan",
-        "ref": "v0.4.0",
+        "ref": "v0.5.0",
         "repo": "agents.nix",
         "type": "github"
       }

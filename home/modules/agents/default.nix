@@ -25,6 +25,7 @@
     codex.enable = true;
     knowledge.enable = true;
     opencode.enable = true;
+    plannotator.enable = true;
 
     pi = {
       extensions = [inputs.agents.extensions.${pkgs.system}.plannotator];
