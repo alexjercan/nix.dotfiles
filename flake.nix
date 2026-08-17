@@ -46,8 +46,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     today = {
-      # Development wiring until the dashboard widget package is released.
-      url = "path:/home/alex/personal/today";
+      url = "github:alexjercan/today/v0.3.0";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.dashboardd.follows = "dashboardd";
       inputs.macros.follows = "macros-nvim";

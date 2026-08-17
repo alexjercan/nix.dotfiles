@@ -683,14 +683,18 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1786969986,
-        "narHash": "sha256-FCDRl0hqBCvmld/L0QwTazWqNfe+3kU9OwE8iZnFoNc=",
-        "path": "/home/alex/personal/today",
-        "type": "path"
+        "lastModified": 1786970635,
+        "narHash": "sha256-gLe89UzkbY1HTxGyH1fLKVskN9iaaDFsx20N9GkzqpI=",
+        "owner": "alexjercan",
+        "repo": "today",
+        "rev": "ad10d0fa7c93c08f4cb52ca4817c8bafaf90f2c1",
+        "type": "github"
       },
       "original": {
-        "path": "/home/alex/personal/today",
-        "type": "path"
+        "owner": "alexjercan",
+        "ref": "v0.3.0",
+        "repo": "today",
+        "type": "github"
       }
     },
     "treefmt-nix": {
