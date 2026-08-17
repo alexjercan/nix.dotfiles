@@ -59,8 +59,7 @@
       inputs.pi.follows = "pi";
     };
     macros-nvim = {
-      # Development wiring until the JSON CLI is released.
-      url = "path:/home/alex/personal/macros.nvim";
+      url = "github:alexjercan/macros.nvim/v0.2.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
