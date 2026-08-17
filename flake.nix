@@ -22,6 +22,11 @@
       url = "github:nix-community/nixvim";
     };
 
+     pi = {
+       url = "github:lukasl-dev/pi.nix";
+       inputs.nixpkgs.follows = "nixpkgs";
+     };
+
     nix-index-database = {
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -44,6 +49,7 @@
       url = "github:alexjercan/agents.nix/v0.5.1";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
+      inputs.pi.follows = "pi";
     };
     macros-nvim = {
       url = "github:alexjercan/macros.nvim/v0.1.0";
