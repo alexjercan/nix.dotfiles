@@ -41,9 +41,15 @@
       url = "github:alexjercan/tatr/v2.0.2";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    today = {
-      url = "github:alexjercan/today/v0.2.0";
+    dashboardd = {
+      url = "github:alexjercan/dashboardd/e68a4acdd73b5be73883f4fa435db26a2f16cbab";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+    today = {
+      # Development wiring until the dashboard widget package is released.
+      url = "path:/home/alex/personal/today";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.dashboardd.follows = "dashboardd";
     };
     agents = {
       url = "github:alexjercan/agents.nix/v0.5.1";

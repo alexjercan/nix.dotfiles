@@ -120,6 +120,7 @@ in {
     "${modulesPath}/i3"
     "${modulesPath}/hyprland"
     "${modulesPath}/dunst"
+    "${modulesPath}/dashboardd"
     "${modulesPath}/packages"
     "${modulesPath}/scripts"
     "${modulesPath}/agents"
