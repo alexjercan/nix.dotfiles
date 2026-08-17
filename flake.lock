@@ -683,8 +683,8 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1786969176,
-        "narHash": "sha256-MoMpqYDzHBYZDNfO48murOLaIDexSxcI25rPuD/xZtM=",
+        "lastModified": 1786969986,
+        "narHash": "sha256-FCDRl0hqBCvmld/L0QwTazWqNfe+3kU9OwE8iZnFoNc=",
         "path": "/home/alex/personal/today",
         "type": "path"
       },
