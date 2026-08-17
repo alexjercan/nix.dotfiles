@@ -50,6 +50,7 @@
       url = "path:/home/alex/personal/today";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.dashboardd.follows = "dashboardd";
+      inputs.macros.follows = "macros-nvim";
     };
     agents = {
       url = "github:alexjercan/agents.nix/v0.5.1";
@@ -58,7 +59,8 @@
       inputs.pi.follows = "pi";
     };
     macros-nvim = {
-      url = "github:alexjercan/macros.nvim/v0.1.0";
+      # Development wiring until the JSON CLI is released.
+      url = "path:/home/alex/personal/macros.nvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };

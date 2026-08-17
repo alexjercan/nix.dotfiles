@@ -284,18 +284,14 @@
         ]
       },
       "locked": {
-        "lastModified": 1785500145,
-        "narHash": "sha256-I1Y451ZyQ6RJJVkVfK87U2FGMNNDCt0U30yHSCQmUow=",
-        "owner": "alexjercan",
-        "repo": "macros.nvim",
-        "rev": "9f49fc701d4a50026f34e4a9e10887d0d09f4618",
-        "type": "github"
+        "lastModified": 1786965785,
+        "narHash": "sha256-Az+rdmZtfac3hhDHAMS20cq9ICmUnNy0T5ElVCN6xlo=",
+        "path": "/home/alex/personal/macros.nvim",
+        "type": "path"
       },
       "original": {
-        "owner": "alexjercan",
-        "ref": "v0.1.0",
-        "repo": "macros.nvim",
-        "type": "github"
+        "path": "/home/alex/personal/macros.nvim",
+        "type": "path"
       }
     },
     "nix-index-database": {
@@ -672,6 +668,9 @@
           "dashboardd"
         ],
         "flake-parts": "flake-parts_7",
+        "macros": [
+          "macros-nvim"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ],
@@ -680,8 +679,8 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1786963861,
-        "narHash": "sha256-FZgip9suVz5V8VH7Ob3odz6EftDh9evIE+m/hv5V+mg=",
+        "lastModified": 1786966266,
+        "narHash": "sha256-OfJtsUS+5U/Vi0rr0x2J1Q1oEeiVraTUbc7J8CLpuu4=",
         "path": "/home/alex/personal/today",
         "type": "path"
       },

@@ -29,6 +29,7 @@ in {
         "DASHBOARDD_PORT=7331"
         "DASHBOARDD_WIDGET_PATH=${widgetPath}"
         "DEN_PATH=${config.home.homeDirectory}/personal/the-den"
+        "MACROS_DATABASE=${config.home.homeDirectory}/.local/share/nvim/macros.csv"
       ];
     };
 
