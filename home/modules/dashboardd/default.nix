@@ -13,6 +13,8 @@
 in {
   imports = [inputs.dashboardd.homeManagerModules.default];
 
+  xdg.configFile."dashboardd/config.toml".source = ./config.toml;
+
   programs.dashboardd = {
     enable = true;
     port = 8000;
