@@ -42,11 +42,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     dashboardd = {
-      url = "github:alexjercan/dashboardd/e68a4acdd73b5be73883f4fa435db26a2f16cbab";
+      url = "github:alexjercan/dashboardd/v0.2.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     today = {
-      url = "github:alexjercan/today/v0.3.0";
+      url = "github:alexjercan/today/v0.3.1";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.dashboardd.follows = "dashboardd";
       inputs.macros.follows = "macros-nvim";

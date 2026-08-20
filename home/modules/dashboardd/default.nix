@@ -1,38 +1,28 @@
 {
   config,
   inputs,
-  lib,
   pkgs,
   ...
 }: let
   system = pkgs.stdenv.hostPlatform.system;
-  dashboardd = inputs.dashboardd.packages.${system}.dashboardd;
   todayWidget = inputs.today.packages.${system}.dashboardd-widget;
-  widgetPath = lib.makeSearchPath "share/dashboardd/widgets" [
-    dashboardd
-    todayWidget
-  ];
+  widgetEnvironment = {
+    DEN_PATH = "${config.home.homeDirectory}/personal/the-den";
+    MACROS_DATABASE = "${config.home.homeDirectory}/.local/share/nvim/macros.csv";
+  };
 in {
-  home.packages = [dashboardd];
+  imports = [inputs.dashboardd.homeManagerModules.default];
 
-  systemd.user.services.dashboardd = {
-    Unit = {
-      Description = "Local dashboard";
-      After = ["graphical-session.target"];
-    };
+  programs.dashboardd = {
+    enable = true;
+    port = 8000;
+    widgetPackages = [todayWidget];
+    environment = widgetEnvironment;
+  };
 
-    Service = {
-      ExecStart = "${dashboardd}/bin/dashboardd";
-      Restart = "on-failure";
-      RestartSec = 2;
-      Environment = [
-        "DASHBOARDD_PORT=7331"
-        "DASHBOARDD_WIDGET_PATH=${widgetPath}"
-        "DEN_PATH=${config.home.homeDirectory}/personal/the-den"
-        "MACROS_DATABASE=${config.home.homeDirectory}/.local/share/nvim/macros.csv"
-      ];
-    };
-
-    Install.WantedBy = ["default.target"];
+  programs.dashboardd-desktop = {
+    enable = true;
+    widgetPackages = [todayWidget];
+    environment = widgetEnvironment;
   };
 }

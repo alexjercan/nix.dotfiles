@@ -79,17 +79,17 @@
         "rust-flake": "rust-flake"
       },
       "locked": {
-        "lastModified": 1786952968,
-        "narHash": "sha256-vMnFOtdyffZi5WjJ3PBmJUQ/CpdK7fbfG1miCcpvDTU=",
+        "lastModified": 1787259771,
+        "narHash": "sha256-5Gwrq850613KQ5YMaaDN+rsaDm5SPYU/4ZbHVvXaAGE=",
         "owner": "alexjercan",
         "repo": "dashboardd",
-        "rev": "e68a4acdd73b5be73883f4fa435db26a2f16cbab",
+        "rev": "a1d5a0b634e6db7176f3884931612e3fde31480f",
         "type": "github"
       },
       "original": {
         "owner": "alexjercan",
+        "ref": "v0.2.0",
         "repo": "dashboardd",
-        "rev": "e68a4acdd73b5be73883f4fa435db26a2f16cbab",
         "type": "github"
       }
     },
@@ -683,16 +683,16 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1786970635,
-        "narHash": "sha256-gLe89UzkbY1HTxGyH1fLKVskN9iaaDFsx20N9GkzqpI=",
+        "lastModified": 1787260190,
+        "narHash": "sha256-eocjxGgqwic41jQC4Ed0isppBSZDRUuGsun8B7CFmac=",
         "owner": "alexjercan",
         "repo": "today",
-        "rev": "ad10d0fa7c93c08f4cb52ca4817c8bafaf90f2c1",
+        "rev": "19a8835965eadbfc9cd1b0cf3ed500948cf8fc19",
         "type": "github"
       },
       "original": {
         "owner": "alexjercan",
-        "ref": "v0.3.0",
+        "ref": "v0.3.1",
         "repo": "today",
         "type": "github"
       }
