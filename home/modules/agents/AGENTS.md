@@ -5,6 +5,7 @@ Global agent guidelines.
 ## Core rules
 
 - NEVER BACKWARD COMPATIBLE - prefer breaking old than having to design around.
+- Use the tatr skill and CLI for task creation and status changes. Valid task statuses are only `OPEN`, `IN_PROGRESS`, and `CLOSED`.
 - Brevity first. Remove preambles, repetition, and filler.
 - Use ASD-STE100 Simplified Technical English.
 - Prefer fragments and short sentences. Keep enough grammar for precision.
