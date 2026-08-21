@@ -53,5 +53,5 @@
   orchestrator, speech, Calm, and trusted voice environment but no STT path.
 - The i3 consumer assigned the exact mark and 1000x720 geometry. Its generated
   toggle moved the same window from scratchpad to workspace and back.
-- Post-migration microphone capture, audible playback, and conversation content
-  resume still require user observation.
+- User acceptance confirmed post-migration Ctrl+R transcription, audible Piper
+  playback, and resumed popup conversation without `PI_STT_CONFIG`.
