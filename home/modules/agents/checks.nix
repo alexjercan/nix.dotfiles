@@ -3,6 +3,7 @@
   agentSkills,
   homeModule,
   packages,
+  extensions,
   home-manager,
   sourceRoot,
 }: let
@@ -176,13 +177,15 @@
 in {
   knowledge = packages.knowledge;
 
-  plannotator = pkgs.runCommand "plannotator-smoke" {
-    nativeBuildInputs = [packages.plannotator pkgs.gnugrep];
-  } ''
-    plannotator --help | grep -Fx "Usage:"
-    test "$(plannotator --version)" = "plannotator ${packages.plannotator.version}"
-    touch "$out"
-  '';
+  plannotator = assert lib.assertMsg (packages.plannotator.version == extensions.plannotator.version)
+  "Plannotator binary and Pi extension versions must match";
+    pkgs.runCommand "plannotator-smoke" {
+      nativeBuildInputs = [packages.plannotator pkgs.gnugrep];
+    } ''
+      plannotator --help | grep -Fx "Usage:"
+      test "$(plannotator --version)" = "plannotator ${packages.plannotator.version}"
+      touch "$out"
+    '';
 
   knowledge-integration =
     pkgs.runCommand "knowledge-integration" {

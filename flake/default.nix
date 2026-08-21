@@ -31,6 +31,7 @@
     };
     sourceRoot = inputs.self + "/home/modules/agents";
     localPackages = import ../home/modules/agents/packages.nix {inherit pkgs sourceRoot;};
+    piExtensions = import ../home/modules/agents/pi-extensions {inherit pkgs sourceRoot;};
     agentPackages =
       localPackages
       // {
@@ -48,6 +49,7 @@
       inherit sourceRoot;
       agentSkills.knowledge = inputs.self + "/home/modules/agents/skills/knowledge";
       packages = agentPackages;
+      extensions = piExtensions;
       home-manager = inputs.home-manager;
     };
   };
