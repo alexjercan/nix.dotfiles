@@ -1,6 +1,6 @@
 # Deploy local voice Scufris popup
 
-- STATUS: OPEN
+- STATUS: IN_PROGRESS
 - PRIORITY: 100
 - TAGS: voice, pi, i3, audio
 
