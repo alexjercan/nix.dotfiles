@@ -28,3 +28,15 @@
 - Test both file and stream interfaces when a helper composes two CLI tools.
 - Use stable class, instance, and window-manager marks for ownership. Treat
   application titles as display data.
+
+## Post-activation verification
+
+- `home-manager switch --flake .#alex` passed on 2026-08-22.
+- `whisper-server.service` is enabled and active on `127.0.0.1:10301` only.
+- Whisper loaded `large-v3-turbo-q5_0` through Vulkan on the NVIDIA RTX 3060 Ti.
+- A live Ctrl+R capture reached Whisper as a one-second 16 kHz mono request and
+  auto-detected English without an error.
+- `scufris-popup.service` is active with Kitty, Pi, the exact class and instance,
+  and the `scufris-popup` i3 mark.
+- The live i3 config contains Super+S, Print, and Shift+Print bindings.
+- Audible playback and conversation resume still require user observation.
