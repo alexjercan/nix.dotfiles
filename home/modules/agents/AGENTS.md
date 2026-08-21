@@ -43,6 +43,9 @@ Global agent guidelines.
 
 - Preserve build/test exit codes: run bare, redirect then inspect, or use `set -o pipefail`.
 - Kill helper processes by recorded PID. Never use `pkill -f <pattern>`.
+- NEVER kill a tmux server or tmux process. Never run `tmux kill-server` or use
+  broad tmux cleanup. Target only exact owned panes, windows, or sessions. Tmux
+  tests require an isolated socket and must verify the default server identity.
 - Re-read edited artifacts. Tool success does not prove correct content.
 
 ## Agent workflow cache

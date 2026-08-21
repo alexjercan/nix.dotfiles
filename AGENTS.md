@@ -22,10 +22,6 @@ Repository guidance. Global `~/AGENTS.md` applies.
 ## Rules
 
 - The pinned tatr v2 has no `check` command. Use task-specific proofs.
-- NEVER kill the tmux server. Never run `tmux kill-server`, kill tmux
-  processes, or use broad tmux cleanup. Target only exact owned panes, windows,
-  or sessions. Tmux tests must use an isolated socket and verify that the
-  default server identity is unchanged.
 - Keep tmux extended keys, Nixvim agent integrations, Node.js, sprout, tatr,
   and today here.
 - Change sprout with `home/modules/scripts/sprout-test.sh` and its related
