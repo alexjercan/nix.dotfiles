@@ -51,12 +51,6 @@
       inputs.dashboardd.follows = "dashboardd";
       inputs.macros.follows = "macros-nvim";
     };
-    agents = {
-      url = "github:alexjercan/agents.nix/v0.5.1";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.home-manager.follows = "home-manager";
-      inputs.pi.follows = "pi";
-    };
     macros-nvim = {
       url = "github:alexjercan/macros.nvim/v0.2.0";
       inputs.nixpkgs.follows = "nixpkgs";

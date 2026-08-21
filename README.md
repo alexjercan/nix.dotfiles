@@ -14,6 +14,8 @@
   directory names under `hosts/` and `home/`.
 - `hosts/<name>/` - per-machine NixOS system config.
 - `home/<user>/` - per-user home-manager config, composed from `home/modules/`.
+- `home/modules/agents/` - optional agent tools, shared skills, Pi assets, and
+  their integration checks. This repository owns the complete integration.
 - `~/personal/today` - local journal CLI input while its new skill output is
   under development.
 

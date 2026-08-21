@@ -2,21 +2,29 @@
   inputs,
   pkgs,
   ...
-}: {
-  imports = [inputs.agents.homeModules.default];
+}: let
+  sourceRoot = inputs.self + "/home/modules/agents";
+  piExtensions = import ./pi-extensions {inherit pkgs sourceRoot;};
+in {
+  imports = [
+    (import ./module.nix {
+      piModule = inputs.pi.homeModules.default;
+      inherit sourceRoot;
+    })
+  ];
 
   programs.agents = {
     enable = true;
-    agentsFile = ./AGENTS.md;
+    agentsFile = sourceRoot + "/AGENTS.md";
 
     skills = {
-      compound = ./skills/compound;
-      pair = ./skills/pair;
-      review = ./skills/review;
-      sprout = ./skills/sprout;
+      compound = sourceRoot + "/skills/compound";
+      pair = sourceRoot + "/skills/pair";
+      review = sourceRoot + "/skills/review";
+      sprout = sourceRoot + "/skills/sprout";
       tatr = inputs.tatr.skills.tatr;
-      understand = ./skills/understand;
-      work = ./skills/work;
+      understand = sourceRoot + "/skills/understand";
+      work = sourceRoot + "/skills/work";
       today = inputs.today.skills.today;
     };
 
@@ -28,8 +36,8 @@
     plannotator.enable = true;
 
     pi = {
-      extensions = [inputs.agents.extensions.${pkgs.system}.plannotator];
-      themes = [inputs.agents.themes.gruber-darker];
+      extensions = [piExtensions.plannotator];
+      themes = [(sourceRoot + "/themes/gruber-darker.json")];
     };
   };
 

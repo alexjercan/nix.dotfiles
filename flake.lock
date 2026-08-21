@@ -1,32 +1,5 @@
 {
   "nodes": {
-    "agents": {
-      "inputs": {
-        "home-manager": [
-          "home-manager"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "pi": [
-          "pi"
-        ]
-      },
-      "locked": {
-        "lastModified": 1786813488,
-        "narHash": "sha256-dr9i1MMXJvlasDWJvZhIvjJn/utxeMXxW5EI0aHeKZc=",
-        "owner": "alexjercan",
-        "repo": "agents.nix",
-        "rev": "41ea6bd447612ab6b64cd8096007cf44a79cc477",
-        "type": "github"
-      },
-      "original": {
-        "owner": "alexjercan",
-        "ref": "v0.5.1",
-        "repo": "agents.nix",
-        "type": "github"
-      }
-    },
     "bun2nix": {
       "inputs": {
         "flake-parts": "flake-parts_5",
@@ -536,7 +509,6 @@
     },
     "root": {
       "inputs": {
-        "agents": "agents",
         "dashboardd": "dashboardd",
         "flake-parts": "flake-parts_2",
         "home-manager": "home-manager",
