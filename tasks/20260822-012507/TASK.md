@@ -1,6 +1,6 @@
 # Consume Scufris voice ownership
 
-- STATUS: IN_PROGRESS
+- STATUS: CLOSED
 - PRIORITY: 100
 - TAGS: voice, nix, architecture
 
@@ -90,6 +90,52 @@ Exact option nesting may follow existing module conventions, but ownership must 
 - `nix build .#homeConfigurations.alex.activationPackage --no-link`.
 - `git diff --check`.
 - No live activation before structured review approval.
+
+## Pre-migration transitional evidence
+
+- User reported that current Scufris master worked through `nix develop` with
+  `PI_STT_CONFIG=$HOME/.config/pi-voice-stt/config.json npm run dev:voice`.
+- The transitional run provided both Ctrl+R recording/STT and Piper TTS.
+- Post-activation acceptance remains the same behavior through the extension
+  default `~/.pi/agent/stt.json`, with no `PI_STT_CONFIG`.
+
+## Implementation evidence
+
+- Pinned exact landed Scufris revision
+  `f92c72c0a6525b40e18165a72d828c41ede91907` and consumed only its public Home
+  Manager module.
+- Split Pi voice STT into a focused agent-owned module. It keeps the pinned
+  0.6.0 extension and FFmpeg, writes `~/.pi/agent/stt.json`, and optionally owns
+  the pinned Vulkan Whisper model, loopback service, and generated provider.
+- Managed local Whisper rejects any custom `settings.provider`. Custom provider
+  STT remains valid when managed Whisper is disabled.
+- Configured Scufris voice and popup through `programs.scufris.voice`. Scufris
+  now owns Piper, voice assets, trusted speech environment, popup launcher,
+  session policy, and the uninstalled popup service.
+- Deleted `services.localVoice`, its exported module, the Piper overlay and
+  patch, direct launcher import, model fetches, launchers, and popup service.
+- Added a focused i3 popup consumer. It reads Scufris class, instance, and
+  service identity; owns the exact mark, owner query, idempotent toggle, login
+  start, Super+S, and centered 1000x720 scratchpad policy; and never uses title
+  for ownership.
+- Enabled, disabled, invalid ownership, custom endpoint, managed endpoint,
+  package pin, generated config, exact revision, changed-title, near-match, and
+  activation-package compositions are checked.
+
+## Verification evidence
+
+- Focused voice STT, local Whisper, Scufris popup, exact revision, and Home
+  module builds passed.
+- Implementation revision: `7456ce7`.
+- `sprout sync consume-scufris-voice` passed after the implementation commit;
+  the branch was already up to date.
+- Post-sync `nix flake check` passed, including all focused checks.
+- Post-sync
+  `nix build .#homeConfigurations.alex.activationPackage --no-link` passed.
+- `git diff --check` passed.
+- Repository scans found no `services.localVoice`, local voice module, direct
+  Scufris launcher import, or assigned `PI_STT_CONFIG`.
+- No Home Manager activation was run.
 
 ## Post-approval activation
 

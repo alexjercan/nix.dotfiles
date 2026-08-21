@@ -12,13 +12,6 @@
   # reason as `homeDir` in flake/home-configurations.nix, and LESSONS.md
   # `flake-path-literal-string-coercion`.
   modulesPath = "${inputs.self}/home/modules";
-  system = pkgs.stdenv.hostPlatform.system;
-  scufrisPopupPackage = import "${inputs.scufris}/nix/launcher.nix" {
-    inherit pkgs;
-    resources = inputs.scufris.packages.${system}.resources;
-    piPackage = config.programs.pi.coding-agent.finalPackage;
-    dashboardctlPackage = inputs.dashboardd.packages.${system}.dashboardd-desktop;
-  };
 in {
   home.username = "alex";
   home.homeDirectory = "/home/alex";
@@ -73,6 +66,7 @@ in {
 
   programs.agents.pi.voiceStt = {
     enable = true;
+    localWhisper.enable = true;
     settings = {
       keybind = "ctrl+r";
       capture = {
@@ -83,13 +77,6 @@ in {
         sampleRate = 16000;
         channels = 1;
       };
-      provider = {
-        type = "openai-compatible";
-        endpoint = "http://127.0.0.1:10301/inference";
-        model = "whisper-1";
-        language = "auto";
-        apiKeyEnv = "";
-      };
       cleanup.enabled = false;
     };
   };
@@ -97,12 +84,13 @@ in {
   programs.scufris = {
     enable = true;
     piPackage = config.programs.pi.coding-agent.finalPackage;
+    voice = {
+      enable = true;
+      popup.enable = true;
+    };
   };
 
-  services.localVoice = {
-    enable = true;
-    scufris.package = scufrisPopupPackage;
-  };
+  xsession.windowManager.i3.scufrisPopup.enable = true;
 
   home.pointerCursor = {
     enable = true;
@@ -161,7 +149,6 @@ in {
     "${modulesPath}/hyprland"
     "${modulesPath}/dunst"
     "${modulesPath}/dashboardd"
-    "${modulesPath}/local-voice"
     "${modulesPath}/packages"
     "${modulesPath}/scripts"
     "${modulesPath}/agents"

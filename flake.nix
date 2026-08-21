@@ -22,10 +22,10 @@
       url = "github:nix-community/nixvim";
     };
 
-     pi = {
-       url = "github:lukasl-dev/pi.nix";
-       inputs.nixpkgs.follows = "nixpkgs";
-     };
+    pi = {
+      url = "github:lukasl-dev/pi.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     nix-index-database = {
       url = "github:nix-community/nix-index-database";
@@ -57,7 +57,7 @@
     };
     scufris = {
       # Development wiring until the direct Pi launcher has a tagged release.
-      url = "git+file:///home/alex/personal/scufris2?rev=57f0ca1111c0adebc744dfc340a8739c3a633a9a";
+      url = "git+file:///home/alex/personal/scufris2?rev=f92c72c0a6525b40e18165a72d828c41ede91907";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
       inputs.pi.follows = "pi";

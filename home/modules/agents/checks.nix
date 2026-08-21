@@ -2,7 +2,9 @@
   pkgs,
   agentSkills,
   homeModule,
-  localVoiceModule,
+  i3Module,
+  scufrisModule,
+  scufrisRevision,
   packages,
   extensions,
   home-manager,
@@ -73,31 +75,87 @@
     skills.knowledge = extraSkill;
     knowledge.enable = true;
   };
-  voiceEnabled = mkHomeWith {
+  sttEnabled = mkHome {
+    enable = true;
+    pi.voiceStt = {
+      enable = true;
+      settings.provider = {
+        type = "openai-compatible";
+        endpoint = "http://127.0.0.1:9000/inference";
+      };
+    };
+  };
+  localWhisperEnabled = mkHome {
+    enable = true;
+    pi.voiceStt = {
+      enable = true;
+      localWhisper.enable = true;
+      settings.keybind = "ctrl+r";
+    };
+  };
+  voiceDisabled = mkHome {
+    enable = true;
+    pi.voiceStt.enable = false;
+  };
+  popupEnabled = mkHomeWith {
     moduleConfig = {
       enable = true;
       pi.voiceStt = {
         enable = true;
-        settings.provider.endpoint = "http://127.0.0.1:10301/inference";
+        localWhisper.enable = true;
       };
     };
-    extraModules = [localVoiceModule];
-    extraConfig.services.localVoice = {
-      enable = true;
-      scufris.package = pkgs.hello;
+    extraModules = [scufrisModule i3Module];
+    extraConfig = {
+      programs.scufris = {
+        enable = true;
+        piPackage = packages.pi;
+        delegation.enable = false;
+        widgets.enable = false;
+        voice = {
+          enable = true;
+          popup.enable = true;
+        };
+      };
+      xsession.windowManager.i3.scufrisPopup.enable = true;
     };
   };
-  voiceDisabled = mkHomeWith {
+  popupDisabled = mkHomeWith {
     moduleConfig = {
       enable = true;
-      pi.voiceStt.enable = false;
+      pi.voiceStt.enable = true;
     };
-    extraModules = [localVoiceModule];
-    extraConfig.services.localVoice = {
-      enable = false;
-      scufris.package = pkgs.hello;
+    extraModules = [scufrisModule i3Module];
+    extraConfig.programs.scufris = {
+      enable = true;
+      delegation.enable = false;
+      widgets.enable = false;
     };
   };
+  conflictingWhisper = builtins.tryEval (builtins.deepSeq
+    (mkHome {
+      enable = true;
+      pi.voiceStt = {
+        enable = true;
+        localWhisper.enable = true;
+        settings.provider.endpoint = "http://127.0.0.1:9000/inference";
+      };
+    }).activationPackage
+    true);
+  invalidPopupConsumer = builtins.tryEval (builtins.deepSeq
+    (mkHomeWith {
+      moduleConfig = {enable = true;};
+      extraModules = [scufrisModule i3Module];
+      extraConfig = {
+        programs.scufris = {
+          enable = true;
+          delegation.enable = false;
+          widgets.enable = false;
+        };
+        xsession.windowManager.i3.scufrisPopup.enable = true;
+      };
+    }).activationPackage
+    true);
   invalidName = builtins.tryEval (builtins.deepSeq
     (mkHome {
       enable = true;
@@ -116,12 +174,18 @@
   configuredConfig = configured.config;
   minimalConfig = minimal.config;
   toolsEnabledConfig = toolsEnabled.config;
-  voiceEnabledConfig = voiceEnabled.config;
+  sttEnabledConfig = sttEnabled.config;
+  localWhisperConfig = localWhisperEnabled.config;
   voiceDisabledConfig = voiceDisabled.config;
+  popupConfig = popupEnabled.config;
+  popupDisabledConfig = popupDisabled.config;
   expectedSkills = ["extra"];
   expectedToolSkills = ["knowledge"];
   deployed = root: name: enabledConfig.home.file."${root}/${name}";
   toolDeployed = root: name: toolsEnabledConfig.home.file."${root}/${name}";
+  popupVoiceConfig = popupConfig.programs.scufris.voice.popup;
+  popupI3Config = popupConfig.xsession.windowManager.i3.scufrisPopup;
+  popupUnit = popupConfig.systemd.user.services.${popupVoiceConfig.serviceName};
 
   moduleAssertions = assert !invalidName.success;
   assert !missingSkill.success;
@@ -146,24 +210,47 @@
     packages.plannotator
   ];
   assert lib.elem packages.plannotator configuredConfig.home.packages;
-  assert lib.elem extensions.voice-stt voiceEnabledConfig.programs.pi.coding-agent.extensions;
-  assert voiceEnabledConfig.home.sessionVariables.PI_STT_CONFIG == "/tmp/agent-test-home/.config/pi-voice-stt/config.json";
-  assert builtins.hasAttr ".config/pi-voice-stt/config.json" voiceEnabledConfig.home.file;
-  assert builtins.hasAttr "whisper-server" voiceEnabledConfig.systemd.user.services;
-  assert builtins.hasAttr "scufris-popup" voiceEnabledConfig.systemd.user.services;
-  assert lib.hasInfix "--host 127.0.0.1" (builtins.head voiceEnabledConfig.systemd.user.services.whisper-server.Service.ExecStart);
-  assert lib.hasInfix "--port 10301" (builtins.head voiceEnabledConfig.systemd.user.services.whisper-server.Service.ExecStart);
-  assert lib.hasInfix "--inference-path /inference" (builtins.head voiceEnabledConfig.systemd.user.services.whisper-server.Service.ExecStart);
-  assert lib.hasInfix "--language auto" (builtins.head voiceEnabledConfig.systemd.user.services.whisper-server.Service.ExecStart);
-  assert voiceEnabledConfig.systemd.user.services.whisper-server.Service.Restart == "no";
-  assert voiceEnabledConfig.systemd.user.services.scufris-popup.Service.Restart == "no";
-  assert builtins.hasAttr "Mod4+s" voiceEnabledConfig.xsession.windowManager.i3.config.keybindings;
-  assert lib.hasInfix "mark --add scufris-popup" voiceEnabledConfig.xsession.windowManager.i3.extraConfig;
-  assert !(lib.hasInfix "title=" voiceEnabledConfig.xsession.windowManager.i3.extraConfig);
+  assert !conflictingWhisper.success;
+  assert !invalidPopupConsumer.success;
+  assert lib.elem extensions.voice-stt sttEnabledConfig.programs.pi.coding-agent.extensions;
+  assert builtins.hasAttr ".pi/agent/stt.json" sttEnabledConfig.home.file;
+  assert !(builtins.hasAttr "PI_STT_CONFIG" sttEnabledConfig.home.sessionVariables);
+  assert !(builtins.hasAttr "whisper-server" sttEnabledConfig.systemd.user.services);
+  assert lib.elem extensions.voice-stt localWhisperConfig.programs.pi.coding-agent.extensions;
+  assert builtins.hasAttr ".pi/agent/stt.json" localWhisperConfig.home.file;
+  assert !(builtins.hasAttr "PI_STT_CONFIG" localWhisperConfig.home.sessionVariables);
+  assert localWhisperConfig.programs.agents.pi.voiceStt.ffmpegPackage == pkgs.ffmpeg;
+  assert localWhisperConfig.programs.agents.pi.voiceStt.localWhisper.package == pkgs.whisper-cpp-vulkan;
+  assert localWhisperConfig.programs.agents.pi.voiceStt.localWhisper.model.name == "ggml-large-v3-turbo-q5_0.bin";
+  assert localWhisperConfig.programs.agents.pi.voiceStt.localWhisper.host == "127.0.0.1";
+  assert localWhisperConfig.programs.agents.pi.voiceStt.localWhisper.port == 10301;
+  assert builtins.hasAttr "whisper-server" localWhisperConfig.systemd.user.services;
+  assert lib.hasInfix "--host 127.0.0.1" (builtins.head localWhisperConfig.systemd.user.services.whisper-server.Service.ExecStart);
+  assert lib.hasInfix "--port 10301" (builtins.head localWhisperConfig.systemd.user.services.whisper-server.Service.ExecStart);
+  assert lib.hasInfix "--inference-path /inference" (builtins.head localWhisperConfig.systemd.user.services.whisper-server.Service.ExecStart);
+  assert lib.hasInfix "--language auto" (builtins.head localWhisperConfig.systemd.user.services.whisper-server.Service.ExecStart);
+  assert localWhisperConfig.systemd.user.services.whisper-server.Service.Restart == "no";
   assert !(lib.elem extensions.voice-stt voiceDisabledConfig.programs.pi.coding-agent.extensions);
+  assert !(builtins.hasAttr ".pi/agent/stt.json" voiceDisabledConfig.home.file);
   assert !(builtins.hasAttr "PI_STT_CONFIG" voiceDisabledConfig.home.sessionVariables);
   assert !(builtins.hasAttr "whisper-server" voiceDisabledConfig.systemd.user.services);
-  assert !(builtins.hasAttr "scufris-popup" voiceDisabledConfig.systemd.user.services);
+  assert popupVoiceConfig.class == "Scufris";
+  assert popupVoiceConfig.instance == "scufris-popup";
+  assert popupVoiceConfig.serviceName == "scufris-popup";
+  assert popupI3Config.mark == "scufris-popup";
+  assert popupUnit.Service.Restart == "no";
+  assert !(popupUnit ? Install);
+  assert popupUnit.Service.ExecStart == [(lib.getExe popupVoiceConfig.finalLauncher)];
+  assert builtins.hasAttr "Mod4+s" popupConfig.xsession.windowManager.i3.config.keybindings;
+  assert builtins.hasAttr "Print" popupConfig.xsession.windowManager.i3.config.keybindings;
+  assert builtins.hasAttr "Shift+Print" popupConfig.xsession.windowManager.i3.config.keybindings;
+  assert lib.hasInfix "mark --add scufris-popup" popupConfig.xsession.windowManager.i3.extraConfig;
+  assert lib.hasInfix "resize set 1000 720" popupConfig.xsession.windowManager.i3.extraConfig;
+  assert !(lib.hasInfix "title=" popupConfig.xsession.windowManager.i3.extraConfig);
+  assert lib.elem popupConfig.programs.scufris.finalPackage popupConfig.home.packages;
+  assert !(lib.elem popupConfig.programs.scufris.voice.piper.package popupConfig.home.packages);
+  assert !(builtins.hasAttr "scufris-popup" popupDisabledConfig.systemd.user.services);
+  assert !(builtins.hasAttr "Mod4+s" popupDisabledConfig.xsession.windowManager.i3.config.keybindings);
   assert lib.all (name: (deployed ".claude/skills" name).recursive) expectedSkills;
   assert lib.all (name: (deployed ".agents/skills" name).recursive) expectedSkills;
   assert builtins.toString (deployed ".agents/skills" "extra").source == builtins.toString extraSkill;
@@ -237,28 +324,56 @@ in {
       touch "$out"
     '';
 
-  local-voice =
-    pkgs.runCommand "local-voice-composition" {
-      nativeBuildInputs = [pkgs.gnugrep voiceEnabledConfig.services.localVoice.piper.package];
+  local-whisper =
+    pkgs.runCommand "local-whisper-composition" {
+      nativeBuildInputs = [pkgs.jq];
+      activationPackage = localWhisperEnabled.activationPackage;
+      disabledActivationPackage = voiceDisabled.activationPackage;
+      sttActivationPackage = sttEnabled.activationPackage;
+      sttConfig = localWhisperConfig.home.file.".pi/agent/stt.json".source;
+      customSttConfig = sttEnabledConfig.home.file.".pi/agent/stt.json".source;
     } ''
-      popup=${voiceEnabledConfig.services.localVoice.finalPopupLauncher}/bin/scufris-popup-launch
-      kitty=${voiceEnabledConfig.services.localVoice.finalKittyLauncher}/bin/scufris-popup-kitty
-      toggle=${voiceEnabledConfig.services.localVoice.finalToggle}/bin/scufris-popup-toggle
-      owned=${voiceEnabledConfig.services.localVoice.finalOwnerQuery}/bin/scufris-popup-owned-window
+      test -e "$activationPackage"
+      test -e "$disabledActivationPackage"
+      test -e "$sttActivationPackage"
+      jq -e '
+        .keybind == "ctrl+r" and
+        .provider.type == "openai-compatible" and
+        .provider.endpoint == "http://127.0.0.1:10301/inference" and
+        .provider.model == "whisper-1" and
+        .provider.language == "auto" and
+        .provider.apiKeyEnv == ""
+      ' "$sttConfig"
+      jq -e '
+        .provider.type == "openai-compatible" and
+        .provider.endpoint == "http://127.0.0.1:9000/inference"
+      ' "$customSttConfig"
+      touch "$out"
+    '';
+
+  scufris-popup =
+    pkgs.runCommand "scufris-popup-i3-consumer" {
+      nativeBuildInputs = [pkgs.gnugrep];
+      activationPackage = popupEnabled.activationPackage;
+      disabledActivationPackage = popupDisabled.activationPackage;
+    } ''
+      test -e "$activationPackage"
+      test -e "$disabledActivationPackage"
+      popup=${lib.getExe popupVoiceConfig.finalLauncher}
+      toggle=${lib.getExe popupI3Config.finalToggle}
+      owned=${lib.getExe popupI3Config.finalOwnerQuery}
 
       grep -F 'export SCUFRIS_SPEECH=1' "$popup"
       grep -F 'export SCUFRIS_CALM=1' "$popup"
-      grep -F -- '--session-dir /tmp/agent-test-home/.local/share/scufris-popup/sessions' "$popup"
-      grep -F -- '--continue' "$popup"
-      grep -F -- '--class Scufris' "$kitty"
-      grep -F -- '--name scufris-popup' "$kitty"
-      grep -F -- '--title Scufris' "$kitty"
+      grep -F -- '--class Scufris' "$popup"
+      grep -F -- '--name scufris-popup' "$popup"
       grep -F 'systemctl --user start scufris-popup.service' "$toggle"
       grep -F 'class="^Scufris$"' "$toggle"
       grep -F 'instance="^scufris-popup$"' "$toggle"
       grep -F 'con_mark="^scufris-popup$"' "$toggle"
-      ! grep -F 'title=' "$toggle"
-      ! grep -E 'pkill|killall|tmux' "$popup" "$kitty" "$toggle"
+      ! grep -F 'PI_STT_CONFIG' "$popup" "$toggle" "$owned"
+      ! grep -F 'title=' "$toggle" "$owned"
+      ! grep -E 'pkill|killall|tmux' "$toggle" "$owned"
 
       cat > changed-title.json <<'EOF'
       {"nodes":[{"name":"Pi - changed at runtime","marks":["scufris-popup"],"window_properties":{"class":"Scufris","instance":"scufris-popup"}}]}
@@ -276,18 +391,12 @@ in {
       ! "$owned" < near-class.json
       ! "$owned" < near-instance.json
       ! "$owned" < near-mark.json
+      touch "$out"
+    '';
 
-      printf '%s\n' 'Local voice composition test.' | piper \
-        --model ${voiceEnabledConfig.services.localVoice.piper.model} \
-        --config ${voiceEnabledConfig.services.localVoice.piper.config} \
-        --output-file fixture.wav
-      test -s fixture.wav
-      printf '%s\n' 'Piper standard output test.' | piper \
-        --model ${voiceEnabledConfig.services.localVoice.piper.model} \
-        --config ${voiceEnabledConfig.services.localVoice.piper.config} \
-        --output-file - > stdout.wav
-      test -s stdout.wav
-      test "$(head -c 4 stdout.wav)" = RIFF
+  scufris-revision = assert lib.assertMsg (scufrisRevision == "f92c72c0a6525b40e18165a72d828c41ede91907")
+  "Scufris must remain pinned at landed voice revision f92c72c";
+    pkgs.runCommand "scufris-landed-revision" {} ''
       touch "$out"
     '';
 

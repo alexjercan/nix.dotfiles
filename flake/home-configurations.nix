@@ -21,7 +21,6 @@ in {
           # `nixpkgs.config.allowUnfree` is ignored - set it here.
           config.allowUnfree = true;
           overlays = [
-            (import "${inputs.self}/home/modules/local-voice/overlay.nix")
             inputs.tatr.overlays.default
             inputs.today.overlays.default
             inputs.macros-nvim.overlays.default
