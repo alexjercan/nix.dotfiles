@@ -23,11 +23,12 @@ usage() {
     echo "  sync <feature> [-n|--dry-run]"
     echo "                   Merge the landing target into <feature> inside its"
     echo "                   worktree; --dry-run only probes for conflicts"
-    echo "  land <feature> [-n|--dry-run] -m <subject> [-m <body>]"
+    echo "  land <feature> [-n|--dry-run] [--remove] -m <subject> [-m <body>]"
     echo "                   Squash-merge <feature> into the main checkout's"
-    echo "                   branch as one commit, then remove its worktree,"
-    echo "                   branch and tmux session; --dry-run runs every"
-    echo "                   guard and writes nothing"
+    echo "                   branch as one commit and retain its resources;"
+    echo "                   --remove deletes its worktree, branch and tmux"
+    echo "                   session after landing; --dry-run runs every guard"
+    echo "                   and writes nothing"
     echo "  rm <feature>     Remove <feature>'s worktree, branch and tmux session"
     echo "  help             Show this help message"
     echo
@@ -350,10 +351,10 @@ cmd_sync() {
 }
 
 cmd_land() {
-    # Land <feature> onto the main checkout's branch as ONE squash commit,
-    # then clean up the worktree, branch and tmux session. The whole landing
-    # runs inside a single process so no staged-but-uncommitted state is ever
-    # left in the shared main checkout for a parallel session to sweep up.
+    # Land <feature> onto the main checkout's branch as ONE squash commit.
+    # Cleanup is explicit. The whole landing runs inside a single process so
+    # no staged-but-uncommitted state is ever left in the shared main checkout
+    # for a parallel session to sweep up.
     feature=$1
     shift
     require_feature "$feature" || exit 1
@@ -368,9 +369,9 @@ cmd_land() {
         exit 1
     fi
 
-    # Removing a worktree from inside itself fails after the commit has
-    # already landed; refuse up front instead of half-landing. Compare
-    # resolved paths so a symlinked route into the worktree cannot evade it.
+    # Keep one landing contract for retained and --remove calls. Removal from
+    # inside the worktree fails after the commit has landed. Compare resolved
+    # paths so a symlinked route into the worktree cannot evade the guard.
     real_pwd=$(realpath "$PWD" 2> /dev/null)
     real_path=$(realpath "$path" 2> /dev/null)
     case "$real_pwd/" in
@@ -385,10 +386,15 @@ cmd_land() {
     # land would accept.
     msgs=()
     dry_run=false
+    remove=false
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -n | --dry-run)
                 dry_run=true
+                shift
+                ;;
+            --remove)
+                remove=true
                 shift
                 ;;
             -m)
@@ -401,7 +407,7 @@ cmd_land() {
                 shift
                 ;;
             *)
-                echo "sprout: unexpected argument '$1' (usage: sprout land <feature> [-n] -m <subject> [-m <body>])" >&2
+                echo "sprout: unexpected argument '$1' (usage: sprout land <feature> [-n|--dry-run] [--remove] -m <subject> [-m <body>])" >&2
                 exit 1
                 ;;
         esac
@@ -469,10 +475,11 @@ cmd_land() {
 
     git -C "$main_worktree" log -1 --format='landed %h %s'
 
-    # Cleanup chatter (git branch -D, worktree removal) goes to stderr so
-    # stdout stays exactly the one 'landed ...' line, per the composability
-    # convention.
-    cmd_rm "$feature" 1>&2
+    if [[ $remove == true ]]; then
+        # Cleanup chatter goes to stderr so stdout stays exactly the one
+        # 'landed ...' line, per the composability convention.
+        cmd_rm "$feature" 1>&2
+    fi
 }
 
 cmd_rm() {

@@ -45,10 +45,13 @@ check() {
 
 setup() {
     # Fresh sandbox: a repo with one commit and an isolated sprouts cache.
+    TEST_SESSIONS=()
     TMP=$(mktemp -d)
     export XDG_CACHE_HOME="$TMP/cache"
+    export TMUX_TMPDIR="$TMP/tmux"
     REPO="$TMP/repo"
-    mkdir -p "$REPO"
+    mkdir -p "$REPO" "$TMUX_TMPDIR"
+    chmod 700 "$TMUX_TMPDIR"
     git -C "$REPO" init -q -b master
     echo base > "$REPO/base.txt"
     git -C "$REPO" add base.txt
@@ -57,6 +60,10 @@ setup() {
 }
 
 teardown() {
+    local session
+    for session in "${TEST_SESSIONS[@]}"; do
+        tmux kill-session -t "=$session" 2> /dev/null || true
+    done
     cd / && rm -rf "$TMP"
 }
 
@@ -150,6 +157,13 @@ test_new_rejects_bad_names() {
     check "rejects '..' segments" not quiet sprout new ../escape
     check "rejects leading '/'" not quiet sprout new /abs
     check "rejects leading '-'" not quiet sprout new -flag
+}
+
+# Start the real tmux resource that interactive Sprout use creates.
+start_feature_session() {
+    FEATURE_SESSION=repo_$(echo "$1" | tr './ :' '____')
+    tmux new-session -ds "$FEATURE_SESSION"
+    TEST_SESSIONS+=("$FEATURE_SESSION")
 }
 
 # Move master on by one commit touching $1 with content $2.
@@ -288,9 +302,11 @@ test_sync_refuses_detached_worktree() {
     check "the dry run refuses too" not quiet sprout sync feat -n
 }
 
-test_land_happy() {
-    local wt out rc
+test_land_retains_then_rm() {
+    local wt out rc session
     wt=$(make_feature feature/demo)
+    start_feature_session feature/demo
+    session=$FEATURE_SESSION
     echo more >> "$wt/feature-demo.txt"
     git -C "$wt" commit -aqm "wip: more"
     out=$(sprout land feature/demo -m "feat: demo landed" -m "two wips squashed" 2> /dev/null)
@@ -302,8 +318,29 @@ test_land_happy() {
     check "exactly one commit added to master" test "$(git rev-list --count master)" -eq 2
     check "branch content present on master" test -f feature-demo.txt
     check "main checkout clean after land" test -z "$(git status --porcelain)"
-    check "worktree cleaned up" not test -d "$wt"
-    check "branch deleted" not git show-ref --verify --quiet refs/heads/feature/demo
+    check "worktree retained" test -d "$wt"
+    check "branch retained" git show-ref --verify --quiet refs/heads/feature/demo
+    check "tmux session retained" tmux has-session -t "=$session"
+
+    check "standalone rm cleans retained land" quiet sprout rm feature/demo
+    check "retained worktree removed by rm" not test -d "$wt"
+    check "retained branch removed by rm" not git show-ref --verify --quiet refs/heads/feature/demo
+    check "retained tmux session removed by rm" not quiet tmux has-session -t "=$session"
+}
+
+test_land_remove() {
+    local wt out rc session
+    wt=$(make_feature feat)
+    start_feature_session feat
+    session=$FEATURE_SESSION
+    out=$(sprout land feat --remove -m "feat: remove after land" 2> /dev/null)
+    rc=$?
+    check "land --remove exits 0" test "$rc" -eq 0
+    check "land --remove stdout is one landed line" str_matches "$out" '^landed [0-9a-f]+ feat: remove after land$'
+    check "land --remove creates the squash commit" test "$(git log -1 --format=%s)" = "feat: remove after land"
+    check "land --remove removes worktree" not test -d "$wt"
+    check "land --remove deletes branch" not git show-ref --verify --quiet refs/heads/feat
+    check "land --remove kills tmux session" not quiet tmux has-session -t "=$session"
 }
 
 test_land_dry_run_ok() {
@@ -316,15 +353,23 @@ test_land_dry_run_ok() {
 }
 
 test_land_dry_run_writes_nothing() {
-    local wt rc
+    local wt rc session before
     wt=$(make_feature feat)
+    start_feature_session feat
+    session=$FEATURE_SESSION
+    before=$(git -C "$wt" rev-parse HEAD)
     sprout land feat --dry-run -m "feat: x" > /dev/null 2>&1
     rc=$?
-    check "the dry run exits 0" test "$rc" -eq 0
+    check "the retained dry run exits 0" test "$rc" -eq 0
+    sprout land feat --remove -n -m "feat: x" > /dev/null 2>&1
+    rc=$?
+    check "the --remove dry run exits 0" test "$rc" -eq 0
     check "master untouched" test "$(git rev-list --count master)" -eq 1
     check "main checkout clean" test -z "$(git status --porcelain)"
     check "worktree kept" test -d "$wt"
+    check "worktree tip unchanged" test "$(git -C "$wt" rev-parse HEAD)" = "$before"
     check "branch kept" git show-ref --verify --quiet refs/heads/feat
+    check "tmux session kept" tmux has-session -t "=$session"
 }
 
 test_land_dry_run_refuses_behind() {
@@ -374,8 +419,10 @@ test_land_uses_recorded_target() {
 }
 
 test_land_refuses_behind() {
-    local wt err rc
+    local wt err rc session
     wt=$(make_feature feat)
+    start_feature_session feat
+    session=$FEATURE_SESSION
     echo diverge > other.txt
     git add other.txt
     git commit -qm "master moved on"
@@ -386,6 +433,8 @@ test_land_refuses_behind() {
     check "the remedy is the sync command" str_contains "$err" "sprout sync feat"
     check "master untouched" test "$(git rev-list --count master)" -eq 2
     check "worktree kept for the sync" test -d "$wt"
+    check "branch kept for the sync" git show-ref --verify --quiet refs/heads/feat
+    check "tmux session kept for the sync" tmux has-session -t "=$session"
 }
 
 test_land_refuses_dirty_main() {
@@ -516,7 +565,8 @@ run_test test_sync_conflict_stays_in_worktree
 run_test test_sync_rejects_bad_args
 run_test test_sync_refuses_missing_target
 run_test test_sync_refuses_detached_worktree
-run_test test_land_happy
+run_test test_land_retains_then_rm
+run_test test_land_remove
 run_test test_land_dry_run_ok
 run_test test_land_dry_run_writes_nothing
 run_test test_land_dry_run_refuses_behind

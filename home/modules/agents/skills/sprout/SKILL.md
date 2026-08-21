@@ -15,7 +15,7 @@ cd "$(sprout new <feature> [--task <id>])"
 cd "$(sprout show <feature>)"
 sprout ls
 sprout sync <feature> [-n]
-sprout land <feature> [-n] -m "<subject>"
+sprout land <feature> [-n] [--remove] -m "<subject>"
 sprout rm <feature>
 ```
 
@@ -23,8 +23,9 @@ sprout rm <feature>
 * `show`: print its path.
 * `ls`: list branch, task, and path.
 * `sync`: merge the landing target into the feature. `-n` probes conflicts.
-* `land`: squash-merge into the landing target and remove the worktree.
-* `rm`: remove worktree and branch. Destructive.
+* `land`: squash-merge into the landing target. Retains the worktree, branch,
+  and tmux session by default. `--remove` removes them after success.
+* `rm`: remove a retained worktree, branch, and tmux session. Destructive.
 * One task per worktree.
 * Use absolute paths across agent calls.
 * Run `sprout land` from main, never from the feature worktree.
