@@ -55,6 +55,14 @@
       url = "github:alexjercan/macros.nvim/v0.2.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    scufris = {
+      # Development wiring until the direct Pi launcher has a tagged release.
+      url = "git+file:///home/alex/personal/scufris2?rev=57f0ca1111c0adebc744dfc340a8739c3a633a9a";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+      inputs.pi.follows = "pi";
+      inputs.dashboardd.follows = "dashboardd";
+    };
   };
 
   outputs = inputs:

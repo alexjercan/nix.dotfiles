@@ -1,0 +1,8 @@
+diff --git a/src/piper/__main__.py b/src/piper/__main__.py
+index efbd239..22dfb82 100644
+--- a/src/piper/__main__.py
++++ b/src/piper/__main__.py
+@@ -225,2 +225,3 @@ def main() -> None:
+                 wav_file = wave.open(temp_wav_file.name, "wb")
+                 lines_to_wav()
++                wav_file.close()

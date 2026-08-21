@@ -13,6 +13,7 @@
     piModule = inputs.pi.homeModules.default;
     sourceRoot = inputs.self + "/home/modules/agents";
   };
+  flake.homeModules.local-voice = import ../home/modules/local-voice;
 
   flake.extensions.x86_64-linux = import ../home/modules/agents/pi-extensions {
     pkgs = import inputs.nixpkgs {system = "x86_64-linux";};
@@ -28,8 +29,10 @@
     pkgs = import inputs.nixpkgs {
       inherit system;
       config.allowUnfree = true;
+      overlays = [(import ../home/modules/local-voice/overlay.nix)];
     };
     sourceRoot = inputs.self + "/home/modules/agents";
+    localVoiceModule = inputs.self + "/home/modules/local-voice";
     localPackages = import ../home/modules/agents/packages.nix {inherit pkgs sourceRoot;};
     piExtensions = import ../home/modules/agents/pi-extensions {inherit pkgs sourceRoot;};
     agentPackages =
@@ -45,7 +48,7 @@
   in {
     packages = agentPackages;
     checks = import ../home/modules/agents/checks.nix {
-      inherit pkgs homeModule;
+      inherit pkgs homeModule localVoiceModule;
       inherit sourceRoot;
       agentSkills.knowledge = inputs.self + "/home/modules/agents/skills/knowledge";
       packages = agentPackages;

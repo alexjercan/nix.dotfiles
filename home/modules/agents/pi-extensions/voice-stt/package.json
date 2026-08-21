@@ -1,0 +1,7 @@
+{
+  "name": "agents-nix-pi-extension-voice-stt",
+  "private": true,
+  "dependencies": {
+    "pi-voice-stt": "0.6.0"
+  }
+}

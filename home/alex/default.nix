@@ -12,6 +12,13 @@
   # reason as `homeDir` in flake/home-configurations.nix, and LESSONS.md
   # `flake-path-literal-string-coercion`.
   modulesPath = "${inputs.self}/home/modules";
+  system = pkgs.stdenv.hostPlatform.system;
+  scufrisPopupPackage = import "${inputs.scufris}/nix/launcher.nix" {
+    inherit pkgs;
+    resources = inputs.scufris.packages.${system}.resources;
+    piPackage = config.programs.pi.coding-agent.finalPackage;
+    dashboardctlPackage = inputs.dashboardd.packages.${system}.dashboardd-desktop;
+  };
 in {
   home.username = "alex";
   home.homeDirectory = "/home/alex";
@@ -62,6 +69,39 @@ in {
       {url = "https://xkcd.com/rss.xml";}
       {url = "https://alexjercan.github.io/rss.xml";}
     ];
+  };
+
+  programs.agents.pi.voiceStt = {
+    enable = true;
+    settings = {
+      keybind = "ctrl+r";
+      capture = {
+        type = "ffmpeg";
+        ffmpegPath = "${pkgs.ffmpeg}/bin/ffmpeg";
+        inputFormat = "pulse";
+        input = "default";
+        sampleRate = 16000;
+        channels = 1;
+      };
+      provider = {
+        type = "openai-compatible";
+        endpoint = "http://127.0.0.1:10301/inference";
+        model = "whisper-1";
+        language = "auto";
+        apiKeyEnv = "";
+      };
+      cleanup.enabled = false;
+    };
+  };
+
+  programs.scufris = {
+    enable = true;
+    piPackage = config.programs.pi.coding-agent.finalPackage;
+  };
+
+  services.localVoice = {
+    enable = true;
+    scufris.package = scufrisPopupPackage;
   };
 
   home.pointerCursor = {
@@ -121,8 +161,10 @@ in {
     "${modulesPath}/hyprland"
     "${modulesPath}/dunst"
     "${modulesPath}/dashboardd"
+    "${modulesPath}/local-voice"
     "${modulesPath}/packages"
     "${modulesPath}/scripts"
     "${modulesPath}/agents"
+    inputs.scufris.homeModules.default
   ];
 }
