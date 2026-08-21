@@ -40,3 +40,18 @@
 - Scufris owns Piper, voice assets, speech environment, popup launcher,
   resumable session, and popup service definition.
 - i3 owns popup startup, exact marked-window identity, geometry, and controls.
+
+## Post-activation verification
+
+- `home-manager switch --flake .#alex` passed and restarted only the changed
+  Scufris popup service.
+- `~/.pi/agent/stt.json` exists, the old custom config path is absent, and
+  neither the shell nor systemd user manager has `PI_STT_CONFIG`.
+- Whisper remains enabled, active, Vulkan-backed, and bound only to
+  `127.0.0.1:10301`.
+- The Scufris-owned popup service runs the pinned public launcher with
+  orchestrator, speech, Calm, and trusted voice environment but no STT path.
+- The i3 consumer assigned the exact mark and 1000x720 geometry. Its generated
+  toggle moved the same window from scratchpad to workspace and back.
+- Post-migration microphone capture, audible playback, and conversation content
+  resume still require user observation.
