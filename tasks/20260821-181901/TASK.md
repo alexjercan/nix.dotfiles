@@ -1,6 +1,6 @@
 # Retain Sprout worktrees after landing
 
-- STATUS: OPEN
+- STATUS: IN_PROGRESS
 - PRIORITY: 100
 - TAGS: sprout, cli
 
