@@ -56,8 +56,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     scufris = {
-      # Development wiring until the direct Pi launcher has a tagged release.
-      url = "git+file:///home/alex/personal/scufris2?rev=f92c72c0a6525b40e18165a72d828c41ede91907";
+      url = "github:alexjercan/scufris2/v0.1.0";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
       inputs.pi.follows = "pi";

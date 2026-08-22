@@ -616,18 +616,18 @@
         ]
       },
       "locked": {
-        "lastModified": 1787351064,
-        "narHash": "sha256-RhHCyuUwuh215bD0tNkpcSGDL40N5Bjv9RH5sBtSPE8=",
-        "ref": "refs/heads/master",
-        "rev": "f92c72c0a6525b40e18165a72d828c41ede91907",
-        "revCount": 36,
-        "type": "git",
-        "url": "file:///home/alex/personal/scufris2"
+        "lastModified": 1787381907,
+        "narHash": "sha256-9fL+RUQOgf18bZkS7LC61YNkQG5DLnzINigLXny3UbE=",
+        "owner": "alexjercan",
+        "repo": "scufris2",
+        "rev": "96763cc4ea90e6fd43cf6b90ada64dc49d0ab561",
+        "type": "github"
       },
       "original": {
-        "rev": "f92c72c0a6525b40e18165a72d828c41ede91907",
-        "type": "git",
-        "url": "file:///home/alex/personal/scufris2"
+        "owner": "alexjercan",
+        "ref": "v0.1.0",
+        "repo": "scufris2",
+        "type": "github"
       }
     },
     "sops-nix": {
