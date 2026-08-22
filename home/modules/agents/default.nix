@@ -18,20 +18,13 @@ in {
     agentsFile = sourceRoot + "/AGENTS.md";
 
     skills = {
-      compound = sourceRoot + "/skills/compound";
       pair = sourceRoot + "/skills/pair";
-      review = sourceRoot + "/skills/review";
-      sprout = sourceRoot + "/skills/sprout";
       tatr = inputs.tatr.skills.tatr;
-      understand = sourceRoot + "/skills/understand";
-      work = sourceRoot + "/skills/work";
-      today = inputs.today.skills.today;
     };
 
     agentBrowser.enable = true;
     claudeCode.enable = true;
     codex.enable = true;
-    knowledge.enable = true;
     opencode.enable = true;
     plannotator.enable = true;
 

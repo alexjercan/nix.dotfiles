@@ -10,9 +10,6 @@ in {
     (import ./core.nix {inherit agentPackages;})
     ./pi.nix
     (import ./voice-stt.nix {inherit piExtensions;})
-    (import ./tools.nix {
-      inherit agentPackages;
-      toolSkills.knowledge = sourceRoot + "/skills/knowledge";
-    })
+    (import ./tools.nix {inherit agentPackages;})
   ];
 }

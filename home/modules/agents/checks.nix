@@ -1,6 +1,5 @@
 {
   pkgs,
-  agentSkills,
   homeModule,
   i3Module,
   scufrisModule,
@@ -47,10 +46,6 @@
     moduleConfig = {
       enable = true;
       agentsFile = sourceRoot + "/AGENTS.md";
-      knowledge = {
-        enable = true;
-        directory = "/tmp/custom-agent-knowledge";
-      };
       plannotator.enable = true;
       pi.themes = [(sourceRoot + "/tests/fixtures")];
     };
@@ -60,20 +55,7 @@
   };
   minimal = mkHome {
     enable = true;
-    skills = {
-      review = extraSkill;
-      understand = extraSkill;
-    };
-    knowledge = {
-      enable = true;
-      package = pkgs.hello;
-    };
     pi.enable = false;
-  };
-  toolsEnabled = mkHome {
-    enable = true;
-    skills.knowledge = extraSkill;
-    knowledge.enable = true;
   };
   sttEnabled = mkHome {
     enable = true;
@@ -173,16 +155,13 @@
   disabledConfig = disabled.config;
   configuredConfig = configured.config;
   minimalConfig = minimal.config;
-  toolsEnabledConfig = toolsEnabled.config;
   sttEnabledConfig = sttEnabled.config;
   localWhisperConfig = localWhisperEnabled.config;
   voiceDisabledConfig = voiceDisabled.config;
   popupConfig = popupEnabled.config;
   popupDisabledConfig = popupDisabled.config;
   expectedSkills = ["extra"];
-  expectedToolSkills = ["knowledge"];
   deployed = root: name: enabledConfig.home.file."${root}/${name}";
-  toolDeployed = root: name: toolsEnabledConfig.home.file."${root}/${name}";
   popupVoiceConfig = popupConfig.programs.scufris.voice.popup;
   popupI3Config = popupConfig.xsession.windowManager.i3.scufrisPopup;
   popupUnit = popupConfig.systemd.user.services.${popupVoiceConfig.serviceName};
@@ -193,9 +172,6 @@
   assert enabledConfig.programs.pi.coding-agent.package == packages.pi;
   assert (enabledConfig.programs.pi.coding-agent.settings.theme or null) == null;
   assert enabledConfig.programs.pi.coding-agent.finalArgs == [];
-  assert enabledConfig.programs.agents.knowledge.directory == "/tmp/agent-test-home/.local/share/agents/knowledge";
-  assert !(builtins.hasAttr "AGENTS_KNOWLEDGE_DIR" enabledConfig.home.sessionVariables);
-  assert configuredConfig.home.sessionVariables.AGENTS_KNOWLEDGE_DIR == "/tmp/custom-agent-knowledge";
   assert builtins.toString configuredConfig.home.file."AGENTS.md".source == builtins.toString (sourceRoot + "/AGENTS.md");
   assert configuredConfig.programs.pi.coding-agent.settings.theme == "test-theme";
   assert builtins.length configuredConfig.programs.pi.coding-agent.finalArgs == 2;
@@ -205,7 +181,6 @@
     packages.agent-browser
     packages.claude-code
     packages.codex
-    packages.knowledge
     packages.opencode
     packages.plannotator
   ];
@@ -260,20 +235,11 @@
   assert builtins.hasAttr "AGENTS.md" configuredConfig.home.file;
   assert builtins.hasAttr ".claude/CLAUDE.md" configuredConfig.home.file;
   assert builtins.hasAttr ".codex/AGENTS.md" configuredConfig.home.file;
-  assert builtins.attrNames minimalConfig.programs.agents.finalSkills == ["knowledge" "review" "understand"];
-  assert builtins.toString minimalConfig.programs.agents.finalSkills.understand == builtins.toString extraSkill;
-  assert builtins.toString minimalConfig.programs.agents.finalSkills.knowledge == builtins.toString agentSkills.knowledge;
-  assert lib.elem pkgs.hello minimalConfig.home.packages;
-  assert builtins.attrNames toolsEnabledConfig.programs.agents.finalSkills == expectedToolSkills;
-  assert builtins.toString toolsEnabledConfig.programs.agents.finalSkills.knowledge == builtins.toString agentSkills.knowledge;
-  assert lib.all (name: (toolDeployed ".claude/skills" name).recursive) expectedToolSkills;
-  assert lib.all (name: (toolDeployed ".agents/skills" name).recursive) expectedToolSkills;
-  assert lib.elem packages.knowledge toolsEnabledConfig.home.packages;
+  assert minimalConfig.programs.agents.finalSkills == {};
   assert lib.all (package: !(lib.elem package minimalConfig.home.packages)) [
     packages.agent-browser
     packages.claude-code
     packages.codex
-    packages.knowledge
     packages.opencode
     packages.pi
     packages.plannotator
@@ -287,14 +253,12 @@
     packages.agent-browser
     packages.claude-code
     packages.codex
-    packages.knowledge
     packages.opencode
     packages.pi
     packages.plannotator
   ];
-  assert !(builtins.hasAttr "AGENTS_KNOWLEDGE_DIR" disabledConfig.home.sessionVariables);
   assert !(builtins.hasAttr "AGENTS.md" disabledConfig.home.file);
-  assert !(builtins.hasAttr ".agents/skills/understand" disabledConfig.home.file);
+  assert !(builtins.hasAttr ".agents/skills/extra" disabledConfig.home.file);
     pkgs.runCommand "agents-home-module" {
       enabledCodex = enabledConfig.home.activation.agentsCodexSkills.data;
       disabledCodex = disabledConfig.home.activation.agentsCodexSkills.data;
@@ -313,8 +277,6 @@
       touch "$out"
     '';
 in {
-  knowledge = packages.knowledge;
-
   voice-stt = assert lib.assertMsg (extensions.voice-stt.version == "0.6.0")
   "pi-voice-stt must remain pinned at 0.6.0";
     pkgs.runCommand "pi-voice-stt-smoke" {} ''
@@ -407,15 +369,6 @@ in {
     } ''
       plannotator --help | grep -Fx "Usage:"
       test "$(plannotator --version)" = "plannotator ${packages.plannotator.version}"
-      touch "$out"
-    '';
-
-  knowledge-integration =
-    pkgs.runCommand "knowledge-integration" {
-      nativeBuildInputs = [pkgs.bash pkgs.coreutils pkgs.gnugrep];
-      test = sourceRoot + "/scripts/knowledge-test.sh";
-    } ''
-      KNOWLEDGE=${lib.getExe packages.knowledge} bash "$test"
       touch "$out"
     '';
 

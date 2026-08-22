@@ -1,6 +1,0 @@
-interface:
-  display_name: "Sprout"
-  short_description: "Manage git worktrees"
-  default_prompt: "Use $sprout to manage isolated git worktrees."
-policy:
-  allow_implicit_invocation: false

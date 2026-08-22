@@ -5,21 +5,20 @@
   ...
 }: let
   cfg = config.programs.agents;
-  candidateSkills = cfg.skills // cfg.internalSkills;
   invalidNames =
     builtins.filter
     (name: builtins.match "[a-z0-9]+(-[a-z0-9]+)*" name == null)
-    (builtins.attrNames candidateSkills);
+    (builtins.attrNames cfg.skills);
   missingSkillFiles =
     builtins.filter
-    (name: !builtins.pathExists "${candidateSkills.${name}}/SKILL.md")
-    (builtins.attrNames candidateSkills);
+    (name: !builtins.pathExists "${cfg.skills.${name}}/SKILL.md")
+    (builtins.attrNames cfg.skills);
   checkedSkills =
     if invalidNames != []
     then throw "programs.agents has invalid skill names: ${lib.concatStringsSep ", " invalidNames}"
     else if missingSkillFiles != []
     then throw "programs.agents skill sources have no SKILL.md: ${lib.concatStringsSep ", " missingSkillFiles}"
-    else candidateSkills;
+    else cfg.skills;
 
   skillFilesFor = root:
     builtins.listToAttrs (lib.mapAttrsToList (name: source: {
@@ -51,16 +50,9 @@ in {
       description = "Named Agent Skill directories to deploy on every supported harness.";
       example = lib.literalExpression ''
         {
-          release = ./skills/release;
-          today = inputs.today.skills.today;
+          pair = ./skills/pair;
         }
       '';
-    };
-
-    internalSkills = lib.mkOption {
-      type = lib.types.attrsOf lib.types.path;
-      default = {};
-      internal = true;
     };
 
     finalSkills = lib.mkOption {

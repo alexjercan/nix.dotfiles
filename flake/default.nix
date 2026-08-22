@@ -43,7 +43,6 @@
       inherit sourceRoot;
       scufrisModule = inputs.scufris.homeModules.default;
       scufrisRevision = inputs.scufris.rev;
-      agentSkills.knowledge = inputs.self + "/home/modules/agents/skills/knowledge";
       packages = agentPackages;
       extensions = piExtensions;
       home-manager = inputs.home-manager;

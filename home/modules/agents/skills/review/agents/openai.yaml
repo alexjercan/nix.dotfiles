@@ -1,6 +1,0 @@
-interface:
-  display_name: "Review"
-  short_description: "Review an implementation."
-  default_prompt: "Use $review to review an implementation for correctness, tests, design, and scope."
-policy:
-  allow_implicit_invocation: false

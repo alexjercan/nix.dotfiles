@@ -1,6 +1,0 @@
-interface:
-  display_name: "Work"
-  short_description: "Implement a task"
-  default_prompt: "Use $work to implement a task or request."
-policy:
-  allow_implicit_invocation: false
