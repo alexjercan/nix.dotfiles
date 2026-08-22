@@ -56,7 +56,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     scufris = {
-      url = "github:alexjercan/scufris2/v0.1.0";
+      url = "github:alexjercan/scufris2/v0.2.0";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
       inputs.pi.follows = "pi";

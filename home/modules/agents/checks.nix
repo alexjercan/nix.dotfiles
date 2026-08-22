@@ -394,9 +394,9 @@ in {
       touch "$out"
     '';
 
-  scufris-revision = assert lib.assertMsg (scufrisRevision == "96763cc4ea90e6fd43cf6b90ada64dc49d0ab561")
-  "Scufris must remain pinned at v0.1.0 release revision 96763cc";
-    pkgs.runCommand "scufris-v0.1.0-revision" {} ''
+  scufris-revision = assert lib.assertMsg (scufrisRevision == "794561a0b912138c732131cd83df0ecf5ab3960d")
+  "Scufris must remain pinned at v0.2.0 release revision 794561a";
+    pkgs.runCommand "scufris-v0.2.0-revision" {} ''
       touch "$out"
     '';
 
