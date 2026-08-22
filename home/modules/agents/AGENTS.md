@@ -6,12 +6,15 @@ Global agent guidelines.
 
 - NEVER BACKWARD COMPATIBLE - prefer breaking old than having to design around.
 - Brevity first. Remove preambles, repetition, and filler.
+- Write for the audience. Include only facts they need.
+- State present behavior directly. Mention absence only when consequential.
+- Keep compliance evidence separate from the result.
 - Use ASD-STE100 Simplified Technical English.
 - Prefer fragments and short sentences. Keep enough grammar for precision.
 - Bullets over prose. Flat structure.
 - Direct statements. No hedging or preambles.
 - Reference prior context instead of repeating it.
-- Prefer "User can...", "Handles...", and "Requires:".
+- Name the actor and action when responsibility matters.
 - Comment why, not what. Avoid behavior comments.
 
 ## Writing
