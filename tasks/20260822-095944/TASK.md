@@ -1,6 +1,6 @@
 # Deploy Scufris v0.1.0 release input
 
-- STATUS: IN_PROGRESS
+- STATUS: CLOSED
 - PRIORITY: 100
 - TAGS: scufris, release, deployment
 
