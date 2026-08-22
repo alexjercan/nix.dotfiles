@@ -1,64 +1,30 @@
 # AGENTS.md
 
-Global agent guidelines.
+Global agent instructions. Repository `AGENTS.md` files define project tools,
+workflow, and conventions.
 
-## Core rules
+## Principles
 
-- NEVER BACKWARD COMPATIBLE - prefer breaking old than having to design around.
-- Brevity first. Remove preambles, repetition, and filler.
-- Write for the audience. Include only facts they need.
-- State present behavior directly. Mention absence only when consequential.
-- Keep compliance evidence separate from the result.
-- Use ASD-STE100 Simplified Technical English.
-- Prefer fragments and short sentences. Keep enough grammar for precision.
-- Bullets over prose. Flat structure.
-- Direct statements. No hedging or preambles.
-- Reference prior context instead of repeating it.
-- Name the actor and action when responsibility matters.
-- Comment why, not what. Avoid behavior comments.
+- Prefer breaking changes over backward-compatibility machinery.
+- Optimize for correctness, maintainability, and simple architecture.
+- Keep scope focused. Avoid speculative abstractions.
+- Comment why, not what. Keep only useful docstrings and essential notes.
 
-## Writing
+## Communication
 
-- ASCII-adjacent characters only: `-`, `--`, `...`, `->`, straight quotes.
-- No em dashes, smart quotes, typographic ellipses, or arrows.
-- Applies to chat, code, comments, docs, and commit messages.
+- Be brief and direct. Remove preambles, repetition, and filler.
+- Use short sentences and ASD-STE100 Simplified Technical English.
+- Prefer flat bullets over long prose.
+- Use ASCII punctuation in chat, code, documentation, and commits.
 
-## Technical decisions
+## Git
 
-- Optimize for correctness, maintainability, and design quality.
-- Ignore implementation time. Refactoring and tests are valid costs.
-- Quality is a cost worth paying; scope is not.
-- Keep architecture simple. Avoid spaghetti code and speculative machinery.
-- Code comments: docstrings or essential implementation notes only. Put
-  explanatory prose in task records.
-- Keep comments that guard values or explain non-obvious settings.
+- Preserve user authorship. Add no AI attribution or co-author trailers.
 
-## Commits
+## Verification
 
-- User authorship only. No AI attribution or co-author trailers.
-
-## Testing
-
-- Prefer integration tests and end-to-end examples over isolated unit tests when practical.
-- For substantial components, consider a small runnable example when useful or cheap.
-
-## Shell and verification
-
-- Preserve build/test exit codes: run bare, redirect then inspect, or use `set -o pipefail`.
-- Kill helper processes by recorded PID. Never use `pkill -f <pattern>`.
-- NEVER kill a tmux server or tmux process. Never run `tmux kill-server` or use
-  broad tmux cleanup. Target only exact owned panes, windows, or sessions. Tmux
-  tests require an isolated socket and must verify the default server identity.
-- Re-read edited artifacts. Tool success does not prove correct content.
-
-## Agent workflow cache
-
-- Repository `AGENTS.md`: one `## Agent workflow` line each for tracker/epics,
-  examples/retention, domain docs, research/network, and checks/records.
-- Detail behind one pointer.
-- Example location: declared -> existing `examples/` or `scripts/` -> task folder -> ask once and cache.
-
-## Documentation and reflection
-
-- After meaningful changes, record what/why/tradeoffs, bugs/fixes, and next-time improvements.
-- Use the repository record location; otherwise `docs/`.
+- Run the cheapest relevant check. Follow project-specific check instructions.
+- Preserve command exit codes when filtering or redirecting output.
+- Re-read changed files after edits.
+- Stop helper processes by recorded PID. Never use broad process matching.
+- Never kill a tmux server. Target only owned panes, windows, or sessions.
