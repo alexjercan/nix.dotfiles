@@ -23,7 +23,6 @@ in {
           overlays = [
             inputs.tatr.overlays.default
             inputs.today.overlays.default
-            inputs.macros-nvim.overlays.default
           ];
         };
 

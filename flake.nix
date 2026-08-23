@@ -46,14 +46,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     today = {
-      url = "github:alexjercan/today/v0.3.1";
+      url = "github:alexjercan/today/v0.4.0";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.dashboardd.follows = "dashboardd";
-      inputs.macros.follows = "macros-nvim";
-    };
-    macros-nvim = {
-      url = "github:alexjercan/macros.nvim/v0.2.0";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
     scufris = {
       url = "github:alexjercan/scufris2/v0.2.0";

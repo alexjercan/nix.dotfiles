@@ -2,7 +2,7 @@
   "nodes": {
     "bun2nix": {
       "inputs": {
-        "flake-parts": "flake-parts_5",
+        "flake-parts": "flake-parts_4",
         "nixpkgs": [
           "pi",
           "nixpkgs"
@@ -104,24 +104,6 @@
     },
     "flake-parts_3": {
       "inputs": {
-        "nixpkgs-lib": "nixpkgs-lib_3"
-      },
-      "locked": {
-        "lastModified": 1765835352,
-        "narHash": "sha256-XswHlK/Qtjasvhd1nOa1e8MgZ8GS//jBoTqWtrS1Giw=",
-        "owner": "hercules-ci",
-        "repo": "flake-parts",
-        "rev": "a34fae9c08a15ad73f295041fec82323541400a9",
-        "type": "github"
-      },
-      "original": {
-        "owner": "hercules-ci",
-        "repo": "flake-parts",
-        "type": "github"
-      }
-    },
-    "flake-parts_4": {
-      "inputs": {
         "nixpkgs-lib": [
           "nixvim",
           "nixpkgs"
@@ -141,7 +123,7 @@
         "type": "github"
       }
     },
-    "flake-parts_5": {
+    "flake-parts_4": {
       "inputs": {
         "nixpkgs-lib": [
           "pi",
@@ -155,6 +137,24 @@
         "owner": "hercules-ci",
         "repo": "flake-parts",
         "rev": "0678d8986be1661af6bb555f3489f2fdfc31f6ff",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "type": "github"
+      }
+    },
+    "flake-parts_5": {
+      "inputs": {
+        "nixpkgs-lib": "nixpkgs-lib_3"
+      },
+      "locked": {
+        "lastModified": 1785627969,
+        "narHash": "sha256-4dtXQk/NMePegK/nWp5NSeuZKLATItOq61lpEvmXqGw=",
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "rev": "427bf4bd9435fdf21321c8cc628c24efc14c0f7a",
         "type": "github"
       },
       "original": {
@@ -184,24 +184,6 @@
     "flake-parts_7": {
       "inputs": {
         "nixpkgs-lib": "nixpkgs-lib_5"
-      },
-      "locked": {
-        "lastModified": 1785627969,
-        "narHash": "sha256-4dtXQk/NMePegK/nWp5NSeuZKLATItOq61lpEvmXqGw=",
-        "owner": "hercules-ci",
-        "repo": "flake-parts",
-        "rev": "427bf4bd9435fdf21321c8cc628c24efc14c0f7a",
-        "type": "github"
-      },
-      "original": {
-        "owner": "hercules-ci",
-        "repo": "flake-parts",
-        "type": "github"
-      }
-    },
-    "flake-parts_8": {
-      "inputs": {
-        "nixpkgs-lib": "nixpkgs-lib_6"
       },
       "locked": {
         "lastModified": 1782949081,
@@ -265,28 +247,6 @@
         "owner": "~alexdavid",
         "repo": "jail.nix",
         "type": "sourcehut"
-      }
-    },
-    "macros-nvim": {
-      "inputs": {
-        "flake-parts": "flake-parts_3",
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1786966576,
-        "narHash": "sha256-2pMx785D7VbG6zdDBs2FeDzKjK9ooGo765TNZyVAfZw=",
-        "owner": "alexjercan",
-        "repo": "macros.nvim",
-        "rev": "4dded782f2f8e614a44a1aeb02d1ea66fa872f99",
-        "type": "github"
-      },
-      "original": {
-        "owner": "alexjercan",
-        "ref": "v0.2.0",
-        "repo": "macros.nvim",
-        "type": "github"
       }
     },
     "nix-index-database": {
@@ -357,11 +317,11 @@
     },
     "nixpkgs-lib_3": {
       "locked": {
-        "lastModified": 1765674936,
-        "narHash": "sha256-k00uTP4JNfmejrCLJOwdObYC9jHRrr/5M/a/8L2EIdo=",
+        "lastModified": 1785031560,
+        "narHash": "sha256-OmshNvn2vupOFpYinLUu+1Dnpu4n7Q5N3ggGVNHpkUI=",
         "owner": "nix-community",
         "repo": "nixpkgs.lib",
-        "rev": "2075416fcb47225d9b68ac469a5c4801a9c4dd85",
+        "rev": "0e79af5e3d4dcfcd676ab5ba3f95d2e3352e078c",
         "type": "github"
       },
       "original": {
@@ -386,21 +346,6 @@
       }
     },
     "nixpkgs-lib_5": {
-      "locked": {
-        "lastModified": 1785031560,
-        "narHash": "sha256-OmshNvn2vupOFpYinLUu+1Dnpu4n7Q5N3ggGVNHpkUI=",
-        "owner": "nix-community",
-        "repo": "nixpkgs.lib",
-        "rev": "0e79af5e3d4dcfcd676ab5ba3f95d2e3352e078c",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "repo": "nixpkgs.lib",
-        "type": "github"
-      }
-    },
-    "nixpkgs-lib_6": {
       "locked": {
         "lastModified": 1782614948,
         "narHash": "sha256-ePjCwr1sNm9NYUqywL7QfK3JnlS015msC+eBu2zKlp8=",
@@ -449,7 +394,7 @@
     },
     "nixvim": {
       "inputs": {
-        "flake-parts": "flake-parts_4",
+        "flake-parts": "flake-parts_3",
         "nixpkgs": "nixpkgs_3",
         "systems": "systems"
       },
@@ -546,7 +491,6 @@
         "flake-parts": "flake-parts_2",
         "home-manager": "home-manager",
         "import-tree": "import-tree",
-        "macros-nvim": "macros-nvim",
         "nix-index-database": "nix-index-database",
         "nixpkgs": "nixpkgs_2",
         "nixvim": "nixvim",
@@ -604,7 +548,7 @@
         "dashboardd": [
           "dashboardd"
         ],
-        "flake-parts": "flake-parts_6",
+        "flake-parts": "flake-parts_5",
         "home-manager": [
           "home-manager"
         ],
@@ -683,7 +627,7 @@
     },
     "tatr": {
       "inputs": {
-        "flake-parts": "flake-parts_7",
+        "flake-parts": "flake-parts_6",
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -708,10 +652,7 @@
         "dashboardd": [
           "dashboardd"
         ],
-        "flake-parts": "flake-parts_8",
-        "macros": [
-          "macros-nvim"
-        ],
+        "flake-parts": "flake-parts_7",
         "nixpkgs": [
           "nixpkgs"
         ],
@@ -720,16 +661,16 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1787260190,
-        "narHash": "sha256-eocjxGgqwic41jQC4Ed0isppBSZDRUuGsun8B7CFmac=",
+        "lastModified": 1787469205,
+        "narHash": "sha256-Kh5xY1ghmwHhiF9fn6mv+tTI3j8TK18wACy1jB/ZoKs=",
         "owner": "alexjercan",
         "repo": "today",
-        "rev": "19a8835965eadbfc9cd1b0cf3ed500948cf8fc19",
+        "rev": "12adb82caf9d35d3468075263a2275592bdfdf64",
         "type": "github"
       },
       "original": {
         "owner": "alexjercan",
-        "ref": "v0.3.1",
+        "ref": "v0.4.0",
         "repo": "today",
         "type": "github"
       }

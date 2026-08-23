@@ -5,7 +5,6 @@
     gh
     graphviz
     llama-cpp
-    macros
     openssl
     tatr
     nodejs
