@@ -64,23 +64,6 @@ in {
     ];
   };
 
-  programs.agents.pi.voiceStt = {
-    enable = true;
-    localWhisper.enable = true;
-    settings = {
-      keybind = "ctrl+r";
-      capture = {
-        type = "ffmpeg";
-        ffmpegPath = "${pkgs.ffmpeg}/bin/ffmpeg";
-        inputFormat = "pulse";
-        input = "default";
-        sampleRate = 16000;
-        channels = 1;
-      };
-      cleanup.enabled = false;
-    };
-  };
-
   programs.scufris = {
     enable = true;
     piPackage = config.programs.pi.coding-agent.finalPackage;

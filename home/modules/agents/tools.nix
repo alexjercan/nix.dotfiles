@@ -1,4 +1,4 @@
-{agentPackages}: {
+{
   config,
   pkgs,
   lib,
@@ -29,8 +29,7 @@
     lib.optional cfg.agentBrowser.enable cfg.agentBrowser.package
     ++ lib.optional cfg.claudeCode.enable cfg.claudeCode.package
     ++ lib.optional cfg.codex.enable cfg.codex.package
-    ++ lib.optional cfg.opencode.enable cfg.opencode.package
-    ++ lib.optional cfg.plannotator.enable cfg.plannotator.package;
+    ++ lib.optional cfg.opencode.enable cfg.opencode.package;
 in {
   options.programs.agents = {
     agentBrowser = mkPackageToolOptions {
@@ -55,12 +54,6 @@ in {
       name = "OpenCode";
       package = pkgs.opencode;
       packageDefault = "pkgs.opencode";
-    };
-
-    plannotator = mkPackageToolOptions {
-      name = "Plannotator";
-      package = agentPackages.plannotator;
-      packageDefault = "agentPackages.plannotator";
     };
   };
 

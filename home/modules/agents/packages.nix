@@ -2,6 +2,8 @@
   pkgs,
   sourceRoot ? ./.,
 }: let
+  piExtensions = import ./pi-extensions {inherit pkgs sourceRoot;};
+
   codexSkills = pkgs.writeShellApplication {
     name = "agents-deploy-codex-skills";
     runtimeInputs = [pkgs.coreutils];
@@ -9,5 +11,5 @@
   };
 in {
   deploy-codex-skills = codexSkills;
-  plannotator = pkgs.callPackage (sourceRoot + "/plannotator.nix") {};
+  plannotator = piExtensions.plannotator.binary;
 }

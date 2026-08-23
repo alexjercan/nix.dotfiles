@@ -6,10 +6,13 @@
   makeWrapper,
   git,
   xdg-utils,
+  # Pinned by the npm lock of this directory: the CLI and the Pi extension ship
+  # from one upstream release. Bump the lock, then update `hash` below.
+  version,
 }:
 stdenv.mkDerivation (finalAttrs: {
   pname = "plannotator";
-  version = "0.27.4";
+  inherit version;
 
   src = fetchurl {
     url = "https://github.com/backnotprop/plannotator/releases/download/v${finalAttrs.version}/plannotator-linux-x64";

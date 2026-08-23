@@ -2,19 +2,13 @@
   pkgs,
   sourceRoot ? ../.,
 }: let
-  mkPiNpmExtension = args:
-    import ./mk-pi-npm-extension.nix ({
-        inherit pkgs;
-      }
-      // args);
-in {
-  plannotator = mkPiNpmExtension {
-    npmRoot = sourceRoot + "/pi-extensions/plannotator";
-    packageName = "@plannotator/pi-extension";
-  };
-
-  voice-stt = mkPiNpmExtension {
-    npmRoot = sourceRoot + "/pi-extensions/voice-stt";
-    packageName = "pi-voice-stt";
-  };
-}
+  # Every subdirectory is one self-contained extension: `default.nix` builds its
+  # packages and `module.nix` declares its Home Manager options.
+  entries = builtins.readDir (sourceRoot + "/pi-extensions");
+  names = builtins.filter (name: entries.${name} == "directory") (builtins.attrNames entries);
+in
+  builtins.listToAttrs (map (name: {
+      inherit name;
+      value = import (./. + "/${name}") {inherit pkgs sourceRoot;};
+    })
+    names)

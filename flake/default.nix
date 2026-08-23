@@ -10,10 +10,12 @@
     piModule = inputs.pi.homeModules.default;
     sourceRoot = inputs.self + "/home/modules/agents";
   };
-  flake.extensions.x86_64-linux = import ../home/modules/agents/pi-extensions {
-    pkgs = import inputs.nixpkgs {system = "x86_64-linux";};
-    sourceRoot = inputs.self + "/home/modules/agents";
-  };
+  flake.extensions.x86_64-linux =
+    builtins.mapAttrs (_: ext: ext.extension)
+    (import ../home/modules/agents/pi-extensions {
+      pkgs = import inputs.nixpkgs {system = "x86_64-linux";};
+      sourceRoot = inputs.self + "/home/modules/agents";
+    });
 
   flake.themes.gruber-darker = inputs.self + "/home/modules/agents/themes/gruber-darker.json";
 
@@ -44,7 +46,7 @@
       scufrisModule = inputs.scufris.homeModules.default;
       scufrisRevision = inputs.scufris.rev;
       packages = agentPackages;
-      extensions = piExtensions;
+      extensions = builtins.mapAttrs (_: ext: ext.extension) piExtensions;
       home-manager = inputs.home-manager;
     };
   };

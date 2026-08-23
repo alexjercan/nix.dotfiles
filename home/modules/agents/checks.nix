@@ -46,8 +46,8 @@
     moduleConfig = {
       enable = true;
       agentsFile = sourceRoot + "/AGENTS.md";
-      plannotator.enable = true;
-      pi.themes = [(sourceRoot + "/tests/fixtures")];
+      pi.extensions.plannotator.enable = true;
+      pi.themes.gruber-darker.enable = true;
     };
     piConfig = {
       settings.theme = "test-theme";
@@ -59,7 +59,7 @@
   };
   sttEnabled = mkHome {
     enable = true;
-    pi.voiceStt = {
+    pi.extensions.voice-stt = {
       enable = true;
       settings.provider = {
         type = "openai-compatible";
@@ -69,7 +69,7 @@
   };
   localWhisperEnabled = mkHome {
     enable = true;
-    pi.voiceStt = {
+    pi.extensions.voice-stt = {
       enable = true;
       localWhisper.enable = true;
       settings.keybind = "ctrl+r";
@@ -77,12 +77,12 @@
   };
   voiceDisabled = mkHome {
     enable = true;
-    pi.voiceStt.enable = false;
+    pi.extensions.voice-stt.enable = false;
   };
   popupEnabled = mkHomeWith {
     moduleConfig = {
       enable = true;
-      pi.voiceStt = {
+      pi.extensions.voice-stt = {
         enable = true;
         localWhisper.enable = true;
       };
@@ -105,7 +105,7 @@
   popupDisabled = mkHomeWith {
     moduleConfig = {
       enable = true;
-      pi.voiceStt.enable = true;
+      pi.extensions.voice-stt.enable = true;
     };
     extraModules = [scufrisModule i3Module];
     extraConfig.programs.scufris = {
@@ -117,7 +117,7 @@
   conflictingWhisper = builtins.tryEval (builtins.deepSeq
     (mkHome {
       enable = true;
-      pi.voiceStt = {
+      pi.extensions.voice-stt = {
         enable = true;
         localWhisper.enable = true;
         settings.provider.endpoint = "http://127.0.0.1:9000/inference";
@@ -174,8 +174,12 @@
   assert enabledConfig.programs.pi.coding-agent.finalArgs == [];
   assert builtins.toString configuredConfig.home.file."AGENTS.md".source == builtins.toString (sourceRoot + "/AGENTS.md");
   assert configuredConfig.programs.pi.coding-agent.settings.theme == "test-theme";
-  assert builtins.length configuredConfig.programs.pi.coding-agent.finalArgs == 2;
+  assert builtins.length configuredConfig.programs.pi.coding-agent.finalArgs == 4;
   assert lib.count (arg: arg == "--theme") configuredConfig.programs.pi.coding-agent.finalArgs == 1;
+  assert lib.count (arg: arg == "--extension") configuredConfig.programs.pi.coding-agent.finalArgs == 1;
+  assert builtins.map builtins.toString configuredConfig.programs.pi.coding-agent.themes
+  == [(builtins.toString (sourceRoot + "/themes/gruber-darker.json"))];
+  assert enabledConfig.programs.pi.coding-agent.themes == [];
   assert lib.elem enabledConfig.programs.pi.coding-agent.finalPackage enabledConfig.home.packages;
   assert lib.all (package: !(lib.elem package enabledConfig.home.packages)) [
     packages.agent-browser
@@ -185,6 +189,8 @@
     packages.plannotator
   ];
   assert lib.elem packages.plannotator configuredConfig.home.packages;
+  assert lib.elem extensions.plannotator configuredConfig.programs.pi.coding-agent.extensions;
+  assert !(lib.elem extensions.plannotator enabledConfig.programs.pi.coding-agent.extensions);
   assert !conflictingWhisper.success;
   assert !invalidPopupConsumer.success;
   assert lib.elem extensions.voice-stt sttEnabledConfig.programs.pi.coding-agent.extensions;
@@ -194,11 +200,11 @@
   assert lib.elem extensions.voice-stt localWhisperConfig.programs.pi.coding-agent.extensions;
   assert builtins.hasAttr ".pi/agent/stt.json" localWhisperConfig.home.file;
   assert !(builtins.hasAttr "PI_STT_CONFIG" localWhisperConfig.home.sessionVariables);
-  assert localWhisperConfig.programs.agents.pi.voiceStt.ffmpegPackage == pkgs.ffmpeg;
-  assert localWhisperConfig.programs.agents.pi.voiceStt.localWhisper.package == pkgs.whisper-cpp-vulkan;
-  assert localWhisperConfig.programs.agents.pi.voiceStt.localWhisper.model.name == "ggml-large-v3-turbo-q5_0.bin";
-  assert localWhisperConfig.programs.agents.pi.voiceStt.localWhisper.host == "127.0.0.1";
-  assert localWhisperConfig.programs.agents.pi.voiceStt.localWhisper.port == 10301;
+  assert localWhisperConfig.programs.agents.pi.extensions.voice-stt.ffmpegPackage == pkgs.ffmpeg;
+  assert localWhisperConfig.programs.agents.pi.extensions.voice-stt.localWhisper.package == pkgs.whisper-cpp-vulkan;
+  assert localWhisperConfig.programs.agents.pi.extensions.voice-stt.localWhisper.model.name == "ggml-large-v3-turbo-q5_0.bin";
+  assert localWhisperConfig.programs.agents.pi.extensions.voice-stt.localWhisper.host == "127.0.0.1";
+  assert localWhisperConfig.programs.agents.pi.extensions.voice-stt.localWhisper.port == 10301;
   assert builtins.hasAttr "whisper-server" localWhisperConfig.systemd.user.services;
   assert lib.hasInfix "--host 127.0.0.1" (builtins.head localWhisperConfig.systemd.user.services.whisper-server.Service.ExecStart);
   assert lib.hasInfix "--port 10301" (builtins.head localWhisperConfig.systemd.user.services.whisper-server.Service.ExecStart);

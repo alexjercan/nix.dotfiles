@@ -1,12 +1,13 @@
-{piExtensions}: {
+{sourceRoot ? ../../.}: {
   config,
   lib,
   pkgs,
   ...
 }: let
   cfg = config.programs.agents;
-  voiceCfg = cfg.pi.voiceStt;
-  whisperCfg = voiceCfg.localWhisper;
+  extCfg = cfg.pi.extensions.voice-stt;
+  whisperCfg = extCfg.localWhisper;
+  self = import ./. {inherit pkgs sourceRoot;};
   json = pkgs.formats.json {};
   whisperModel = pkgs.fetchurl {
     name = "ggml-large-v3-turbo-q5_0.bin";
@@ -21,16 +22,16 @@
     apiKeyEnv = "";
   };
   finalSettings =
-    voiceCfg.settings
+    extCfg.settings
     // lib.optionalAttrs whisperCfg.enable {provider = managedProvider;};
 in {
-  options.programs.agents.pi.voiceStt = {
+  options.programs.agents.pi.extensions.voice-stt = {
     enable = lib.mkEnableOption "speech-to-text in Pi";
 
-    extension = lib.mkOption {
+    package = lib.mkOption {
       type = lib.types.package;
-      default = piExtensions.voice-stt;
-      defaultText = lib.literalExpression "piExtensions.voice-stt";
+      default = self.extension;
+      defaultText = lib.literalExpression "the pinned pi-voice-stt package";
       description = "Pinned pi-voice-stt extension package.";
     };
 
@@ -81,26 +82,26 @@ in {
     {
       assertions = [
         {
-          assertion = !voiceCfg.enable || cfg.pi.enable;
-          message = "programs.agents.pi.voiceStt.enable requires programs.agents.pi.enable";
+          assertion = !extCfg.enable || cfg.pi.enable;
+          message = "programs.agents.pi.extensions.voice-stt.enable requires programs.agents.pi.enable";
         }
         {
-          assertion = !whisperCfg.enable || voiceCfg.enable;
-          message = "programs.agents.pi.voiceStt.localWhisper.enable requires programs.agents.pi.voiceStt.enable";
+          assertion = !whisperCfg.enable || extCfg.enable;
+          message = "programs.agents.pi.extensions.voice-stt.localWhisper.enable requires programs.agents.pi.extensions.voice-stt.enable";
         }
         {
-          assertion = !whisperCfg.enable || !(voiceCfg.settings ? provider);
-          message = "programs.agents.pi.voiceStt.localWhisper conflicts with programs.agents.pi.voiceStt.settings.provider";
+          assertion = !whisperCfg.enable || !(extCfg.settings ? provider);
+          message = "programs.agents.pi.extensions.voice-stt.localWhisper conflicts with programs.agents.pi.extensions.voice-stt.settings.provider";
         }
       ];
     }
 
-    (lib.mkIf (cfg.pi.enable && voiceCfg.enable) {
-      home.packages = [voiceCfg.ffmpegPackage];
+    (lib.mkIf (cfg.pi.enable && extCfg.enable) {
+      home.packages = [extCfg.ffmpegPackage];
       home.file.".pi/agent/stt.json".source = json.generate "pi-voice-stt-config.json" finalSettings;
     })
 
-    (lib.mkIf (cfg.pi.enable && voiceCfg.enable && whisperCfg.enable) {
+    (lib.mkIf (cfg.pi.enable && extCfg.enable && whisperCfg.enable) {
       systemd.user.services.whisper-server = {
         Unit = {
           Description = "Loopback whisper.cpp speech-to-text server";

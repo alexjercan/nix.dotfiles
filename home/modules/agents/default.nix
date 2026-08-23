@@ -4,7 +4,6 @@
   ...
 }: let
   sourceRoot = inputs.self + "/home/modules/agents";
-  piExtensions = import ./pi-extensions {inherit pkgs sourceRoot;};
 in {
   imports = [
     (import ./module.nix {
@@ -21,11 +20,30 @@ in {
     claudeCode.enable = true;
     codex.enable = true;
     opencode.enable = true;
-    plannotator.enable = true;
 
     pi = {
-      extensions = [piExtensions.plannotator];
-      themes = [(sourceRoot + "/themes/gruber-darker.json")];
+      themes.gruber-darker.enable = true;
+
+      extensions = {
+        plannotator.enable = true;
+
+        voice-stt = {
+          enable = true;
+          localWhisper.enable = true;
+          settings = {
+            keybind = "ctrl+r";
+            capture = {
+              type = "ffmpeg";
+              ffmpegPath = "${pkgs.ffmpeg}/bin/ffmpeg";
+              inputFormat = "pulse";
+              input = "default";
+              sampleRate = 16000;
+              channels = 1;
+            };
+            cleanup.enabled = false;
+          };
+        };
+      };
     };
   };
 

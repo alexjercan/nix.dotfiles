@@ -4,7 +4,17 @@
   ...
 }: let
   cfg = config.programs.agents;
-  voiceCfg = cfg.pi.voiceStt;
+
+  # Every module under pi-extensions/ declares `extensions.<name>.enable` and
+  # `extensions.<name>.package`. Nothing here knows the individual names.
+  enabledExtensions =
+    lib.concatMap (ext: lib.optional ext.enable ext.package)
+    (lib.attrValues cfg.pi.extensions);
+
+  # themes/module.nix declares one `themes.<name>` per file in themes/.
+  enabledThemes =
+    lib.concatMap (theme: lib.optional theme.enable theme.source)
+    (lib.attrValues cfg.pi.themes);
 in {
   options.programs.agents.pi = {
     enable = lib.mkOption {
@@ -12,25 +22,13 @@ in {
       default = true;
       description = "Whether the agent workspace enables Pi.";
     };
-
-    extensions = lib.mkOption {
-      type = lib.types.listOf (lib.types.either lib.types.path lib.types.str);
-      default = [];
-      description = "Pi extensions to load.";
-    };
-
-    themes = lib.mkOption {
-      type = lib.types.listOf lib.types.path;
-      default = [];
-      description = "Pi themes to load.";
-    };
   };
 
   config = lib.mkIf cfg.enable {
     programs.pi.coding-agent = {
       enable = cfg.pi.enable;
-      extensions = cfg.pi.extensions ++ lib.optional voiceCfg.enable voiceCfg.extension;
-      themes = cfg.pi.themes;
+      extensions = lib.mkIf cfg.pi.enable enabledExtensions;
+      themes = lib.mkIf cfg.pi.enable enabledThemes;
     };
   };
 }
