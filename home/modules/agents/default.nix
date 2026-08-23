@@ -17,11 +17,6 @@ in {
     enable = true;
     agentsFile = sourceRoot + "/AGENTS.md";
 
-    skills = {
-      pair = sourceRoot + "/skills/pair";
-      tatr = inputs.tatr.skills.tatr;
-    };
-
     agentBrowser.enable = true;
     claudeCode.enable = true;
     codex.enable = true;
