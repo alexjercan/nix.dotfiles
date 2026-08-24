@@ -2,12 +2,12 @@
   pkgs,
   sourceRoot ? ../../.,
 }: let
-  version = "0.1.0";
+  version = "0.1.1";
   source = pkgs.fetchFromGitHub {
     owner = "alexjercan";
     repo = "quick-review";
     rev = "v${version}";
-    hash = "sha256-WuYYoPOvGodpauqYeb5bKK2LPrhlGopwhUrOlTAa5iw=";
+    hash = "sha256-eN585HEqYQr5mh6I7Uh8kjVFVxJNtkR4HV7ZT7lQjmI=";
   };
   extension =
     pkgs.runCommand "quick-review-${version}" {

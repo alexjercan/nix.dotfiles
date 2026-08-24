@@ -297,8 +297,8 @@ in {
   assert lib.assertMsg
   (!(lib.elem extensions.quick-review enabledConfig.programs.pi.coding-agent.extensions))
   "Quick Review must remain disabled by default in the reusable module";
-  assert lib.assertMsg (extensions.quick-review.version == "0.1.0")
-  "Quick Review must remain pinned at 0.1.0";
+  assert lib.assertMsg (extensions.quick-review.version == "0.1.1")
+  "Quick Review must remain pinned at 0.1.1";
     pkgs.runCommand "quick-review-smoke" {
       nativeBuildInputs = [pkgs.jq];
     } ''
@@ -308,7 +308,7 @@ in {
       test ! -e ${extensions.quick-review}/tests
       test ! -e ${extensions.quick-review}/node_modules
       jq -e '
-        .version == "0.1.0" and
+        .version == "0.1.1" and
         .pi.extensions == ["./extensions/quick-review/index.ts"]
       ' ${extensions.quick-review}/package.json > /dev/null
       touch "$out"
