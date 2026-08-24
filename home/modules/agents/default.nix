@@ -26,6 +26,7 @@ in {
 
       extensions = {
         plannotator.enable = true;
+        quick-review.enable = true;
 
         voice-stt = {
           enable = true;

@@ -57,6 +57,10 @@
     enable = true;
     pi.enable = false;
   };
+  quickReviewEnabled = mkHome {
+    enable = true;
+    pi.extensions.quick-review.enable = true;
+  };
   sttEnabled = mkHome {
     enable = true;
     pi.extensions.voice-stt = {
@@ -155,6 +159,7 @@
   disabledConfig = disabled.config;
   configuredConfig = configured.config;
   minimalConfig = minimal.config;
+  quickReviewConfig = quickReviewEnabled.config;
   sttEnabledConfig = sttEnabled.config;
   localWhisperConfig = localWhisperEnabled.config;
   voiceDisabledConfig = voiceDisabled.config;
@@ -283,6 +288,32 @@
       touch "$out"
     '';
 in {
+  quick-review = assert lib.assertMsg
+  (lib.elem extensions.quick-review quickReviewConfig.programs.pi.coding-agent.extensions)
+  "enabling Quick Review must add its package to Pi";
+  assert lib.assertMsg
+  (quickReviewConfig.programs.agents.pi.extensions.quick-review.package == extensions.quick-review)
+  "the Quick Review module must default to the pinned package";
+  assert lib.assertMsg
+  (!(lib.elem extensions.quick-review enabledConfig.programs.pi.coding-agent.extensions))
+  "Quick Review must remain disabled by default in the reusable module";
+  assert lib.assertMsg (extensions.quick-review.version == "0.1.0")
+  "Quick Review must remain pinned at 0.1.0";
+    pkgs.runCommand "quick-review-smoke" {
+      nativeBuildInputs = [pkgs.jq];
+    } ''
+      test -f ${extensions.quick-review}/package.json
+      test -f ${extensions.quick-review}/extensions/quick-review/index.ts
+      test -f ${extensions.quick-review}/docs/contract.md
+      test ! -e ${extensions.quick-review}/tests
+      test ! -e ${extensions.quick-review}/node_modules
+      jq -e '
+        .version == "0.1.0" and
+        .pi.extensions == ["./extensions/quick-review/index.ts"]
+      ' ${extensions.quick-review}/package.json > /dev/null
+      touch "$out"
+    '';
+
   voice-stt = assert lib.assertMsg (extensions.voice-stt.version == "0.6.0")
   "pi-voice-stt must remain pinned at 0.6.0";
     pkgs.runCommand "pi-voice-stt-smoke" {} ''
