@@ -23,6 +23,7 @@
     pkgs = import inputs.nixpkgs {
       inherit system;
       config.allowUnfree = true;
+      overlays = [inputs.llm-agents.overlays.shared-nixpkgs];
     };
     sourceRoot = inputs.self + "/home/modules/agents";
     i3Module = inputs.self + "/home/modules/i3";
@@ -31,7 +32,7 @@
     agentPackages =
       localPackages
       // {
-        inherit (pkgs) agent-browser claude-code codex opencode;
+        inherit (pkgs.llm-agents) agent-browser claude-code codex opencode;
         pi = inputs.pi.packages.${system}.default;
       };
     homeModule = import ../home/modules/agents/module.nix {

@@ -27,6 +27,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Agent CLIs ship releases faster than nixpkgs packages them. The
+    # `shared-nixpkgs` overlay adds a `pkgs.llm-agents` namespace instead of
+    # shadowing the nixpkgs attributes, so both sets stay reachable.
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nix-index-database = {
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";

@@ -23,6 +23,7 @@ in {
           overlays = [
             inputs.tatr.overlays.default
             inputs.today.overlays.default
+            inputs.llm-agents.overlays.shared-nixpkgs
           ];
         };
 

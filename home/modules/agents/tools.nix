@@ -6,6 +6,9 @@
 }: let
   cfg = config.programs.agents;
 
+  # Defaults come from `pkgs.llm-agents`, so pkgs must carry the
+  # llm-agents.nix `shared-nixpkgs` overlay. It tracks upstream agent releases
+  # much closer than nixpkgs does.
   mkPackageToolOptions = {
     name,
     package,
@@ -34,26 +37,26 @@ in {
   options.programs.agents = {
     agentBrowser = mkPackageToolOptions {
       name = "agent-browser";
-      package = pkgs.agent-browser;
-      packageDefault = "pkgs.agent-browser";
+      package = pkgs.llm-agents.agent-browser;
+      packageDefault = "pkgs.llm-agents.agent-browser";
     };
 
     claudeCode = mkPackageToolOptions {
       name = "Claude Code";
-      package = pkgs.claude-code;
-      packageDefault = "pkgs.claude-code";
+      package = pkgs.llm-agents.claude-code;
+      packageDefault = "pkgs.llm-agents.claude-code";
     };
 
     codex = mkPackageToolOptions {
       name = "Codex";
-      package = pkgs.codex;
-      packageDefault = "pkgs.codex";
+      package = pkgs.llm-agents.codex;
+      packageDefault = "pkgs.llm-agents.codex";
     };
 
     opencode = mkPackageToolOptions {
       name = "OpenCode";
-      package = pkgs.opencode;
-      packageDefault = "pkgs.opencode";
+      package = pkgs.llm-agents.opencode;
+      packageDefault = "pkgs.llm-agents.opencode";
     };
   };
 
