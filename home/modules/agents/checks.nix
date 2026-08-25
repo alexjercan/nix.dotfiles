@@ -2,6 +2,7 @@
   pkgs,
   homeModule,
   i3Module,
+  scufrisI3Module,
   scufrisModule,
   scufrisRevision,
   packages,
@@ -10,11 +11,9 @@
   sourceRoot,
 }: let
   lib = pkgs.lib;
-  extraSkill = sourceRoot + "/tests/fixtures/extra";
 
   mkHomeWith = {
     moduleConfig,
-    piConfig ? {},
     extraModules ? [],
     extraConfig ? {},
   }:
@@ -28,7 +27,6 @@
               home.homeDirectory = "/tmp/agent-test-home";
               home.stateVersion = "24.05";
               programs.agents = moduleConfig;
-              programs.pi.coding-agent = piConfig;
             }
             // extraConfig)
         ]
@@ -37,25 +35,26 @@
 
   mkHome = moduleConfig: mkHomeWith {inherit moduleConfig;};
 
-  enabled = mkHome {
-    enable = true;
-    skills.extra = extraSkill;
-  };
+  enabled = mkHome {enable = true;};
   disabled = mkHome {enable = false;};
-  configured = mkHomeWith {
-    moduleConfig = {
-      enable = true;
-      agentsFile = sourceRoot + "/AGENTS.md";
-      pi.extensions.plannotator.enable = true;
-      pi.themes.gruber-darker.enable = true;
-    };
-    piConfig = {
-      settings.theme = "test-theme";
-    };
+  configured = mkHome {
+    enable = true;
+    agentsFile = sourceRoot + "/AGENTS.md";
+    pi.extensions.plannotator.enable = true;
+    pi.themes.gruber-darker.enable = true;
+    pi.settings.theme = "test-theme";
   };
   minimal = mkHome {
     enable = true;
     pi.enable = false;
+    pi.settings.theme = "gruber-darker";
+  };
+  toolsEnabled = mkHome {
+    enable = true;
+    agentBrowser.enable = true;
+    claudeCode.enable = true;
+    codex.enable = true;
+    opencode.enable = true;
   };
   quickReviewEnabled = mkHome {
     enable = true;
@@ -91,19 +90,15 @@
         localWhisper.enable = true;
       };
     };
-    extraModules = [scufrisModule i3Module];
-    extraConfig = {
-      programs.scufris = {
+    extraModules = [scufrisModule scufrisI3Module i3Module];
+    extraConfig.programs.scufris = {
+      enable = true;
+      piPackage = packages.pi;
+      dashboard.enable = false;
+      voice = {
         enable = true;
-        piPackage = packages.pi;
-        delegation.enable = false;
-        widgets.enable = false;
-        voice = {
-          enable = true;
-          popup.enable = true;
-        };
+        popup.enable = true;
       };
-      xsession.windowManager.i3.scufrisPopup.enable = true;
     };
   };
   popupDisabled = mkHomeWith {
@@ -111,11 +106,10 @@
       enable = true;
       pi.extensions.voice-stt.enable = true;
     };
-    extraModules = [scufrisModule i3Module];
+    extraModules = [scufrisModule scufrisI3Module i3Module];
     extraConfig.programs.scufris = {
       enable = true;
-      delegation.enable = false;
-      widgets.enable = false;
+      dashboard.enable = false;
     };
   };
   conflictingWhisper = builtins.tryEval (builtins.deepSeq
@@ -128,64 +122,41 @@
       };
     }).activationPackage
     true);
-  invalidPopupConsumer = builtins.tryEval (builtins.deepSeq
-    (mkHomeWith {
-      moduleConfig = {enable = true;};
-      extraModules = [scufrisModule i3Module];
-      extraConfig = {
-        programs.scufris = {
-          enable = true;
-          delegation.enable = false;
-          widgets.enable = false;
-        };
-        xsession.windowManager.i3.scufrisPopup.enable = true;
-      };
-    }).activationPackage
-    true);
-  invalidName = builtins.tryEval (builtins.deepSeq
-    (mkHome {
-      enable = true;
-      skills."Bad Name" = extraSkill;
-    }).config.programs.agents.finalSkills
-    true);
-  missingSkill = builtins.tryEval (builtins.deepSeq
-    (mkHome {
-      enable = true;
-      skills.missing = sourceRoot + "/tests/fixtures";
-    }).config.programs.agents.finalSkills
-    true);
-
   enabledConfig = enabled.config;
   disabledConfig = disabled.config;
   configuredConfig = configured.config;
   minimalConfig = minimal.config;
+  toolsConfig = toolsEnabled.config;
   quickReviewConfig = quickReviewEnabled.config;
   sttEnabledConfig = sttEnabled.config;
   localWhisperConfig = localWhisperEnabled.config;
   voiceDisabledConfig = voiceDisabled.config;
   popupConfig = popupEnabled.config;
   popupDisabledConfig = popupDisabled.config;
-  expectedSkills = ["extra"];
-  deployed = root: name: enabledConfig.home.file."${root}/${name}";
   popupVoiceConfig = popupConfig.programs.scufris.voice.popup;
-  popupI3Config = popupConfig.xsession.windowManager.i3.scufrisPopup;
+  popupToggle =
+    lib.removePrefix "exec --no-startup-id "
+    popupConfig.xsession.windowManager.i3.config.keybindings."Mod4+s";
   popupUnit = popupConfig.systemd.user.services.${popupVoiceConfig.serviceName};
 
-  moduleAssertions = assert !invalidName.success;
-  assert !missingSkill.success;
-  assert enabledConfig.programs.pi.coding-agent.enable;
-  assert enabledConfig.programs.pi.coding-agent.package == packages.pi;
-  assert (enabledConfig.programs.pi.coding-agent.settings.theme or null) == null;
-  assert enabledConfig.programs.pi.coding-agent.finalArgs == [];
+  moduleAssertions = assert enabledConfig.programs.agents.pi.enable;
+  assert enabledConfig.programs.agents.pi.package == packages.pi;
+  assert enabledConfig.programs.agents.pi.settings == {};
+  assert enabledConfig.programs.agents.pi.finalArgs == [];
+  # No resource flags means no wrapper: the bare package is installed.
+  assert enabledConfig.programs.agents.pi.finalPackage == packages.pi;
   assert builtins.toString configuredConfig.home.file."AGENTS.md".source == builtins.toString (sourceRoot + "/AGENTS.md");
-  assert configuredConfig.programs.pi.coding-agent.settings.theme == "test-theme";
-  assert builtins.length configuredConfig.programs.pi.coding-agent.finalArgs == 4;
-  assert lib.count (arg: arg == "--theme") configuredConfig.programs.pi.coding-agent.finalArgs == 1;
-  assert lib.count (arg: arg == "--extension") configuredConfig.programs.pi.coding-agent.finalArgs == 1;
-  assert builtins.map builtins.toString configuredConfig.programs.pi.coding-agent.themes
-  == [(builtins.toString (sourceRoot + "/themes/gruber-darker.json"))];
-  assert enabledConfig.programs.pi.coding-agent.themes == [];
-  assert lib.elem enabledConfig.programs.pi.coding-agent.finalPackage enabledConfig.home.packages;
+  assert configuredConfig.programs.agents.pi.settings.theme == "test-theme";
+  assert builtins.length configuredConfig.programs.agents.pi.finalArgs == 4;
+  assert lib.count (arg: arg == "--theme") configuredConfig.programs.agents.pi.finalArgs == 1;
+  assert lib.count (arg: arg == "--extension") configuredConfig.programs.agents.pi.finalArgs == 1;
+  assert lib.elem (builtins.toString (sourceRoot + "/pi/themes/gruber-darker.json"))
+  configuredConfig.programs.agents.pi.finalArgs;
+  # Settings reach pi through an activation merge, never a read-only symlink.
+  assert builtins.hasAttr "piSettings" configuredConfig.home.activation;
+  assert !(builtins.hasAttr ".pi/agent/settings.json" configuredConfig.home.file);
+  assert !(builtins.hasAttr "piSettings" enabledConfig.home.activation);
+  assert lib.elem enabledConfig.programs.agents.pi.finalPackage enabledConfig.home.packages;
   assert lib.all (package: !(lib.elem package enabledConfig.home.packages)) [
     packages.agent-browser
     packages.claude-code
@@ -193,16 +164,21 @@
     packages.opencode
     packages.plannotator
   ];
+  assert lib.all (package: lib.elem package toolsConfig.home.packages) [
+    packages.agent-browser
+    packages.claude-code
+    packages.codex
+    packages.opencode
+  ];
   assert lib.elem packages.plannotator configuredConfig.home.packages;
-  assert lib.elem extensions.plannotator configuredConfig.programs.pi.coding-agent.extensions;
-  assert !(lib.elem extensions.plannotator enabledConfig.programs.pi.coding-agent.extensions);
+  assert lib.elem "${extensions.plannotator}" configuredConfig.programs.agents.pi.finalArgs;
+  assert !(lib.elem "${extensions.plannotator}" enabledConfig.programs.agents.pi.finalArgs);
   assert !conflictingWhisper.success;
-  assert !invalidPopupConsumer.success;
-  assert lib.elem extensions.voice-stt sttEnabledConfig.programs.pi.coding-agent.extensions;
+  assert lib.elem "${extensions.voice-stt}" sttEnabledConfig.programs.agents.pi.finalArgs;
   assert builtins.hasAttr ".pi/agent/stt.json" sttEnabledConfig.home.file;
   assert !(builtins.hasAttr "PI_STT_CONFIG" sttEnabledConfig.home.sessionVariables);
   assert !(builtins.hasAttr "whisper-server" sttEnabledConfig.systemd.user.services);
-  assert lib.elem extensions.voice-stt localWhisperConfig.programs.pi.coding-agent.extensions;
+  assert lib.elem "${extensions.voice-stt}" localWhisperConfig.programs.agents.pi.finalArgs;
   assert builtins.hasAttr ".pi/agent/stt.json" localWhisperConfig.home.file;
   assert !(builtins.hasAttr "PI_STT_CONFIG" localWhisperConfig.home.sessionVariables);
   assert localWhisperConfig.programs.agents.pi.extensions.voice-stt.ffmpegPackage == pkgs.ffmpeg;
@@ -216,14 +192,13 @@
   assert lib.hasInfix "--inference-path /inference" (builtins.head localWhisperConfig.systemd.user.services.whisper-server.Service.ExecStart);
   assert lib.hasInfix "--language auto" (builtins.head localWhisperConfig.systemd.user.services.whisper-server.Service.ExecStart);
   assert localWhisperConfig.systemd.user.services.whisper-server.Service.Restart == "no";
-  assert !(lib.elem extensions.voice-stt voiceDisabledConfig.programs.pi.coding-agent.extensions);
+  assert !(lib.elem "${extensions.voice-stt}" voiceDisabledConfig.programs.agents.pi.finalArgs);
   assert !(builtins.hasAttr ".pi/agent/stt.json" voiceDisabledConfig.home.file);
   assert !(builtins.hasAttr "PI_STT_CONFIG" voiceDisabledConfig.home.sessionVariables);
   assert !(builtins.hasAttr "whisper-server" voiceDisabledConfig.systemd.user.services);
   assert popupVoiceConfig.class == "Scufris";
   assert popupVoiceConfig.instance == "scufris-popup";
   assert popupVoiceConfig.serviceName == "scufris-popup";
-  assert popupI3Config.mark == "scufris-popup";
   assert popupUnit.Service.Restart == "no";
   assert !(popupUnit ? Install);
   assert popupUnit.Service.ExecStart == [(lib.getExe popupVoiceConfig.finalLauncher)];
@@ -237,16 +212,12 @@
   assert !(lib.elem popupConfig.programs.scufris.voice.piper.package popupConfig.home.packages);
   assert !(builtins.hasAttr "scufris-popup" popupDisabledConfig.systemd.user.services);
   assert !(builtins.hasAttr "Mod4+s" popupDisabledConfig.xsession.windowManager.i3.config.keybindings);
-  assert lib.all (name: (deployed ".claude/skills" name).recursive) expectedSkills;
-  assert lib.all (name: (deployed ".agents/skills" name).recursive) expectedSkills;
-  assert builtins.toString (deployed ".agents/skills" "extra").source == builtins.toString extraSkill;
   assert !(builtins.hasAttr "AGENTS.md" enabledConfig.home.file);
   assert !(builtins.hasAttr ".claude/CLAUDE.md" enabledConfig.home.file);
   assert !(builtins.hasAttr ".codex/AGENTS.md" enabledConfig.home.file);
   assert builtins.hasAttr "AGENTS.md" configuredConfig.home.file;
   assert builtins.hasAttr ".claude/CLAUDE.md" configuredConfig.home.file;
   assert builtins.hasAttr ".codex/AGENTS.md" configuredConfig.home.file;
-  assert minimalConfig.programs.agents.finalSkills == {};
   assert lib.all (package: !(lib.elem package minimalConfig.home.packages)) [
     packages.agent-browser
     packages.claude-code
@@ -255,11 +226,12 @@
     packages.pi
     packages.plannotator
   ];
-  assert !minimalConfig.programs.pi.coding-agent.enable;
+  assert !minimalConfig.programs.agents.pi.enable;
+  assert !(builtins.hasAttr "piSettings" minimalConfig.home.activation);
   assert !(builtins.hasAttr "AGENTS.md" minimalConfig.home.file);
   assert !(builtins.hasAttr ".claude/CLAUDE.md" minimalConfig.home.file);
   assert !(builtins.hasAttr ".codex/AGENTS.md" minimalConfig.home.file);
-  assert !(disabledConfig.programs.pi.coding-agent.enable or false);
+  assert !(builtins.hasAttr "piSettings" disabledConfig.home.activation);
   assert lib.all (package: !(lib.elem package disabledConfig.home.packages)) [
     packages.agent-browser
     packages.claude-code
@@ -269,33 +241,18 @@
     packages.plannotator
   ];
   assert !(builtins.hasAttr "AGENTS.md" disabledConfig.home.file);
-  assert !(builtins.hasAttr ".agents/skills/extra" disabledConfig.home.file);
-    pkgs.runCommand "agents-home-module" {
-      enabledCodex = enabledConfig.home.activation.agentsCodexSkills.data;
-      disabledCodex = disabledConfig.home.activation.agentsCodexSkills.data;
-      expected = lib.concatStringsSep " " expectedSkills;
-    } ''
-      for name in $expected; do
-        case " $enabledCodex " in
-          *" $name "*) ;;
-          *) echo "enabled Codex activation omits $name" >&2; exit 1 ;;
-        esac
-        case " $disabledCodex " in
-          *" $name "*) echo "disabled Codex activation retains $name" >&2; exit 1 ;;
-          *) ;;
-        esac
-      done
+    pkgs.runCommand "agents-home-module" {} ''
       touch "$out"
     '';
 in {
   quick-review = assert lib.assertMsg
-  (lib.elem extensions.quick-review quickReviewConfig.programs.pi.coding-agent.extensions)
+  (lib.elem "${extensions.quick-review}" quickReviewConfig.programs.agents.pi.finalArgs)
   "enabling Quick Review must add its package to Pi";
   assert lib.assertMsg
   (quickReviewConfig.programs.agents.pi.extensions.quick-review.package == extensions.quick-review)
   "the Quick Review module must default to the pinned package";
   assert lib.assertMsg
-  (!(lib.elem extensions.quick-review enabledConfig.programs.pi.coding-agent.extensions))
+  (!(lib.elem "${extensions.quick-review}" enabledConfig.programs.agents.pi.finalArgs))
   "Quick Review must remain disabled by default in the reusable module";
   assert lib.assertMsg (extensions.quick-review.version == "0.1.1")
   "Quick Review must remain pinned at 0.1.1";
@@ -359,8 +316,9 @@ in {
       test -e "$activationPackage"
       test -e "$disabledActivationPackage"
       popup=${lib.getExe popupVoiceConfig.finalLauncher}
-      toggle=${lib.getExe popupI3Config.finalToggle}
-      owned=${lib.getExe popupI3Config.finalOwnerQuery}
+      toggle=${popupToggle}
+      owned=$(grep -oE '/nix/store/[^[:space:]"]*/bin/scufris-popup-owned-window' "$toggle" | head -n1)
+      test -x "$owned"
 
       grep -F 'export SCUFRIS_SPEECH=1' "$popup"
       grep -F 'export SCUFRIS_CALM=1' "$popup"
@@ -406,15 +364,6 @@ in {
     } ''
       plannotator --help | grep -Fx "Usage:"
       test "$(plannotator --version)" = "plannotator ${packages.plannotator.version}"
-      touch "$out"
-    '';
-
-  codex-materialization =
-    pkgs.runCommand "codex-materialization" {
-      nativeBuildInputs = [pkgs.bash packages.deploy-codex-skills];
-      test = sourceRoot + "/scripts/deploy-codex-skills-test.sh";
-    } ''
-      DEPLOY_CODEX_SKILLS=${lib.getExe packages.deploy-codex-skills} bash "$test"
       touch "$out"
     '';
 

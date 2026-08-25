@@ -1,6 +1,10 @@
-{lib, builtInSkills}: {config, ...}: let
+{
+  lib,
+  builtInSkills,
+}: {config, ...}: let
   cfg = config.programs.agents;
-  collisions = lib.intersectLists
+  collisions =
+    lib.intersectLists
     (builtins.attrNames builtInSkills)
     (builtins.attrNames cfg.extraSkills);
 in {

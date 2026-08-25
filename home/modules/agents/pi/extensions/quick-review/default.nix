@@ -1,7 +1,4 @@
-{
-  pkgs,
-  sourceRoot ? ../../.,
-}: let
+{pkgs}: let
   version = "0.1.1";
   source = pkgs.fetchFromGitHub {
     owner = "alexjercan";

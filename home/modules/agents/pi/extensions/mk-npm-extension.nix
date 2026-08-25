@@ -35,16 +35,17 @@
     pi.extensions = ["./node_modules/${packageName}"];
   });
 
-  extension = pkgs.runCommand "${environmentName}-${lockedVersion}" {
-    passthru = {
-      inherit packageName nodeModules;
-      version = lockedVersion;
-    };
-  } ''
-    mkdir -p "$out"
-    ln -s ${manifest} "$out/package.json"
-    ln -s ${nodeModules}/node_modules "$out/node_modules"
-  '';
+  extension =
+    pkgs.runCommand "${environmentName}-${lockedVersion}" {
+      passthru = {
+        inherit packageName nodeModules;
+        version = lockedVersion;
+      };
+    } ''
+      mkdir -p "$out"
+      ln -s ${manifest} "$out/package.json"
+      ln -s ${nodeModules}/node_modules "$out/node_modules"
+    '';
 in
   assert lib.assertMsg (builtins.pathExists packageJsonPath)
   "Missing ${toString packageJsonPath}";
@@ -59,5 +60,4 @@ in
   assert lib.assertMsg (lockedVersion != null)
   "${packageName} has no locked version in ${toString packageLockPath}";
   assert lib.assertMsg (declaredVersion == lockedVersion)
-  "${packageName} must use exact version ${lockedVersion}, not ${declaredVersion}";
-  extension
+  "${packageName} must use exact version ${lockedVersion}, not ${declaredVersion}"; extension

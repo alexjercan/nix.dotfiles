@@ -19,9 +19,11 @@ in {
     enable = true;
     port = 8000;
     widgetPackages = [todayWidget];
-    environment = widgetEnvironment // {
-      DASHBOARDD_HOST = "0.0.0.0";
-    };
+    environment =
+      widgetEnvironment
+      // {
+        DASHBOARDD_HOST = "0.0.0.0";
+      };
   };
 
   programs.dashboardd-desktop = {

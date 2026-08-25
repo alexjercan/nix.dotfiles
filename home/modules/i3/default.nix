@@ -5,8 +5,6 @@
 }: let
   cfg = config.xsession.windowManager.i3;
 in {
-  imports = [./scufris-popup.nix];
-
   xsession.windowManager.i3 = {
     enable = true;
 

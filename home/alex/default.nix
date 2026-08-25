@@ -1,7 +1,6 @@
 {
   pkgs,
   inputs,
-  config,
   ...
 }: let
   # Subpath of the flake source, not a `../modules` path literal: every use
@@ -56,73 +55,6 @@ in {
     settings.user.email = "jercan_alex27@yahoo.com";
   };
 
-  programs.newsboat = {
-    enable = true;
-    urls = [
-      {url = "https://xkcd.com/rss.xml";}
-      {url = "https://alexjercan.github.io/rss.xml";}
-    ];
-  };
-
-  programs.scufris = {
-    enable = true;
-    piPackage = config.programs.pi.coding-agent.finalPackage;
-    voice = {
-      enable = true;
-      popup.enable = true;
-    };
-  };
-
-  xsession.windowManager.i3.scufrisPopup.enable = true;
-
-  home.pointerCursor = {
-    enable = true;
-    gtk.enable = true;
-    # x11.enable = true;
-    package = pkgs.adwaita-icon-theme;
-    name = "Adwaita";
-    size = 24;
-  };
-
-  gtk = {
-    enable = true;
-
-    iconTheme = {
-      package = pkgs.adwaita-icon-theme;
-      name = "Adwaita";
-    };
-
-    theme = {
-      name = "Graphite-Dark";
-      package = pkgs.graphite-gtk-theme;
-    };
-
-    gtk3.extraConfig = {
-      Settings = ''
-        gtk-application-prefer-dark-theme=1
-      '';
-    };
-
-    gtk4.extraConfig = {
-      Settings = ''
-        gtk-application-prefer-dark-theme=1
-      '';
-    };
-
-    gtk4.theme = null;
-
-    font = {
-      name = "Iosevka Bold";
-      size = 11;
-    };
-  };
-
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 30d";
-  };
-
   imports = [
     "${modulesPath}/neovim"
     "${modulesPath}/tmux"
@@ -135,6 +67,10 @@ in {
     "${modulesPath}/packages"
     "${modulesPath}/scripts"
     "${modulesPath}/agents"
+    "${modulesPath}/scufris"
+    "${modulesPath}/newsboat"
+    "${modulesPath}/gtk-theme"
+    "${modulesPath}/gc"
     inputs.scufris.homeModules.default
   ];
 }

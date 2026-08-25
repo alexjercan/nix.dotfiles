@@ -22,11 +22,6 @@
       url = "github:nix-community/nixvim";
     };
 
-    pi = {
-      url = "github:lukasl-dev/pi.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     # Agent CLIs ship releases faster than nixpkgs packages them. The
     # `shared-nixpkgs` overlay adds a `pkgs.llm-agents` namespace instead of
     # shadowing the nixpkgs attributes, so both sets stay reachable.
@@ -59,10 +54,10 @@
       inputs.dashboardd.follows = "dashboardd";
     };
     scufris = {
-      url = "github:alexjercan/scufris2/v0.3.0";
+      url = "github:alexjercan/scufris2/v0.4.0";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
-      inputs.pi.follows = "pi";
+      inputs.llm-agents.follows = "llm-agents";
       inputs.dashboardd.follows = "dashboardd";
     };
   };

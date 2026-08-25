@@ -1,4 +1,4 @@
-{sourceRoot ? ../../.}: {
+{
   config,
   lib,
   pkgs,
@@ -6,7 +6,7 @@
 }: let
   cfg = config.programs.agents;
   extCfg = cfg.pi.extensions.plannotator;
-  self = import ./. {inherit pkgs sourceRoot;};
+  self = import ./. {inherit pkgs;};
 in {
   options.programs.agents.pi.extensions.plannotator = {
     enable = lib.mkEnableOption "the Plannotator Pi extension and the CLI it drives";

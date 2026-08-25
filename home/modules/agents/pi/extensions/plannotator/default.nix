@@ -1,10 +1,7 @@
-{
-  pkgs,
-  sourceRoot ? ../../.,
-}: let
-  extension = import ../mk-pi-npm-extension.nix {
+{pkgs}: let
+  extension = import ../mk-npm-extension.nix {
     inherit pkgs;
-    npmRoot = sourceRoot + "/pi-extensions/plannotator";
+    npmRoot = builtins.toString ./.;
     packageName = "@plannotator/pi-extension";
   };
 in {

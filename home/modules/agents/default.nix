@@ -1,20 +1,11 @@
-{
-  inputs,
-  pkgs,
-  ...
-}: let
-  sourceRoot = inputs.self + "/home/modules/agents";
-in {
+{pkgs, ...}: {
   imports = [
-    (import ./module.nix {
-      piModule = inputs.pi.homeModules.default;
-      inherit sourceRoot;
-    })
+    ./module.nix
   ];
 
   programs.agents = {
     enable = true;
-    agentsFile = sourceRoot + "/AGENTS.md";
+    agentsFile = toString ./AGENTS.md;
 
     agentBrowser.enable = true;
     claudeCode.enable = true;
@@ -22,8 +13,9 @@ in {
     opencode.enable = true;
 
     pi = {
-      themes.gruber-darker.enable = true;
+      enable = true;
 
+      themes.gruber-darker.enable = true;
       extensions = {
         plannotator.enable = true;
         quick-review.enable = true;
@@ -45,8 +37,10 @@ in {
           };
         };
       };
+
+      settings = {
+        theme = "gruber-darker";
+      };
     };
   };
-
-  programs.pi.coding-agent.settings.theme = "gruber-darker";
 }

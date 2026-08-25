@@ -1,9 +1,9 @@
-{sourceRoot ? ../../.}: {
+{
   lib,
   pkgs,
   ...
 }: let
-  self = import ./. {inherit pkgs sourceRoot;};
+  self = import ./. {inherit pkgs;};
 in {
   options.programs.agents.pi.extensions.quick-review = {
     enable = lib.mkEnableOption "the Quick Review Pi extension";

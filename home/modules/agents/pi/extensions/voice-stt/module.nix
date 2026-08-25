@@ -1,4 +1,4 @@
-{sourceRoot ? ../../.}: {
+{
   config,
   lib,
   pkgs,
@@ -7,7 +7,7 @@
   cfg = config.programs.agents;
   extCfg = cfg.pi.extensions.voice-stt;
   whisperCfg = extCfg.localWhisper;
-  self = import ./. {inherit pkgs sourceRoot;};
+  self = import ./. {inherit pkgs;};
   json = pkgs.formats.json {};
   whisperModel = pkgs.fetchurl {
     name = "ggml-large-v3-turbo-q5_0.bin";

@@ -21,10 +21,9 @@ let
     (evaluate {plan = ./fixtures/tatr;})
     true);
 in
-assert builtins.attrNames merged == ["plan" "tatr"];
-assert !collision.success;
-{
-  names = builtins.attrNames merged;
-  sources = builtins.mapAttrs (_name: source: builtins.toString source) merged;
-  collisionRejected = !collision.success;
-}
+  assert builtins.attrNames merged == ["plan" "tatr"];
+  assert !collision.success; {
+    names = builtins.attrNames merged;
+    sources = builtins.mapAttrs (_name: source: builtins.toString source) merged;
+    collisionRejected = !collision.success;
+  }
