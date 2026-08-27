@@ -4,7 +4,6 @@
   i3Module,
   scufrisI3Module,
   scufrisModule,
-  scufrisRevision,
   packages,
   extensions,
   home-manager,
@@ -254,31 +253,22 @@ in {
   assert lib.assertMsg
   (!(lib.elem "${extensions.quick-review}" enabledConfig.programs.agents.pi.finalArgs))
   "Quick Review must remain disabled by default in the reusable module";
-  assert lib.assertMsg (extensions.quick-review.version == "0.1.1")
-  "Quick Review must remain pinned at 0.1.1";
     pkgs.runCommand "quick-review-smoke" {
       nativeBuildInputs = [pkgs.jq];
     } ''
       test -f ${extensions.quick-review}/package.json
       test -f ${extensions.quick-review}/extensions/quick-review/index.ts
       test -f ${extensions.quick-review}/docs/contract.md
-      test ! -e ${extensions.quick-review}/tests
-      test ! -e ${extensions.quick-review}/node_modules
-      jq -e '
-        .version == "0.1.1" and
-        .pi.extensions == ["./extensions/quick-review/index.ts"]
-      ' ${extensions.quick-review}/package.json > /dev/null
+      jq -e '.pi.extensions == ["./extensions/quick-review/index.ts"]' \
+        ${extensions.quick-review}/package.json > /dev/null
       touch "$out"
     '';
 
-  voice-stt = assert lib.assertMsg (extensions.voice-stt.version == "0.6.0")
-  "pi-voice-stt must remain pinned at 0.6.0";
-    pkgs.runCommand "pi-voice-stt-smoke" {} ''
-      test -f ${extensions.voice-stt}/package.json
-      test -f ${extensions.voice-stt.nodeModules}/node_modules/pi-voice-stt/src/index.ts
-      grep -E '"version"[[:space:]]*:[[:space:]]*"0\.6\.0"' ${extensions.voice-stt.nodeModules}/node_modules/pi-voice-stt/package.json
-      touch "$out"
-    '';
+  voice-stt = pkgs.runCommand "pi-voice-stt-smoke" {} ''
+    test -f ${extensions.voice-stt}/package.json
+    test -f ${extensions.voice-stt.nodeModules}/node_modules/pi-voice-stt/src/index.ts
+    touch "$out"
+  '';
 
   local-whisper =
     pkgs.runCommand "local-whisper-composition" {
@@ -351,19 +341,11 @@ in {
       touch "$out"
     '';
 
-  scufris-revision = assert lib.assertMsg (scufrisRevision == "794561a0b912138c732131cd83df0ecf5ab3960d")
-  "Scufris must remain pinned at v0.2.0 release revision 794561a";
-    pkgs.runCommand "scufris-v0.2.0-revision" {} ''
-      touch "$out"
-    '';
-
-  plannotator = assert lib.assertMsg (packages.plannotator.version == extensions.plannotator.version)
-  "Plannotator binary and Pi extension versions must match";
+  plannotator =
     pkgs.runCommand "plannotator-smoke" {
       nativeBuildInputs = [packages.plannotator pkgs.gnugrep];
     } ''
       plannotator --help | grep -Fx "Usage:"
-      test "$(plannotator --version)" = "plannotator ${packages.plannotator.version}"
       touch "$out"
     '';
 

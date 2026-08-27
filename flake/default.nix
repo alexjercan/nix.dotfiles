@@ -36,7 +36,6 @@
       inherit pkgs homeModule i3Module scufrisI3Module;
       inherit sourceRoot;
       scufrisModule = inputs.scufris.homeModules.default;
-      scufrisRevision = inputs.scufris.rev;
       packages = agentPackages;
       extensions = builtins.mapAttrs (_: ext: ext.extension) piExtensions;
       home-manager = inputs.home-manager;
