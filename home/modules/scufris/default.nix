@@ -1,14 +1,10 @@
 {config, ...}: {
-  imports = [./i3.nix];
-
   programs.scufris = {
     enable = true;
     piPackage = config.programs.agents.pi.finalPackage;
 
-    voice = {
-      enable = true;
-      popup.enable = true;
-    };
+    voice.enable = true;
+    service.enable = true;
 
     desktop = {
       enable = true;

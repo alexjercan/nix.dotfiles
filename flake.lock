@@ -535,9 +535,6 @@
     },
     "scufris": {
       "inputs": {
-        "dashboardd": [
-          "dashboardd"
-        ],
         "flake-parts": "flake-parts_5",
         "home-manager": [
           "home-manager"
@@ -550,16 +547,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1787651353,
-        "narHash": "sha256-ycTLJCsrc5RI2xPXbgvgDRkhf5+MtV01qAJ1RFzr84s=",
+        "lastModified": 1787996802,
+        "narHash": "sha256-IPsynUD8Tw5DmVZsnTFwEIV5EyUOA7EJK7TPeNsdmSo=",
         "owner": "alexjercan",
         "repo": "scufris2",
-        "rev": "ddc4445cb3dde7aa35190d14bc6d76c776c312e8",
+        "rev": "eec186cbebe0252953bd149a51bfa66fa624f2ca",
         "type": "github"
       },
       "original": {
         "owner": "alexjercan",
-        "ref": "v0.4.0",
+        "ref": "v0.5.0",
         "repo": "scufris2",
         "type": "github"
       }
