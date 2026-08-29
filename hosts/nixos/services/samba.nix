@@ -1,15 +1,23 @@
 {...}: {
+  networking.firewall.interfaces = {
+    enp4s0 = {
+      allowedTCPPorts = [139 445];
+      allowedUDPPorts = [137 138];
+    };
+    tailscale0.allowedTCPPorts = [445];
+  };
+
   services.samba = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false;
     settings = {
       global = {
         "workgroup" = "WORKGROUP";
         "server string" = "smbnix";
         "netbios name" = "smbnix";
         "security" = "user";
-        "hosts allow" = "192.168.0. 127.0.0.1 localhost";
-        "hosts deny" = "0.0.0.0/0";
+        "hosts allow" = "192.168.0.0/24 127.0.0.1 ::1 100.64.0.0/10 fd7a:115c:a1e0::/48";
+        "hosts deny" = "ALL";
         "guest account" = "nobody";
         "map to guest" = "bad user";
       };
