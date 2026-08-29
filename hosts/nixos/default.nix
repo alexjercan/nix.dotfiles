@@ -187,12 +187,24 @@
 
   services.xserver.displayManager.startx.enable = true;
 
+  services.tailscale = {
+    enable = true;
+    openFirewall = true;
+    useRoutingFeatures = "none";
+  };
+
   services.openssh = {
     enable = true;
+    openFirewall = false;
     settings = {
       AllowUsers = ["alex"];
+      KbdInteractiveAuthentication = false;
+      PasswordAuthentication = false;
+      PermitRootLogin = "no";
     };
   };
+
+  networking.firewall.interfaces."tailscale0".allowedTCPPorts = [22];
 
   # Extra firewall rules for llama-cpp and my other services that need to be
   # exposed to the LAN but not the Internet.
