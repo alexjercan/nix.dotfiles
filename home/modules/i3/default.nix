@@ -23,12 +23,6 @@ in {
       floating = {
         titlebar = false;
         border = 0;
-        criteria = [
-          {
-            class = "^Dashboardd-desktop$";
-            instance = "^dashboardd-desktop$";
-          }
-        ];
       };
 
       startup = [
