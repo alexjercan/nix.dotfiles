@@ -1,6 +1,6 @@
 # Deploy Scufris v1.1.0
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 100
 - TAGS: scufris, deployment
 
@@ -20,3 +20,17 @@ credentials or user content.
 - Authenticated production WSS and HTTPS health/transcription routes work
   through Tailscale Serve. Verification never prints the token, audio, or
   transcript text.
+
+## Verification
+
+- `nix flake check -L` passed against the immutable v1.1.0 release commit.
+- Home Manager activation completed and restarted the service, desktop,
+  gateway, and Tailscale Serve units.
+- `scufris-service`, `scufris-desktop`, `scufris-surface-gateway`,
+  `scufris-tailscale-serve`, `ai-tools-api`, and `ai-tools-api-whisper` are
+  active.
+- The v1.1.0 gateway listens only on `127.0.0.1:10440`.
+- Authenticated production `GET /health` and protocol-v4 WSS registration pass.
+- A generated non-user speech sample completed authenticated host transcription
+  through production HTTPS. The check inspected only the bounded response shape
+  and did not print its text.
