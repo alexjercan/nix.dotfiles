@@ -35,8 +35,11 @@ active.
 - `scufris-service`, `scufris-desktop`, `scufris-surface-gateway`,
   `scufris-tailscale-serve`, `ai-tools-api`, and `ai-tools-api-whisper` are
   active.
-- The v1.1.0 gateway listens only on `127.0.0.1:10440`.
+- The deployed gateway listens only on `127.0.0.1:10440`.
 - Authenticated production `GET /health` and protocol-v4 WSS registration pass.
 - A generated non-user speech sample completed authenticated host transcription
   through production HTTPS. The check inspected only the bounded response shape
   and did not print its text.
+- v1.1.1 is pinned and active. An explicit service restart restarted the
+  gateway, left both units active, and preserved authenticated production
+  health.
