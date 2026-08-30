@@ -640,8 +640,8 @@
       },
       "original": {
         "owner": "alexjercan",
+        "ref": "v1.1.0",
         "repo": "scufris2",
-        "rev": "07a4f776010370368d6cbc1ec47796f7856cf835",
         "type": "github"
       }
     },

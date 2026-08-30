@@ -6,13 +6,13 @@
 
 ## Goal
 
-Pin the immutable Scufris v1.1.0 release commit, activate it for the current
+Pin the immutable Scufris `v1.1.0` release tag, activate it for the current
 Home Manager profile, and verify the private remote API without exposing
 credentials or user content.
 
 ## Acceptance
 
-- The Scufris input resolves to release commit
+- The Scufris input names tag `v1.1.0` and resolves to release commit
   `07a4f776010370368d6cbc1ec47796f7856cf835`.
 - Repository checks pass before activation.
 - Service, desktop, gateway, Tailscale Serve, and ai-tools-api units are active.
