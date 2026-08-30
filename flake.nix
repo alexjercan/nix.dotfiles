@@ -60,7 +60,7 @@
       inputs.home-manager.follows = "home-manager";
     };
     scufris = {
-      url = "github:alexjercan/scufris2/abaa75c6350e9062e1bedb29d443c090de5ae7f4";
+      url = "github:alexjercan/scufris2/07a4f776010370368d6cbc1ec47796f7856cf835";
       inputs.ai-tools-api.follows = "ai-tools-api";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
