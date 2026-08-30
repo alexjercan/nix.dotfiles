@@ -21,6 +21,12 @@ credentials or user content.
   through Tailscale Serve. Verification never prints the token, audio, or
   transcript text.
 
+## v1.1.1 lifecycle follow-up
+
+The reusable Scufris module now makes the service want the enabled gateway.
+Pin v1.1.1, activate it, and prove an explicit service restart leaves both units
+active.
+
 ## Verification
 
 - `nix flake check -L` passed against the immutable v1.1.0 release commit.
