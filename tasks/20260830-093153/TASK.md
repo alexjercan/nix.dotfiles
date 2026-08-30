@@ -66,3 +66,15 @@ Verification:
 - `nix build .#homeConfigurations.alex.activationPackage --no-link` passed, including the API, Piper, service units, and generated Pi STT configuration.
 - Alejandra and `git diff --check` passed.
 - No Home Manager activation was run.
+
+## Follow-up: consume ai-tools-api v0.1.1
+
+Updated the input from v0.1.0 to the published v0.1.1 patch release at commit `80dd40fd2ab7538946910d7c14fb24fe496f559b`. The release fixes both user units so their protected runtime working directories remain accessible.
+
+Verification:
+
+- Lock metadata confirms the v0.1.1 ref and exact release commit.
+- Canonical evaluation reports `ProtectHome=tmpfs` for both API units and preserves the Pi transcription endpoint.
+- `nix build .#homeConfigurations.alex.activationPackage --no-link` passed.
+- Alejandra and `git diff --check` passed.
+- No Home Manager activation was run.
