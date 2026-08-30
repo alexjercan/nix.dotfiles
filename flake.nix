@@ -41,7 +41,7 @@
     };
 
     tatr = {
-      url = "github:alexjercan/tatr/v2.0.3";
+      url = "github:alexjercan/tatr/v3.0.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     dashboardd = {
