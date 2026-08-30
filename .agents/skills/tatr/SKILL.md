@@ -11,8 +11,8 @@ Tasks live at `tasks/<YYYYMMDD-HHMMSS>/TASK.md`.
 tatr new "Title" -p 100 -t tag
 tatr ls --sort priority
 tatr ls --filter ':status eq OPEN'
-tatr edit <id> --status IN_PROGRESS
+tatr edit <id> --status CLOSED
 ```
 
-Valid statuses are `OPEN`, `IN_PROGRESS`, and `CLOSED`. Use `-r ROOT` for
+Valid statuses are `OPEN` and `CLOSED`. Use `-r ROOT` for
 another project. Edit an existing task body directly.
