@@ -84,14 +84,18 @@
     extraModules = [scufrisModule];
     extraConfig.programs.scufris = {
       enable = true;
+      agent.piPackage = packages.pi;
+      aiToolsApi.enable = false;
       service = {
         enable = true;
-        agent.piPackage = packages.pi;
+        remoteSurface = {
+          enable = true;
+          tokenFile = "/run/secrets/scufris-surface-token";
+        };
       };
       desktop = {
         enable = true;
         speech.enable = true;
-        aiToolsApi.manage = false;
       };
     };
   };
@@ -174,9 +178,12 @@
   assert !(builtins.hasAttr ".pi/agent/stt.json" voiceDisabledConfig.home.file);
   assert !(builtins.hasAttr "PI_STT_CONFIG" voiceDisabledConfig.home.sessionVariables);
   assert !(builtins.hasAttr "whisper-server" voiceDisabledConfig.systemd.user.services);
-  assert scufrisConfig.programs.scufris.service.agent.piPackage == packages.pi;
-  assert !scufrisConfig.programs.scufris.desktop.aiToolsApi.manage;
+  assert scufrisConfig.programs.scufris.agent.piPackage == packages.pi;
+  assert !scufrisConfig.programs.scufris.aiToolsApi.enable;
   assert builtins.hasAttr "scufris-service" scufrisConfig.systemd.user.services;
+  assert builtins.hasAttr "scufris-surface-gateway" scufrisConfig.systemd.user.services;
+  assert lib.hasInfix "--listen 127.0.0.1:10440" (builtins.head scufrisConfig.systemd.user.services.scufris-surface-gateway.Service.ExecStart);
+  assert lib.hasInfix "--token-file /run/secrets/scufris-surface-token" (builtins.head scufrisConfig.systemd.user.services.scufris-surface-gateway.Service.ExecStart);
   assert builtins.hasAttr "scufris-desktop" scufrisConfig.systemd.user.services;
   assert !(builtins.hasAttr "scufris-ai-tools-api" scufrisConfig.systemd.user.services);
   assert lib.elem "SCUFRIS_STT_ENDPOINT=http://127.0.0.1:10300/v1/audio/transcriptions"
