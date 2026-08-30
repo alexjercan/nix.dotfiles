@@ -22,8 +22,6 @@
       overlays = [inputs.llm-agents.overlays.shared-nixpkgs];
     };
     sourceRoot = inputs.self + "/home/modules/agents";
-    i3Module = inputs.self + "/home/modules/i3";
-    scufrisI3Module = inputs.self + "/home/modules/scufris/i3.nix";
     piExtensions = import ../home/modules/agents/pi/extensions {inherit pkgs;};
     agentPackages = {
       inherit (pkgs.llm-agents) agent-browser claude-code codex opencode pi;
@@ -33,7 +31,7 @@
   in {
     packages = agentPackages;
     checks = import ../home/modules/agents/checks.nix {
-      inherit pkgs homeModule i3Module scufrisI3Module;
+      inherit pkgs homeModule;
       inherit sourceRoot;
       scufrisModule = inputs.scufris.homeModules.default;
       packages = agentPackages;

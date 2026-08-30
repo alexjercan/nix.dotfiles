@@ -1,15 +1,19 @@
 {config, ...}: {
   programs.scufris = {
-    # Keep the deployment dormant until an API-compatible release is pinned.
-    enable = false;
-    piPackage = config.programs.agents.pi.finalPackage;
+    enable = true;
 
-    voice.enable = true;
-    service.enable = true;
+    service = {
+      enable = true;
+      agent.piPackage = config.programs.agents.pi.finalPackage;
+    };
 
     desktop = {
       enable = true;
-      stt.endpoint = "http://127.0.0.1:10301/inference";
+      speech.enable = true;
+      aiToolsApi = {
+        manage = false;
+        baseUrl = "http://127.0.0.1:10300";
+      };
     };
   };
 }

@@ -1,8 +1,6 @@
 {
   pkgs,
   homeModule,
-  i3Module,
-  scufrisI3Module,
   scufrisModule,
   packages,
   extensions,
@@ -81,34 +79,20 @@
     enable = true;
     pi.extensions.voice-stt.enable = false;
   };
-  popupEnabled = mkHomeWith {
-    moduleConfig = {
-      enable = true;
-      pi.extensions.voice-stt = {
-        enable = true;
-        localWhisper.enable = true;
-      };
-    };
-    extraModules = [scufrisModule scufrisI3Module i3Module];
+  scufrisEnabled = mkHomeWith {
+    moduleConfig.enable = true;
+    extraModules = [scufrisModule];
     extraConfig.programs.scufris = {
       enable = true;
-      piPackage = packages.pi;
-      dashboard.enable = false;
-      voice = {
+      service = {
         enable = true;
-        popup.enable = true;
+        agent.piPackage = packages.pi;
       };
-    };
-  };
-  popupDisabled = mkHomeWith {
-    moduleConfig = {
-      enable = true;
-      pi.extensions.voice-stt.enable = true;
-    };
-    extraModules = [scufrisModule scufrisI3Module i3Module];
-    extraConfig.programs.scufris = {
-      enable = true;
-      dashboard.enable = false;
+      desktop = {
+        enable = true;
+        speech.enable = true;
+        aiToolsApi.manage = false;
+      };
     };
   };
   conflictingWhisper = builtins.tryEval (builtins.deepSeq
@@ -130,13 +114,8 @@
   sttEnabledConfig = sttEnabled.config;
   localWhisperConfig = localWhisperEnabled.config;
   voiceDisabledConfig = voiceDisabled.config;
-  popupConfig = popupEnabled.config;
-  popupDisabledConfig = popupDisabled.config;
-  popupVoiceConfig = popupConfig.programs.scufris.voice.popup;
-  popupToggle =
-    lib.removePrefix "exec --no-startup-id "
-    popupConfig.xsession.windowManager.i3.config.keybindings."Mod4+s";
-  popupUnit = popupConfig.systemd.user.services.${popupVoiceConfig.serviceName};
+  scufrisConfig = scufrisEnabled.config;
+  scufrisDesktop = scufrisConfig.systemd.user.services.scufris-desktop;
 
   moduleAssertions = assert enabledConfig.programs.agents.pi.enable;
   assert enabledConfig.programs.agents.pi.package == packages.pi;
@@ -195,22 +174,15 @@
   assert !(builtins.hasAttr ".pi/agent/stt.json" voiceDisabledConfig.home.file);
   assert !(builtins.hasAttr "PI_STT_CONFIG" voiceDisabledConfig.home.sessionVariables);
   assert !(builtins.hasAttr "whisper-server" voiceDisabledConfig.systemd.user.services);
-  assert popupVoiceConfig.class == "Scufris";
-  assert popupVoiceConfig.instance == "scufris-popup";
-  assert popupVoiceConfig.serviceName == "scufris-popup";
-  assert popupUnit.Service.Restart == "no";
-  assert !(popupUnit ? Install);
-  assert popupUnit.Service.ExecStart == [(lib.getExe popupVoiceConfig.finalLauncher)];
-  assert builtins.hasAttr "Mod4+s" popupConfig.xsession.windowManager.i3.config.keybindings;
-  assert builtins.hasAttr "Print" popupConfig.xsession.windowManager.i3.config.keybindings;
-  assert builtins.hasAttr "Shift+Print" popupConfig.xsession.windowManager.i3.config.keybindings;
-  assert lib.hasInfix "mark --add scufris-popup" popupConfig.xsession.windowManager.i3.extraConfig;
-  assert lib.hasInfix "resize set 1000 720" popupConfig.xsession.windowManager.i3.extraConfig;
-  assert !(lib.hasInfix "title=" popupConfig.xsession.windowManager.i3.extraConfig);
-  assert lib.elem popupConfig.programs.scufris.finalPackage popupConfig.home.packages;
-  assert !(lib.elem popupConfig.programs.scufris.voice.piper.package popupConfig.home.packages);
-  assert !(builtins.hasAttr "scufris-popup" popupDisabledConfig.systemd.user.services);
-  assert !(builtins.hasAttr "Mod4+s" popupDisabledConfig.xsession.windowManager.i3.config.keybindings);
+  assert scufrisConfig.programs.scufris.service.agent.piPackage == packages.pi;
+  assert !scufrisConfig.programs.scufris.desktop.aiToolsApi.manage;
+  assert builtins.hasAttr "scufris-service" scufrisConfig.systemd.user.services;
+  assert builtins.hasAttr "scufris-desktop" scufrisConfig.systemd.user.services;
+  assert !(builtins.hasAttr "scufris-ai-tools-api" scufrisConfig.systemd.user.services);
+  assert lib.elem "SCUFRIS_STT_ENDPOINT=http://127.0.0.1:10300/v1/audio/transcriptions"
+  scufrisDesktop.Service.Environment;
+  assert lib.any (lib.hasPrefix "SCUFRIS_DESKTOP_SPEAK_COMMAND=")
+  scufrisDesktop.Service.Environment;
   assert !(builtins.hasAttr "AGENTS.md" enabledConfig.home.file);
   assert !(builtins.hasAttr ".claude/CLAUDE.md" enabledConfig.home.file);
   assert !(builtins.hasAttr ".codex/AGENTS.md" enabledConfig.home.file);
@@ -297,47 +269,11 @@ in {
       touch "$out"
     '';
 
-  scufris-popup =
-    pkgs.runCommand "scufris-popup-i3-consumer" {
-      nativeBuildInputs = [pkgs.gnugrep];
-      activationPackage = popupEnabled.activationPackage;
-      disabledActivationPackage = popupDisabled.activationPackage;
+  scufris =
+    pkgs.runCommand "scufris-composition" {
+      activationPackage = scufrisEnabled.activationPackage;
     } ''
       test -e "$activationPackage"
-      test -e "$disabledActivationPackage"
-      popup=${lib.getExe popupVoiceConfig.finalLauncher}
-      toggle=${popupToggle}
-      owned=$(grep -oE '/nix/store/[^[:space:]"]*/bin/scufris-popup-owned-window' "$toggle" | head -n1)
-      test -x "$owned"
-
-      grep -F 'export SCUFRIS_SPEECH=1' "$popup"
-      grep -F 'export SCUFRIS_CALM=1' "$popup"
-      grep -F -- '--class Scufris' "$popup"
-      grep -F -- '--name scufris-popup' "$popup"
-      grep -F 'systemctl --user start scufris-popup.service' "$toggle"
-      grep -F 'class="^Scufris$"' "$toggle"
-      grep -F 'instance="^scufris-popup$"' "$toggle"
-      grep -F 'con_mark="^scufris-popup$"' "$toggle"
-      ! grep -F 'PI_STT_CONFIG' "$popup" "$toggle" "$owned"
-      ! grep -F 'title=' "$toggle" "$owned"
-      ! grep -E 'pkill|killall|tmux' "$toggle" "$owned"
-
-      cat > changed-title.json <<'EOF'
-      {"nodes":[{"name":"Pi - changed at runtime","marks":["scufris-popup"],"window_properties":{"class":"Scufris","instance":"scufris-popup"}}]}
-      EOF
-      cat > near-class.json <<'EOF'
-      {"nodes":[{"name":"Pi","marks":["scufris-popup"],"window_properties":{"class":"Scufris-other","instance":"scufris-popup"}}]}
-      EOF
-      cat > near-instance.json <<'EOF'
-      {"nodes":[{"name":"Pi","marks":["scufris-popup"],"window_properties":{"class":"Scufris","instance":"scufris-popup-other"}}]}
-      EOF
-      cat > near-mark.json <<'EOF'
-      {"nodes":[{"name":"Pi","marks":["scufris-popup-other"],"window_properties":{"class":"Scufris","instance":"scufris-popup"}}]}
-      EOF
-      "$owned" < changed-title.json
-      ! "$owned" < near-class.json
-      ! "$owned" < near-instance.json
-      ! "$owned" < near-mark.json
       touch "$out"
     '';
 
