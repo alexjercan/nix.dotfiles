@@ -53,6 +53,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.dashboardd.follows = "dashboardd";
     };
+    ai-tools-api = {
+      url = "github:alexjercan/ai-tools-api/v0.1.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-parts.follows = "flake-parts";
+      inputs.home-manager.follows = "home-manager";
+    };
     scufris = {
       url = "github:alexjercan/scufris2/v0.5.0";
       inputs.nixpkgs.follows = "nixpkgs";

@@ -1,7 +1,14 @@
-{pkgs, ...}: {
+{
+  inputs,
+  pkgs,
+  ...
+}: {
   imports = [
     ./module.nix
+    inputs.ai-tools-api.homeModules.default
   ];
+
+  services.ai-tools-api.enable = true;
 
   programs.agents = {
     enable = true;
@@ -22,7 +29,6 @@
 
         voice-stt = {
           enable = true;
-          localWhisper.enable = true;
           settings = {
             keybind = "ctrl+r";
             capture = {
@@ -34,6 +40,13 @@
               channels = 1;
             };
             cleanup.enabled = false;
+            provider = {
+              type = "openai-compatible";
+              endpoint = "http://127.0.0.1:10300/v1/audio/transcriptions";
+              model = "whisper-1";
+              language = "auto";
+              apiKeyEnv = "";
+            };
           };
         };
       };

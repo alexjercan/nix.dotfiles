@@ -1,6 +1,7 @@
 {config, ...}: {
   programs.scufris = {
-    enable = true;
+    # Keep the deployment dormant until an API-compatible release is pinned.
+    enable = false;
     piPackage = config.programs.agents.pi.finalPackage;
 
     voice.enable = true;
