@@ -5,6 +5,6 @@
     text = builtins.readFile ./sprout.sh;
   };
 in {
-  home.packages = [pkgs.today sprout];
+  home.packages = [sprout];
   home.sessionVariables.DEN_PATH = "/home/alex/personal/the-den";
 }

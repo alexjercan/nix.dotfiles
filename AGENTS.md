@@ -26,8 +26,8 @@ Global `~/AGENTS.md` applies. This file defines project-specific instructions.
 - Keep host-specific configuration in `hosts/<name>/` and reusable user
   configuration in `home/modules/`.
 - This repository owns the global agent baseline and agent tool integrations.
-- Change Tatr or Today behavior and exported integrations together in the
-  owning project.
+- Change Tatr behavior and exported integrations together in the owning
+  project.
 - Run the cheapest relevant check. Use `nix flake check` for broad integration
   and build `.#homeConfigurations.alex.activationPackage` for Home Manager
   behavior.

@@ -44,15 +44,6 @@
       url = "github:alexjercan/tatr/v3.0.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    dashboardd = {
-      url = "github:alexjercan/dashboardd/v0.2.0";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    today = {
-      url = "github:alexjercan/today/v0.4.0";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.dashboardd.follows = "dashboardd";
-    };
     ai-tools-api = {
       url = "github:alexjercan/ai-tools-api/v0.1.1";
       inputs.nixpkgs.follows = "nixpkgs";
