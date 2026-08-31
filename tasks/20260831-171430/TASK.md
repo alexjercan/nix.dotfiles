@@ -1,6 +1,6 @@
 # Deploy Scufris v2.1.0
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 100
 - TAGS: scufris,deployment
 
@@ -53,4 +53,35 @@ Activated on 2026-08-31:
   dontAsk` is already set and `Bash` is allowed, so the denial is the sandbox
   and not the permission mode. A source that needs a command currently answers
   from files alone.
+
+## v2.1.1
+
+The v2.1.0 morning found four defects. Three were fixed upstream and the pin
+moved rather than staying on a release that could not do its job.
+
+- A `claude` source ran sandboxed under `dontAsk`, so nova-protocol could not
+  reach `gh` and seedzero could not reach `python3`. Both harnesses now answer
+  without asking, matching `pi --approve`.
+- The envelope reader matched fences against each other, so a body that fenced
+  code of its own cut the answer off mid-string. Each block is now read for its
+  own end.
+- The reader held sources to limits it never stated. A 227 character headline
+  lost a whole contribution. The limits are in the prompt now.
+- The briefing was collected inside session startup, and pi runs the startup
+  listeners one after another, so the agent joined `agent.sock` only when the
+  sources had finished.
+
+Verified on 2026-08-31:
+
+- Both sources were asked again with the fixed collector. nova-protocol read CI
+  and answered `attention` in 29.4 s; seedzero refreshed the channel and
+  answered `ok` in 109.2 s. Headlines were 112 and 143 characters.
+- Upstream `check`, iOS, Documentation, and release workflows all succeeded,
+  and the source-only Release `Scufris v2.1.1` was created.
+- `flake.nix` names `github:alexjercan/scufris2/v2.1.1` and `flake.lock` holds
+  rev `51621b927d55969aa10f005e88b108fdaed26e38`.
+- `home-manager switch --flake .#alex` restarted the three units, all active.
+  The service logged `agent connected` in the same second it started, with no
+  grace warning.
+- The installed package carries both fixes.
 
