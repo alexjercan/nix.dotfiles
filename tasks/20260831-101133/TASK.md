@@ -1,6 +1,6 @@
 # Deploy Scufris v2.0.0
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 100
 - TAGS: scufris, deployment
 
@@ -23,4 +23,21 @@ without exposing credentials or attachment content.
 
 ## Verification
 
-Pending.
+- The input names `v2.0.0` and `flake.lock` resolves Scufris commit
+  `69831c35aa19436892d44a25cd3283baad41e0d9`.
+- Alejandra, `nix flake check -L`, and
+  `.#homeConfigurations.alex.activationPackage` passed.
+- Home Manager activation stopped and restarted the desktop, service, and
+  gateway as one coordinated protocol replacement.
+- `scufris-service`, `scufris-desktop`, `scufris-surface-gateway`,
+  `scufris-tailscale-serve`, `ai-tools-api`, and `ai-tools-api-whisper` are
+  active. The three Scufris executables report version 2.0.0.
+- The gateway listens only on `127.0.0.1:10440`, and Tailscale Serve maps only
+  the production root to that listener.
+- Authenticated production health and protocol-v5 WSS registration passed.
+- A generated non-user text object completed authenticated upload and download;
+  the verification compared bytes without printing the token, ID, or content.
+- An explicit service restart left the gateway active and preserved
+  authenticated production health.
+- TestFlight `2.0.0 (12)` uploaded successfully in run `33367784970` from the
+  immutable release commit.
