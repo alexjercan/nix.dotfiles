@@ -85,3 +85,32 @@ Verified on 2026-08-31:
   grace warning.
 - The installed package carries both fixes.
 
+## v2.1.2
+
+The v2.1.1 morning collected cleanly and one source still lost its report: a
+quotation mark inside seedzero's body ended the JSON string early, after the
+run had already cost 197 seconds. That is the third way a long Markdown body
+inside a JSON string has been lost.
+
+- A source that answered badly is asked once more, given its own words and the
+  one reason they could not be used, with no tools at all. It may change only
+  that.
+- Nothing a source does can end a run: an answer nested past the decoder's
+  stack, output that is not text, a contribution that cannot be written, and a
+  page that cannot be laid out are each recorded rather than raised.
+
+Verified on 2026-08-31:
+
+- The real broken answer was put through the repair run against a real model.
+  4507 characters recovered in 26.3 s, against the 197.3 s the first run cost,
+  with its findings intact.
+- seedzero asked again from scratch answered `ok` in 177.6 s with a 133
+  character headline, six facts, and a 3551 character body.
+- 50 briefing tests, 276 Python tests, 87 TypeScript tests, 6 Rust suites,
+  clippy, shellcheck, alejandra, and `nix flake check -L` all pass.
+- Upstream `check`, iOS, Documentation, and release workflows all succeeded,
+  and the source-only Release `Scufris v2.1.2` was created.
+- `flake.lock` holds rev `7c951f1a775b28f7f6673831bd4a5da93042d492`, the three
+  units are active, and the service logged `agent connected` in the same second
+  it started.
+
