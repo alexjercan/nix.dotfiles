@@ -8,7 +8,11 @@
     inputs.ai-tools-api.homeModules.default
   ];
 
-  services.ai-tools-api.enable = true;
+  services.ai-tools-api = {
+    enable = true;
+    host = "0.0.0.0";
+    llamaPackage = pkgs.llama-cpp.override {cudaSupport = true;};
+  };
 
   programs.agents = {
     enable = true;

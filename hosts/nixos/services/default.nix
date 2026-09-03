@@ -1,8 +1,5 @@
 {...}: {
-  imports = [
-    ./llama-cpp.nix
-    ./samba.nix
-  ];
+  imports = [./samba.nix];
 
   services.logmein-hamachi.enable = true;
 }

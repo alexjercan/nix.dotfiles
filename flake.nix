@@ -45,7 +45,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     ai-tools-api = {
-      url = "github:alexjercan/ai-tools-api/v0.1.1";
+      url = "github:alexjercan/ai-tools-api/v0.2.0";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-parts.follows = "flake-parts";
       inputs.home-manager.follows = "home-manager";
