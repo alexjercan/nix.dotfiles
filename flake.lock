@@ -16,16 +16,16 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1788442280,
-        "narHash": "sha256-TidwS03ECMDm/XknZFBhQaZ/nmLm4e9ErBHgWAFTXjM=",
+        "lastModified": 1788502405,
+        "narHash": "sha256-XFhm8VP3JibpqwynfvvJ6eRLVEifFsBWtDkImh0Vp3g=",
         "owner": "alexjercan",
         "repo": "ai-tools-api",
-        "rev": "b05e0b4bf94337d7bb74cb17aef323d1ce963464",
+        "rev": "f05191a507c4ac834d90ac67ef5da03bf1f424aa",
         "type": "github"
       },
       "original": {
         "owner": "alexjercan",
-        "ref": "v0.2.0",
+        "ref": "v0.2.1",
         "repo": "ai-tools-api",
         "type": "github"
       }
