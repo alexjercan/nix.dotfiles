@@ -24,6 +24,7 @@
 
     agent.briefing = {
       profiles.morning.schedule = "08:00";
+      profiles.nightly.schedule = "23:00";
 
       sources.morning.jobs = {
         description = "What Scufris did overnight.";
