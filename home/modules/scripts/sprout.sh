@@ -29,7 +29,10 @@ usage() {
     echo "                   --remove deletes its worktree, branch and tmux"
     echo "                   session after landing; --dry-run runs every guard"
     echo "                   and writes nothing"
-    echo "  rm <feature>     Remove <feature>'s worktree, branch and tmux session"
+    echo "  rm <feature> [-f|--force]"
+    echo "                   Remove <feature>'s worktree, branch and tmux"
+    echo "                   session; refuses a branch that is not merged into"
+    echo "                   its landing target unless --force is given"
     echo "  help             Show this help message"
     echo
     echo "Options:"
@@ -75,6 +78,22 @@ resolve_target() {
     fi
     [[ -n $recorded ]] || return 1
     echo "$recorded"
+}
+
+branch_is_merged() {
+    # $1: feature -> true when the branch's work is already in its landing
+    # target. 'land' squashes, so the landed commit has a different history
+    # and ancestry alone would call every landed branch unmerged; an identical
+    # tree is what a squash landing leaves behind.
+    local feature=$1 target feature_tree target_tree
+    target=$(resolve_target "$(worktree_path "$feature")") || return 1
+    git show-ref --verify --quiet "refs/heads/$target" || return 1
+    if git merge-base --is-ancestor "refs/heads/$feature" "refs/heads/$target"; then
+        return 0
+    fi
+    feature_tree=$(git rev-parse --quiet --verify "refs/heads/$feature^{tree}") || return 1
+    target_tree=$(git rev-parse --quiet --verify "refs/heads/$target^{tree}") || return 1
+    [[ -n $feature_tree && $feature_tree == "$target_tree" ]]
 }
 
 require_feature() {
@@ -478,16 +497,47 @@ cmd_land() {
     if [[ $remove == true ]]; then
         # Cleanup chatter goes to stderr so stdout stays exactly the one
         # 'landed ...' line, per the composability convention.
-        cmd_rm "$feature" 1>&2
+        cmd_rm "$feature" --force 1>&2
     fi
 }
 
 cmd_rm() {
-    feature=$1
+    feature=""
+    force=false
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h | --help)
+                usage
+                return 0
+                ;;
+            -f | --force)
+                force=true
+                shift
+                ;;
+            *)
+                if [[ -n $feature ]]; then
+                    echo "sprout: unexpected argument '$1' (usage: sprout rm <feature> [-f|--force])" >&2
+                    exit 1
+                fi
+                feature=$1
+                shift
+                ;;
+        esac
+    done
     require_feature "$feature" || exit 1
 
     path=$(worktree_path "$feature")
     removed=false
+
+    # An unmerged branch is work nobody has landed, and deleting it has no
+    # undo. Refuse before touching anything, so a refused removal leaves the
+    # worktree and the tmux session exactly as they were.
+    if [[ $force == false ]] && git show-ref --verify --quiet "refs/heads/$feature"; then
+        if ! branch_is_merged "$feature"; then
+            echo "sprout: '$feature' is not merged into its landing target; land it first, or pass --force to delete the work" >&2
+            exit 1
+        fi
+    fi
 
     if git worktree list --porcelain | grep -qx "worktree $path"; then
         git worktree remove "$path" || git worktree remove --force "$path"

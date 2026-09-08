@@ -549,6 +549,74 @@ test_land_from_inside_worktree() {
     check "master untouched" test "$(git rev-list --count master)" -eq 1
 }
 
+test_rm_refuses_unmerged_branch() {
+    local wt err rc session
+    wt=$(make_feature feat)
+    start_feature_session feat
+    session=$FEATURE_SESSION
+    err=$(sprout rm feat 2>&1 > /dev/null)
+    rc=$?
+    check "rm refuses an unmerged branch" test "$rc" -ne 0
+    check "reason says it is not merged" str_contains "$err" "not merged"
+    check "reason offers --force" str_contains "$err" "--force"
+    # A refusal must change nothing at all, or it would be a partial delete.
+    check "worktree kept" test -d "$wt"
+    check "branch kept" git show-ref --verify --quiet refs/heads/feat
+    check "tmux session kept" tmux has-session -t "=$session"
+    check "the commit is still reachable" quiet git rev-parse --verify refs/heads/feat
+}
+
+test_rm_force_removes_unmerged_branch() {
+    local wt session
+    wt=$(make_feature feat)
+    start_feature_session feat
+    session=$FEATURE_SESSION
+    check "rm --force exits 0" quiet sprout rm feat --force
+    check "worktree removed" not test -d "$wt"
+    check "branch removed" not git show-ref --verify --quiet refs/heads/feat
+    check "tmux session removed" not quiet tmux has-session -t "=$session"
+}
+
+test_rm_removes_a_branch_merged_by_fast_forward() {
+    local wt
+    wt=$(make_feature feat)
+    git merge -q feat
+    check "rm accepts an ancestor branch" quiet sprout rm feat
+    check "worktree removed" not test -d "$wt"
+    check "branch removed" not git show-ref --verify --quiet refs/heads/feat
+}
+
+test_rm_help_names_force() {
+    local out
+    out=$(sprout rm --help 2>&1)
+    # Scufris probes this text to decide whether the installed sprout can be
+    # asked to force, so the flag has to be discoverable here.
+    check "rm --help names --force" str_contains "$out" "--force"
+}
+
+test_rm_refuses_when_the_target_cannot_be_resolved() {
+    local wt
+    wt=$(make_feature feat)
+    # A worktree from before sprout.target existed, with nothing to fall back
+    # to. Unable to tell merged from unmerged, rm has to assume unmerged.
+    git -C "$wt" config --worktree --unset sprout.target
+    git checkout -q --detach
+    check "rm refuses without a resolvable target" not quiet sprout rm feat
+    check "worktree kept" test -d "$wt"
+    check "--force still removes it" quiet sprout rm feat --force
+    check "worktree removed by force" not test -d "$wt"
+}
+
+test_rm_rejects_extra_arguments() {
+    local wt err rc
+    wt=$(make_feature feat)
+    err=$(sprout rm feat other 2>&1 > /dev/null)
+    rc=$?
+    check "rm refuses a second feature" test "$rc" -ne 0
+    check "reason names the argument" str_contains "$err" "unexpected argument"
+    check "worktree kept" test -d "$wt"
+}
+
 echo "== sprout integration tests =="
 run_test test_new_show_rm
 run_test test_new_task_association
@@ -584,6 +652,12 @@ run_test test_land_commit_failure_rolls_back
 run_test test_land_refuses_missing_branch
 run_test test_land_refuses_target_equals_feature
 run_test test_land_from_inside_worktree
+run_test test_rm_refuses_unmerged_branch
+run_test test_rm_force_removes_unmerged_branch
+run_test test_rm_removes_a_branch_merged_by_fast_forward
+run_test test_rm_help_names_force
+run_test test_rm_refuses_when_the_target_cannot_be_resolved
+run_test test_rm_rejects_extra_arguments
 echo
 echo "passed: $PASS  failed: $FAIL"
 [[ $FAIL -eq 0 ]]
