@@ -15,7 +15,9 @@
 - `hosts/<name>/` - per-machine NixOS system config.
 - `home/<user>/` - per-user home-manager config, composed from `home/modules/`.
 - `home/modules/agents/` - optional agent tools, global instructions, Pi assets,
-  and their integration checks. Project skills live under `.agents/skills/`.
+  and their integration checks. `programs.agents.skills` deploys a skill for a
+  global tool into `~/.agents/skills/` and `~/.claude/skills/`. A skill that is
+  tuned per project stays in that project's `.agents/skills/`.
 
 ## Quickstart
 

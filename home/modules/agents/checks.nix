@@ -8,6 +8,7 @@
   sourceRoot,
 }: let
   lib = pkgs.lib;
+  extraSkill = sourceRoot + "/tests/fixtures/extra";
 
   mkHomeWith = {
     moduleConfig,
@@ -32,7 +33,10 @@
 
   mkHome = moduleConfig: mkHomeWith {inherit moduleConfig;};
 
-  enabled = mkHome {enable = true;};
+  enabled = mkHome {
+    enable = true;
+    skills.extra = extraSkill;
+  };
   disabled = mkHome {enable = false;};
   configured = mkHome {
     enable = true;
@@ -109,6 +113,21 @@
       };
     }).activationPackage
     true);
+  invalidName = builtins.tryEval (builtins.deepSeq
+    (mkHome {
+      enable = true;
+      skills."Bad Name" = extraSkill;
+    })
+    .config.programs.agents.finalSkills
+    true);
+  missingSkill = builtins.tryEval (builtins.deepSeq
+    (mkHome {
+      enable = true;
+      skills.missing = sourceRoot + "/tests/fixtures";
+    })
+    .config.programs.agents.finalSkills
+    true);
+
   enabledConfig = enabled.config;
   disabledConfig = disabled.config;
   configuredConfig = configured.config;
@@ -120,6 +139,7 @@
   voiceDisabledConfig = voiceDisabled.config;
   scufrisConfig = scufrisEnabled.config;
   scufrisDesktop = scufrisConfig.systemd.user.services.scufris-desktop;
+  deployedSkill = root: name: enabledConfig.home.file."${root}/${name}";
 
   moduleAssertions = assert enabledConfig.programs.agents.pi.enable;
   assert enabledConfig.programs.agents.pi.package == packages.pi;
@@ -219,6 +239,16 @@
     packages.plannotator
   ];
   assert !(builtins.hasAttr "AGENTS.md" disabledConfig.home.file);
+  # A skill deploys to both roots, file by file, so an unmanaged skill can sit
+  # beside a managed one.
+  assert builtins.attrNames enabledConfig.programs.agents.finalSkills == ["extra"];
+  assert lib.all (root: (deployedSkill root "extra").recursive) [".claude/skills" ".agents/skills"];
+  assert lib.all (root: builtins.toString (deployedSkill root "extra").source == builtins.toString extraSkill)
+  [".claude/skills" ".agents/skills"];
+  assert lib.all (root: !(builtins.hasAttr "${root}/extra" disabledConfig.home.file))
+  [".claude/skills" ".agents/skills"];
+  assert !invalidName.success;
+  assert !missingSkill.success;
     pkgs.runCommand "agents-home-module" {} ''
       touch "$out"
     '';

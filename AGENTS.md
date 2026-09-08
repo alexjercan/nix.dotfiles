@@ -26,6 +26,8 @@ Global `~/AGENTS.md` applies. This file defines project-specific instructions.
 - Keep host-specific configuration in `hosts/<name>/` and reusable user
   configuration in `home/modules/`.
 - This repository owns the global agent baseline and agent tool integrations.
+- A skill for a global tool is global: declare it in `programs.agents.skills`.
+  Keep a skill that is tuned per project in that project.
 - Change Tatr behavior and exported integrations together in the owning
   project.
 - Run the cheapest relevant check. Use `nix flake check` for broad integration

@@ -18,6 +18,14 @@
     enable = true;
     agentsFile = toString ./AGENTS.md;
 
+    # A global tool gets a global skill. Every project used to carry its own
+    # copy and they drifted. A skill that is tuned per project, such as review
+    # or pair, still belongs to that project.
+    skills = {
+      sprout = toString ../scripts/skills/sprout;
+      tatr = inputs.tatr.skills.tatr;
+    };
+
     agentBrowser.enable = true;
     claudeCode.enable = true;
     codex.enable = true;
