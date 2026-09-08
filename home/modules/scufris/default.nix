@@ -24,7 +24,19 @@
 
     agent.briefing = {
       profiles.morning.schedule = "08:00";
-      profiles.nightly.schedule = "23:00";
+
+      # The night reviews the day's commits and fixes what it finds, so it is
+      # nothing like a morning of reports: it needs hours, it comes back with a
+      # list rather than a headline, and two of these at once is already wide
+      # because each one fans out into review lanes.
+      profiles.nightly = {
+        schedule = "23:00";
+        deadline = 28800;
+        sourceDeadline = 28800;
+        parallel = 2;
+        maxOffers = 8;
+        maxBody = 65536;
+      };
 
       sources.morning.jobs = {
         description = "What Scufris did overnight.";
