@@ -15,6 +15,7 @@
         port = 10440;
         tokenFile = "${config.xdg.dataHome}/scufris/credentials/ios/surface-token";
       };
+      terminalLease = true;
     };
 
     desktop = {
