@@ -1,8 +1,4 @@
-{
-  inputs,
-  pkgs,
-  ...
-}: {
+{pkgs, ...}: {
   imports = [
     ./hardware-configuration.nix
     ./boot.nix
@@ -12,7 +8,6 @@
     ./services
     ./user.nix
     ./virtualization.nix
-    inputs.sops-nix.nixosModules.sops
   ];
 
   time.timeZone = "Europe/Bucharest";

@@ -1,7 +1,6 @@
 {
   pkgs,
   homeModule,
-  scufrisModule,
   packages,
   extensions,
   home-manager,
@@ -83,26 +82,6 @@
     enable = true;
     pi.extensions.voice-stt.enable = false;
   };
-  scufrisEnabled = mkHomeWith {
-    moduleConfig.enable = true;
-    extraModules = [scufrisModule];
-    extraConfig.programs.scufris = {
-      enable = true;
-      agent.piPackage = packages.pi;
-      aiToolsApi.enable = false;
-      service = {
-        enable = true;
-        remoteSurface = {
-          enable = true;
-          tokenFile = "/run/secrets/scufris-surface-token";
-        };
-      };
-      desktop = {
-        enable = true;
-        speech.enable = true;
-      };
-    };
-  };
   conflictingWhisper = builtins.tryEval (builtins.deepSeq
     (mkHome {
       enable = true;
@@ -137,8 +116,6 @@
   sttEnabledConfig = sttEnabled.config;
   localWhisperConfig = localWhisperEnabled.config;
   voiceDisabledConfig = voiceDisabled.config;
-  scufrisConfig = scufrisEnabled.config;
-  scufrisDesktop = scufrisConfig.systemd.user.services.scufris-desktop;
   deployedSkill = root: name: enabledConfig.home.file."${root}/${name}";
 
   moduleAssertions = assert enabledConfig.programs.agents.pi.enable;
@@ -198,18 +175,6 @@
   assert !(builtins.hasAttr ".pi/agent/stt.json" voiceDisabledConfig.home.file);
   assert !(builtins.hasAttr "PI_STT_CONFIG" voiceDisabledConfig.home.sessionVariables);
   assert !(builtins.hasAttr "whisper-server" voiceDisabledConfig.systemd.user.services);
-  assert scufrisConfig.programs.scufris.agent.piPackage == packages.pi;
-  assert !scufrisConfig.programs.scufris.aiToolsApi.enable;
-  assert builtins.hasAttr "scufris-service" scufrisConfig.systemd.user.services;
-  assert builtins.hasAttr "scufris-surface-gateway" scufrisConfig.systemd.user.services;
-  assert lib.hasInfix "--listen 127.0.0.1:10440" (builtins.head scufrisConfig.systemd.user.services.scufris-surface-gateway.Service.ExecStart);
-  assert lib.hasInfix "--token-file /run/secrets/scufris-surface-token" (builtins.head scufrisConfig.systemd.user.services.scufris-surface-gateway.Service.ExecStart);
-  assert builtins.hasAttr "scufris-desktop" scufrisConfig.systemd.user.services;
-  assert !(builtins.hasAttr "scufris-ai-tools-api" scufrisConfig.systemd.user.services);
-  assert lib.elem "SCUFRIS_STT_ENDPOINT=http://127.0.0.1:10300/v1/audio/transcriptions"
-  scufrisDesktop.Service.Environment;
-  assert lib.any (lib.hasPrefix "SCUFRIS_DESKTOP_SPEAK_COMMAND=")
-  scufrisDesktop.Service.Environment;
   assert !(builtins.hasAttr "AGENTS.md" enabledConfig.home.file);
   assert !(builtins.hasAttr ".claude/CLAUDE.md" enabledConfig.home.file);
   assert !(builtins.hasAttr ".codex/AGENTS.md" enabledConfig.home.file);
@@ -303,14 +268,6 @@ in {
         .provider.type == "openai-compatible" and
         .provider.endpoint == "http://127.0.0.1:9000/inference"
       ' "$customSttConfig"
-      touch "$out"
-    '';
-
-  scufris =
-    pkgs.runCommand "scufris-composition" {
-      activationPackage = scufrisEnabled.activationPackage;
-    } ''
-      test -e "$activationPackage"
       touch "$out"
     '';
 

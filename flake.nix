@@ -35,11 +35,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    sops-nix = {
-      url = "github:Mic92/sops-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     tatr = {
       url = "github:alexjercan/tatr/v3.0.0";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -49,13 +44,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-parts.follows = "flake-parts";
       inputs.home-manager.follows = "home-manager";
-    };
-    scufris = {
-      url = "github:alexjercan/scufris2/v2.8.2";
-      inputs.ai-tools-api.follows = "ai-tools-api";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.home-manager.follows = "home-manager";
-      inputs.llm-agents.follows = "llm-agents";
     };
   };
 

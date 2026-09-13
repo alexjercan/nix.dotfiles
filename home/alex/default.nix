@@ -66,10 +66,8 @@ in {
     "${modulesPath}/packages"
     "${modulesPath}/scripts"
     "${modulesPath}/agents"
-    "${modulesPath}/scufris"
     "${modulesPath}/newsboat"
     "${modulesPath}/gtk-theme"
     "${modulesPath}/gc"
-    inputs.scufris.homeModules.default
   ];
 }

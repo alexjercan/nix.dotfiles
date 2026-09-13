@@ -589,7 +589,7 @@ test_rm_removes_a_branch_merged_by_fast_forward() {
 test_rm_help_names_force() {
     local out
     out=$(sprout rm --help 2>&1)
-    # Scufris probes this text to decide whether the installed sprout can be
+    # Callers probe this text to decide whether the installed sprout can be
     # asked to force, so the flag has to be discoverable here.
     check "rm --help names --force" str_contains "$out" "--force"
 }

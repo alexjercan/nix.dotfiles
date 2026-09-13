@@ -33,7 +33,6 @@
     checks = import ../home/modules/agents/checks.nix {
       inherit pkgs homeModule;
       inherit sourceRoot;
-      scufrisModule = inputs.scufris.homeModules.default;
       packages = agentPackages;
       extensions = builtins.mapAttrs (_: ext: ext.extension) piExtensions;
       home-manager = inputs.home-manager;
