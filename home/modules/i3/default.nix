@@ -9,41 +9,95 @@
     runtimeInputs = [pkgs.coreutils pkgs.curl pkgs.jq];
     text = ''
       provider="''${1:-}"
+      window="''${2:-weekly}"
 
-      case "$provider" in
-        claude)
+      case "$provider:$window" in
+        claude:weekly)
           label=CLD
-          credentials="$HOME/.claude/.credentials.json"
-          token=$(jq -r '.claudeAiOauth.accessToken // empty' "$credentials" 2>/dev/null || true)
-          if [ -n "$token" ]; then
-            response=$(curl --silent --show-error --fail --max-time 10 --config - <<EOF || true
-      url = "https://api.anthropic.com/api/oauth/usage"
-      header = "Authorization: Bearer $token"
-      header = "anthropic-beta: oauth-2025-04-20"
-      EOF
-            )
-            used=$(jq -r '[.five_hour.utilization, .seven_day.utilization] | map(select(type == "number")) | max // empty' <<<"$response" 2>/dev/null || true)
-          fi
+          usage_filter='.seven_day.utilization'
           ;;
-        codex)
+        claude:five-hour)
+          label=CLD5
+          usage_filter='.five_hour.utilization'
+          ;;
+        codex:weekly)
           label=CDX
-          credentials="$HOME/.codex/auth.json"
-          token=$(jq -r '.tokens.access_token // empty' "$credentials" 2>/dev/null || true)
-          account=$(jq -r '.tokens.account_id // empty' "$credentials" 2>/dev/null || true)
-          if [ -n "$token" ] && [ -n "$account" ]; then
-            response=$(curl --silent --show-error --fail --max-time 10 --config - <<EOF || true
-      url = "https://chatgpt.com/backend-api/wham/usage"
-      header = "Authorization: Bearer $token"
-      header = "ChatGPT-Account-Id: $account"
-      EOF
-            )
-            used=$(jq -r '[.rate_limit.primary_window.used_percent, .rate_limit.secondary_window.used_percent] | map(select(type == "number")) | max // empty' <<<"$response" 2>/dev/null || true)
-          fi
+          usage_filter='.rate_limit | [.primary_window, .secondary_window] | map(select(.limit_window_seconds == 604800)) | first | .used_percent'
+          ;;
+        codex:five-hour)
+          label=CDX5
+          usage_filter='.rate_limit | [.primary_window, .secondary_window] | map(select(.limit_window_seconds == 18000)) | first | .used_percent'
           ;;
         *)
           exit 2
           ;;
       esac
+
+      cache_dir="''${XDG_RUNTIME_DIR:-$HOME/.cache}/ai-usage"
+      cache_file="$cache_dir/$provider.json"
+      failure_file="$cache_dir/$provider.failed"
+      cache_ttl=600
+      failure_ttl=300
+      mkdir -p "$cache_dir"
+      chmod 700 "$cache_dir"
+
+      now=$(date +%s)
+      cache_mtime=$(stat -c %Y "$cache_file" 2>/dev/null || echo 0)
+      cache_age=$((now - cache_mtime))
+      failure_mtime=$(stat -c %Y "$failure_file" 2>/dev/null || echo 0)
+      failure_age=$((now - failure_mtime))
+      if [ -f "$cache_file" ] && [ "$cache_age" -ge 0 ] && [ "$cache_age" -lt "$cache_ttl" ]; then
+        response=$(cat "$cache_file")
+      elif [ -f "$failure_file" ] && [ "$failure_age" -ge 0 ] && [ "$failure_age" -lt "$failure_ttl" ]; then
+        if [ -f "$cache_file" ]; then
+          response=$(cat "$cache_file")
+        fi
+      else
+        response_file=$(mktemp "$cache_dir/$provider.XXXXXX")
+        request_ok=false
+        case "$provider" in
+          claude)
+            credentials="$HOME/.claude/.credentials.json"
+            token=$(jq -r '.claudeAiOauth.accessToken // empty' "$credentials" 2>/dev/null || true)
+            if [ -n "$token" ] && curl --silent --show-error --fail --max-time 10 --output "$response_file" --config - <<EOF
+      url = "https://api.anthropic.com/api/oauth/usage"
+      header = "Authorization: Bearer $token"
+      header = "anthropic-beta: oauth-2025-04-20"
+      EOF
+            then
+              request_ok=true
+            fi
+            ;;
+          codex)
+            credentials="$HOME/.codex/auth.json"
+            token=$(jq -r '.tokens.access_token // empty' "$credentials" 2>/dev/null || true)
+            account=$(jq -r '.tokens.account_id // empty' "$credentials" 2>/dev/null || true)
+            if [ -n "$token" ] && [ -n "$account" ] && curl --silent --show-error --fail --max-time 10 --output "$response_file" --config - <<EOF
+      url = "https://chatgpt.com/backend-api/wham/usage"
+      header = "Authorization: Bearer $token"
+      header = "ChatGPT-Account-Id: $account"
+      EOF
+            then
+              request_ok=true
+            fi
+            ;;
+        esac
+
+        if [ "$request_ok" = true ] && jq -e 'type == "object"' "$response_file" >/dev/null 2>&1; then
+          chmod 600 "$response_file"
+          mv "$response_file" "$cache_file"
+          rm -f "$failure_file"
+        else
+          rm -f "$response_file"
+          touch "$failure_file"
+        fi
+
+        if [ -f "$cache_file" ]; then
+          response=$(cat "$cache_file")
+        fi
+      fi
+
+      used=$(jq -r "$usage_filter // empty" <<<"''${response:-}" 2>/dev/null || true)
 
       if [ -z "''${used:-}" ]; then
         jq -cn --arg text "$label ?" '{text: $text, state: "Warning"}'
@@ -209,13 +263,19 @@ in {
           }
           {
             block = "custom";
-            command = "${aiUsage}/bin/ai-usage claude";
+            cycle = [
+              "${aiUsage}/bin/ai-usage claude weekly"
+              "${aiUsage}/bin/ai-usage claude five-hour"
+            ];
             interval = 600;
             json = true;
           }
           {
             block = "custom";
-            command = "${aiUsage}/bin/ai-usage codex";
+            cycle = [
+              "${aiUsage}/bin/ai-usage codex weekly"
+              "${aiUsage}/bin/ai-usage codex five-hour"
+            ];
             interval = 600;
             json = true;
           }
