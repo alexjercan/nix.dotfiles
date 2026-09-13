@@ -4,6 +4,63 @@
   ...
 }: let
   cfg = config.xsession.windowManager.i3;
+  aiUsage = pkgs.writeShellApplication {
+    name = "ai-usage";
+    runtimeInputs = [pkgs.coreutils pkgs.curl pkgs.jq];
+    text = ''
+      provider="''${1:-}"
+
+      case "$provider" in
+        claude)
+          label=CLD
+          credentials="$HOME/.claude/.credentials.json"
+          token=$(jq -r '.claudeAiOauth.accessToken // empty' "$credentials" 2>/dev/null || true)
+          if [ -n "$token" ]; then
+            response=$(curl --silent --show-error --fail --max-time 10 --config - <<EOF || true
+      url = "https://api.anthropic.com/api/oauth/usage"
+      header = "Authorization: Bearer $token"
+      header = "anthropic-beta: oauth-2025-04-20"
+      EOF
+            )
+            used=$(jq -r '[.five_hour.utilization, .seven_day.utilization] | map(select(type == "number")) | max // empty' <<<"$response" 2>/dev/null || true)
+          fi
+          ;;
+        codex)
+          label=CDX
+          credentials="$HOME/.codex/auth.json"
+          token=$(jq -r '.tokens.access_token // empty' "$credentials" 2>/dev/null || true)
+          account=$(jq -r '.tokens.account_id // empty' "$credentials" 2>/dev/null || true)
+          if [ -n "$token" ] && [ -n "$account" ]; then
+            response=$(curl --silent --show-error --fail --max-time 10 --config - <<EOF || true
+      url = "https://chatgpt.com/backend-api/wham/usage"
+      header = "Authorization: Bearer $token"
+      header = "ChatGPT-Account-Id: $account"
+      EOF
+            )
+            used=$(jq -r '[.rate_limit.primary_window.used_percent, .rate_limit.secondary_window.used_percent] | map(select(type == "number")) | max // empty' <<<"$response" 2>/dev/null || true)
+          fi
+          ;;
+        *)
+          exit 2
+          ;;
+      esac
+
+      if [ -z "''${used:-}" ]; then
+        jq -cn --arg text "$label ?" '{text: $text, state: "Warning"}'
+        exit
+      fi
+
+      left=$(jq -n --argjson used "$used" '100 - $used | if . < 0 then 0 elif . > 100 then 100 else round end')
+      if [ "$left" -le 20 ]; then
+        state=Critical
+      elif [ "$left" -le 50 ]; then
+        state=Warning
+      else
+        state=Idle
+      fi
+      jq -cn --arg text "$label $left%" --arg state "$state" '{text: $text, state: $state}'
+    '';
+  };
 in {
   xsession.windowManager.i3 = {
     enable = true;
@@ -149,6 +206,18 @@ in {
             info_cpu = 20;
             warning_cpu = 50;
             critical_cpu = 90;
+          }
+          {
+            block = "custom";
+            command = "${aiUsage}/bin/ai-usage claude";
+            interval = 600;
+            json = true;
+          }
+          {
+            block = "custom";
+            command = "${aiUsage}/bin/ai-usage codex";
+            interval = 600;
+            json = true;
           }
           {
             block = "disk_space";
