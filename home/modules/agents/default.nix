@@ -37,7 +37,6 @@
       themes.gruber-darker.enable = true;
       extensions = {
         plannotator.enable = true;
-        quick-review.enable = true;
 
         voice-stt = {
           enable = true;
