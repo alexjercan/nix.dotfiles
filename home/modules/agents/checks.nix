@@ -110,6 +110,10 @@
   enabledConfig = enabled.config;
   disabledConfig = disabled.config;
   configuredConfig = configured.config;
+  configuredTheme = configuredConfig.programs.agents.pi.themes.gruber-darker.source;
+  configuredPiClosure = pkgs.closureInfo {
+    rootPaths = [configuredConfig.programs.agents.pi.finalPackage];
+  };
   minimalConfig = minimal.config;
   toolsConfig = toolsEnabled.config;
   quickReviewConfig = quickReviewEnabled.config;
@@ -129,8 +133,7 @@
   assert builtins.length configuredConfig.programs.agents.pi.finalArgs == 4;
   assert lib.count (arg: arg == "--theme") configuredConfig.programs.agents.pi.finalArgs == 1;
   assert lib.count (arg: arg == "--extension") configuredConfig.programs.agents.pi.finalArgs == 1;
-  assert lib.elem (builtins.toString (sourceRoot + "/pi/themes/gruber-darker.json"))
-  configuredConfig.programs.agents.pi.finalArgs;
+  assert lib.elem "${configuredTheme}" configuredConfig.programs.agents.pi.finalArgs;
   # Settings reach pi through an activation merge, never a read-only symlink.
   assert builtins.hasAttr "piSettings" configuredConfig.home.activation;
   assert !(builtins.hasAttr ".pi/agent/settings.json" configuredConfig.home.file);
@@ -215,6 +218,8 @@
   assert !invalidName.success;
   assert !missingSkill.success;
     pkgs.runCommand "agents-home-module" {} ''
+      grep -Fx ${lib.escapeShellArg "${configuredTheme}"} \
+        ${configuredPiClosure}/store-paths
       touch "$out"
     '';
 in {

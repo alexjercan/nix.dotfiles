@@ -1,9 +1,5 @@
 {lib, ...}: let
-  # `toString` of a path literal, never the bare path: a bare path coerced into
-  # a derivation copies this directory to its own floating `<hash>-themes` store
-  # root that GC reaps out from under the flake eval cache. `toString` yields
-  # the anchored subpath of the flake source instead.
-  themeRoot = builtins.toString ./.;
+  themeRoot = ./.;
   entries = builtins.readDir themeRoot;
 
   # Key every option by the name inside the file: that is the value Pi expects
@@ -20,7 +16,12 @@ in {
 
       source = lib.mkOption {
         type = lib.types.path;
-        default = themeRoot + "/${file}";
+        # Keep each theme as a wrapper dependency so store GC cannot leave a
+        # dangling --theme argument.
+        default = builtins.path {
+          path = themeRoot + "/${file}";
+          name = "pi-theme-${name}.json";
+        };
         defaultText = lib.literalExpression "pi/themes/${file}";
         description = "Theme JSON loaded for ${name}.";
       };
