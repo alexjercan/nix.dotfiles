@@ -3,15 +3,25 @@
   pkgs,
   ...
 }: {
-  imports = [
-    ./module.nix
-    inputs.ai-tools-api.homeModules.default
-  ];
+  imports = [./module.nix];
 
-  services.ai-tools-api = {
-    enable = true;
-    host = "0.0.0.0";
-    llamaPackage = pkgs.llama-cpp.override {cudaSupport = true;};
+  services = {
+    llama-cpp = {
+      enable = true;
+      host = "0.0.0.0";
+      port = 10302;
+      package = pkgs.llama-cpp.override {cudaSupport = true;};
+    };
+    piper-tts-api = {
+      enable = true;
+      host = "0.0.0.0";
+      port = 10303;
+    };
+    whisper-cpp = {
+      enable = true;
+      host = "0.0.0.0";
+      port = 10301;
+    };
   };
 
   programs.agents = {
@@ -56,7 +66,7 @@
             cleanup.enabled = false;
             provider = {
               type = "openai-compatible";
-              endpoint = "http://127.0.0.1:10300/v1/audio/transcriptions";
+              endpoint = "http://127.0.0.1:10301/inference";
               model = "whisper-1";
               language = "auto";
               apiKeyEnv = "";

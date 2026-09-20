@@ -44,8 +44,11 @@ in {
     ./agent-browser/module.nix
     ./claude-code/module.nix
     ./codex/module.nix
+    ./llama-cpp/module.nix
     ./opencode/module.nix
     ./pi/module.nix
+    ./piper-tts/module.nix
+    ./whisper-cpp/module.nix
   ];
 
   options.programs.agents = {

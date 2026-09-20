@@ -93,6 +93,23 @@
     enable = true;
     pi.extensions.voice-stt.enable = false;
   };
+  standaloneServers = mkHomeWith {
+    moduleConfig.enable = false;
+    extraConfig.services = {
+      llama-cpp = {
+        enable = true;
+        host = "0.0.0.0";
+      };
+      piper-tts-api = {
+        enable = true;
+        host = "0.0.0.0";
+      };
+      whisper-cpp = {
+        enable = true;
+        host = "0.0.0.0";
+      };
+    };
+  };
   conflictingWhisper = builtins.tryEval (builtins.deepSeq
     (mkHome {
       enable = true;
@@ -133,6 +150,10 @@
   sttEnabledConfig = sttEnabled.config;
   localWhisperConfig = localWhisperEnabled.config;
   voiceDisabledConfig = voiceDisabled.config;
+  standaloneServersConfig = standaloneServers.config;
+  llamaService = standaloneServersConfig.systemd.user.services.llama-cpp;
+  piperService = standaloneServersConfig.systemd.user.services.piper-tts-api;
+  whisperService = standaloneServersConfig.systemd.user.services.whisper-cpp;
   deployedSkill = root: name: enabledConfig.home.file."${root}/${name}";
 
   moduleAssertions = assert enabledConfig.programs.agents.pi.enable;
@@ -196,6 +217,24 @@
   assert !(builtins.hasAttr ".pi/agent/stt.json" voiceDisabledConfig.home.file);
   assert !(builtins.hasAttr "PI_STT_CONFIG" voiceDisabledConfig.home.sessionVariables);
   assert !(builtins.hasAttr "whisper-server" voiceDisabledConfig.systemd.user.services);
+  assert standaloneServersConfig.services.llama-cpp.port == 10302;
+  assert standaloneServersConfig.services.whisper-cpp.port == 10301;
+  assert standaloneServersConfig.services.piper-tts-api.port == 10303;
+  assert builtins.hasAttr "llama-cpp" standaloneServersConfig.systemd.user.services;
+  assert builtins.hasAttr "piper-tts-api" standaloneServersConfig.systemd.user.services;
+  assert builtins.hasAttr "whisper-cpp" standaloneServersConfig.systemd.user.services;
+  assert lib.hasInfix "--models-preset" (builtins.head llamaService.Service.ExecStart);
+  assert lib.hasInfix "--host 0.0.0.0" (builtins.head llamaService.Service.ExecStart);
+  assert lib.hasInfix "--port 10302" (builtins.head llamaService.Service.ExecStart);
+  assert lib.hasInfix "--ctx-size 128000" (builtins.head llamaService.Service.ExecStart);
+  assert llamaService.Service.Restart == "on-failure";
+  assert lib.hasInfix "server.py --host 0.0.0.0 --port 10303" (builtins.head piperService.Service.ExecStart);
+  assert lib.hasInfix "--max-text-bytes 4096" (builtins.head piperService.Service.ExecStart);
+  assert piperService.Service.Restart == "on-failure";
+  assert lib.hasInfix "--host 0.0.0.0" (builtins.head whisperService.Service.ExecStart);
+  assert lib.hasInfix "--port 10301" (builtins.head whisperService.Service.ExecStart);
+  assert lib.hasInfix "--inference-path /inference" (builtins.head whisperService.Service.ExecStart);
+  assert whisperService.Service.Restart == "on-failure";
   assert !(builtins.hasAttr "AGENTS.md" enabledConfig.home.file);
   assert !(builtins.hasAttr ".claude/CLAUDE.md" enabledConfig.home.file);
   assert !(builtins.hasAttr ".codex/AGENTS.md" enabledConfig.home.file);
@@ -299,6 +338,15 @@ in {
         .provider.type == "openai-compatible" and
         .provider.endpoint == "http://127.0.0.1:9000/inference"
       ' "$customSttConfig"
+      touch "$out"
+    '';
+
+  piper-tts-api =
+    pkgs.runCommand "piper-tts-api-smoke" {
+      nativeBuildInputs = [pkgs.python3];
+    } ''
+      export PYTHONPYCACHEPREFIX="$TMPDIR/pycache"
+      python -m py_compile ${sourceRoot}/piper-tts/server.py
       touch "$out"
     '';
 
