@@ -36,6 +36,9 @@
 
       themes.gruber-darker.enable = true;
       extensions = {
+        pi-subagents = {
+          enable = true;
+        };
         plannotator.enable = true;
 
         voice-stt = {

@@ -60,6 +60,17 @@
     enable = true;
     pi.extensions.quick-review.enable = true;
   };
+  piSubagentsEnabled = mkHome {
+    enable = true;
+    pi.extensions.pi-subagents = {
+      enable = true;
+      configFile = sourceRoot + "/subagents.yaml";
+    };
+  };
+  piSubagentsWithoutConfig = mkHome {
+    enable = true;
+    pi.extensions.pi-subagents.enable = true;
+  };
   sttEnabled = mkHome {
     enable = true;
     pi.extensions.voice-stt = {
@@ -117,6 +128,8 @@
   minimalConfig = minimal.config;
   toolsConfig = toolsEnabled.config;
   quickReviewConfig = quickReviewEnabled.config;
+  piSubagentsConfig = piSubagentsEnabled.config;
+  piSubagentsWithoutConfigConfig = piSubagentsWithoutConfig.config;
   sttEnabledConfig = sttEnabled.config;
   localWhisperConfig = localWhisperEnabled.config;
   voiceDisabledConfig = voiceDisabled.config;
@@ -155,6 +168,11 @@
   assert lib.elem packages.plannotator configuredConfig.home.packages;
   assert lib.elem "${extensions.plannotator}" configuredConfig.programs.agents.pi.finalArgs;
   assert !(lib.elem "${extensions.plannotator}" enabledConfig.programs.agents.pi.finalArgs);
+  assert lib.elem "${extensions.pi-subagents}" piSubagentsConfig.programs.agents.pi.finalArgs;
+  assert builtins.toString piSubagentsConfig.home.file.".pi/agent/subagents.yaml".source == builtins.toString (sourceRoot + "/subagents.yaml");
+  assert lib.elem "${extensions.pi-subagents}" piSubagentsWithoutConfigConfig.programs.agents.pi.finalArgs;
+  assert !(builtins.hasAttr ".pi/agent/subagents.yaml" piSubagentsWithoutConfigConfig.home.file);
+  assert !(builtins.hasAttr ".pi/agent/subagents.yaml" enabledConfig.home.file);
   assert !conflictingWhisper.success;
   assert lib.elem "${extensions.voice-stt}" sttEnabledConfig.programs.agents.pi.finalArgs;
   assert builtins.hasAttr ".pi/agent/stt.json" sttEnabledConfig.home.file;
@@ -242,6 +260,14 @@ in {
         ${extensions.quick-review}/package.json > /dev/null
       touch "$out"
     '';
+
+  pi-subagents = pkgs.runCommand "pi-subagents-smoke" {} ''
+    test -f ${extensions.pi-subagents}/package.json
+    test -f ${extensions.pi-subagents}/extensions/pi-subagents/index.ts
+    test -f ${extensions.pi-subagents}/examples/subagents.yaml
+    test -d ${extensions.pi-subagents}/node_modules/@modelcontextprotocol/sdk
+    touch "$out"
+  '';
 
   voice-stt = pkgs.runCommand "pi-voice-stt-smoke" {} ''
     test -f ${extensions.voice-stt}/package.json
