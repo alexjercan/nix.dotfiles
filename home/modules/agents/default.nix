@@ -79,14 +79,23 @@
       settings = {
         theme = "gruber-darker";
 
-        # pi-observational-memory reads this key. Its background memory workers
-        # run on a cheap built-in model instead of the session model.
         "observational-memory" = {
+          observeAfterTokens = 10000;
+          reflectAfterTokens = 20000;
+          compactAfterTokens = 81000;
+          compactAfterTokensMode = "calibrated";
+          compactAfterTokensRatio = 0.68;
+          observationsPoolMaxTokens = 20000;
+          observationsPoolTargetTokens = 10000;
+          agentMaxTurns = 16;
           model = {
-            provider = "openai";
+            provider = "openai-codex";
             id = "gpt-5.6-luna";
             thinking = "medium";
           };
+          showWorkerNotifications = true;
+          passive = false;
+          debugLog = false;
         };
       };
 
