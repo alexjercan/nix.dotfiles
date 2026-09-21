@@ -1,0 +1,7 @@
+{
+  "name": "agents-nix-pi-extension-pi-observational-memory",
+  "private": true,
+  "dependencies": {
+    "pi-observational-memory": "3.1.4"
+  }
+}

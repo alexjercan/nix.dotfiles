@@ -49,6 +49,7 @@
         pi-subagents = {
           enable = true;
         };
+        pi-observational-memory.enable = true;
         plannotator.enable = true;
 
         voice-stt = {
@@ -77,6 +78,16 @@
 
       settings = {
         theme = "gruber-darker";
+
+        # pi-observational-memory reads this key. Its background memory workers
+        # run on a cheap built-in model instead of the session model.
+        "observational-memory" = {
+          model = {
+            provider = "openai";
+            id = "gpt-5.6-luna";
+            thinking = "medium";
+          };
+        };
       };
 
       # Points at the local llama-cpp server declared above.
