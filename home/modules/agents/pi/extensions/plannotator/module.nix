@@ -26,7 +26,18 @@ in {
     };
   };
 
-  config = lib.mkIf (cfg.enable && cfg.pi.enable && extCfg.enable) {
-    home.packages = [extCfg.cli];
-  };
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
+      assertions = [
+        {
+          assertion = !extCfg.enable || cfg.pi.enable;
+          message = "programs.agents.pi.extensions.plannotator.enable requires programs.agents.pi.enable";
+        }
+      ];
+    }
+
+    (lib.mkIf (cfg.pi.enable && extCfg.enable) {
+      home.packages = [extCfg.cli];
+    })
+  ]);
 }
