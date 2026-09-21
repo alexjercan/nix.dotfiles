@@ -78,6 +78,31 @@
       settings = {
         theme = "gruber-darker";
       };
+
+      # Points at the local llama-cpp server declared above.
+      models = {
+        providers.gemma = {
+          baseUrl = "http://localhost:10302/v1";
+          api = "openai-completions";
+          apiKey = "local";
+          compat = {
+            supportsDeveloperRole = false;
+            supportsReasoningEffort = false;
+            maxTokensField = "max_tokens";
+            thinkingTokenBudgetField = "thinking_budget_tokens";
+          };
+          models = [
+            {
+              id = "gemma-4-26B-A4B-it";
+              name = "Gemma 4 26B A4B";
+              reasoning = true;
+              input = ["text"];
+              contextWindow = 128000;
+              maxTokens = 16384;
+            }
+          ];
+        };
+      };
     };
   };
 }

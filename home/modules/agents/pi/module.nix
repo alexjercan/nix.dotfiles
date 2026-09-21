@@ -33,6 +33,8 @@ in
       lib.concatMap (theme: lib.optional theme.enable theme.source)
       (lib.attrValues piCfg.themes);
 
+    json = pkgs.formats.json {};
+
     pathFlags = flag: paths: lib.concatMap (path: [flag "${path}"]) paths;
 
     finalArgs =
@@ -115,6 +117,16 @@ in
         example = lib.literalExpression ''{theme = "gruber-darker";}'';
       };
 
+      # models.json is the custom-provider catalogue (pi/docs/models.md); the
+      # binary reads no other name for it. Unlike settings.json, pi only reads
+      # this file, so a plain store symlink replaces the activation merge.
+      models = lib.mkOption {
+        type = json.type;
+        default = {};
+        description = "Contents of Pi's `~/.pi/agent/models.json` custom-provider catalogue.";
+        example = lib.literalExpression ''{providers.gemma.baseUrl = "http://localhost:10302/v1";}'';
+      };
+
       finalArgs = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         internal = true;
@@ -138,6 +150,10 @@ in
 
       (lib.mkIf (cfg.enable && piCfg.enable) {
         home.packages = [piCfg.finalPackage];
+
+        home.file.".pi/agent/models.json" = lib.mkIf (piCfg.models != {}) {
+          source = json.generate "pi-models.json" piCfg.models;
+        };
 
         home.activation.piSettings = lib.mkIf (piCfg.settings != {}) (
           lib.hm.dag.entryAfter ["writeBoundary"] ''
