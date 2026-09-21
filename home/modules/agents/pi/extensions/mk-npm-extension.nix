@@ -3,6 +3,11 @@
   npmRoot,
   packageName,
   nodejs ? pkgs.nodejs,
+  # Skill roots inside the npm package, relative to its own root. Pi resolves
+  # the `pi.extensions` entry below through the dependency's own manifest but
+  # does not inherit its other resource kinds, so a package that also ships
+  # skills has to name them here to get them loaded.
+  skills ? [],
 }: let
   lib = pkgs.lib;
   packageJsonPath = npmRoot + "/package.json";
@@ -32,7 +37,13 @@
   manifest = pkgs.writeText "${environmentName}-package.json" (builtins.toJSON {
     name = environmentName;
     private = true;
-    pi.extensions = ["./node_modules/${packageName}"];
+    pi =
+      {
+        extensions = ["./node_modules/${packageName}"];
+      }
+      // lib.optionalAttrs (skills != []) {
+        skills = map (path: "./node_modules/${packageName}/${path}") skills;
+      };
   });
 
   extension =

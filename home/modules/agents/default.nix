@@ -46,6 +46,7 @@
 
       themes.gruber-darker.enable = true;
       extensions = {
+        pi-ask-user.enable = true;
         pi-subagents = {
           enable = true;
         };
