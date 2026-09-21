@@ -21,24 +21,7 @@ in {
 
     config = lib.mkOption {
       type = json.type;
-      default = {
-        observeAfterTokens = 10000;
-        reflectAfterTokens = 20000;
-        compactAfterTokens = 81000;
-        compactAfterTokensMode = "calibrated";
-        compactAfterTokensRatio = 0.68;
-        observationsPoolMaxTokens = 20000;
-        observationsPoolTargetTokens = 10000;
-        agentMaxTurns = 16;
-        model = {
-          provider = "openai-codex";
-          id = "gpt-5.6-luna";
-          thinking = "medium";
-        };
-        showWorkerNotifications = true;
-        passive = false;
-        debugLog = false;
-      };
+      default = {};
       description = "Configuration merged into Pi's observational-memory settings.";
     };
   };

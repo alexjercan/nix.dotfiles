@@ -49,7 +49,27 @@
         pi-subagents = {
           enable = true;
         };
-        pi-observational-memory.enable = true;
+        pi-observational-memory = {
+          enable = true;
+          config = {
+            observeAfterTokens = 10000;
+            reflectAfterTokens = 20000;
+            compactAfterTokens = 81000;
+            compactAfterTokensMode = "calibrated";
+            compactAfterTokensRatio = 0.68;
+            observationsPoolMaxTokens = 20000;
+            observationsPoolTargetTokens = 10000;
+            agentMaxTurns = 16;
+            model = {
+              provider = "openai-codex";
+              id = "gpt-5.6-luna";
+              thinking = "medium";
+            };
+            showWorkerNotifications = true;
+            passive = false;
+            debugLog = false;
+          };
+        };
         plannotator.enable = true;
 
         voice-stt = {
