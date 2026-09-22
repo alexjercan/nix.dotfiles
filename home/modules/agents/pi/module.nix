@@ -3,7 +3,8 @@
 #
 # Hand-rolled rather than pi.nix's Home Manager module. This repo only ever
 # needed settings, themes and extensions, and the package now comes from the
-# llm-agents overlay, which tracks upstream releases closely.
+# llm-agents overlay, which tracks upstream releases closely. Resources use
+# Pi's normal package and theme locations so the unwrapped CLI discovers them.
 let
   # Extension modules are discovered from the directory names, so a new
   # extension needs no wiring outside its own folder. `pkgs` stays out of this
@@ -24,24 +25,29 @@ in
 
     # Every module under pi/extensions/ declares `extensions.<name>.enable` and
     # `extensions.<name>.package`. Nothing here knows the individual names.
-    enabledExtensions =
-      lib.concatMap (ext: lib.optional ext.enable ext.package)
-      (lib.attrValues piCfg.extensions);
+    enabledExtensions = lib.filterAttrs (_: ext: ext.enable) piCfg.extensions;
 
     # themes/module.nix declares one `themes.<name>` per file in themes/.
-    enabledThemes =
-      lib.concatMap (theme: lib.optional theme.enable theme.source)
-      (lib.attrValues piCfg.themes);
+    enabledThemes = lib.filterAttrs (_: theme: theme.enable) piCfg.themes;
+
+    packagePaths = map (name: "./packages/${name}") (lib.attrNames enabledExtensions);
+    finalSettings =
+      piCfg.settings
+      // {
+        packages = (piCfg.settings.packages or []) ++ packagePaths;
+      };
+
+    packageFiles = lib.mapAttrs' (name: ext:
+      lib.nameValuePair ".pi/agent/packages/${name}" {source = ext.package;})
+    enabledExtensions;
+
+    themeFiles = lib.mapAttrs' (name: theme:
+      lib.nameValuePair ".pi/agent/themes/${name}.json" {source = theme.source;})
+    enabledThemes;
 
     json = pkgs.formats.json {};
 
-    pathFlags = flag: paths: lib.concatMap (path: [flag "${path}"]) paths;
-
-    finalArgs =
-      pathFlags "--extension" enabledExtensions
-      ++ pathFlags "--theme" enabledThemes;
-
-    declaredSettings = pkgs.writeText "pi-settings.json" (builtins.toJSON piCfg.settings);
+    declaredSettings = pkgs.writeText "pi-settings.json" (builtins.toJSON finalSettings);
 
     # pi rewrites settings.json itself - an in-app theme switch lands there - so
     # it must stay a real writable file. Merge the declared keys over what is on
@@ -60,10 +66,28 @@ in
         fi
 
         tmp="$(mktemp "$target.XXXXXX")"
-        # Both branches go through jq so a re-run compares equal and the
-        # activation stays idempotent.
+        # Replace packages managed below `./packages/`, but preserve packages
+        # added interactively with `pi install`. Both branches go through jq so
+        # a re-run compares equal and the activation stays idempotent.
         if [ -f "$target" ]; then
-          jq -s '.[0] * .[1]' "$target" "$declared" > "$tmp"
+          jq -s '
+            .[0] as $current
+            | .[1] as $declared
+            | ($current * $declared)
+            | (($declared.packages // [])
+                + (($current.packages // [])
+                  | map(select(
+                      (type != "string")
+                      or (startswith("./packages/") | not)
+                    )))) as $packages
+            | .packages = reduce $packages[] as $package (
+                [];
+                if index($package) == null
+                then . + [$package]
+                else .
+                end
+              )
+          ' "$target" "$declared" > "$tmp"
         else
           jq . "$declared" > "$tmp"
         fi
@@ -76,23 +100,6 @@ in
         fi
       '';
     };
-
-    wrapped =
-      if finalArgs == []
-      then piCfg.package
-      else
-        pkgs.writeShellScriptBin "pi" ''
-          # These subcommands manage pi's own installed state and must not
-          # inherit the declarative resource flags.
-          case "''${1-}" in
-            install | remove | uninstall | update | list | config)
-              exec ${lib.escapeShellArg (lib.getExe piCfg.package)} "$@"
-              ;;
-            *)
-              exec ${lib.escapeShellArg (lib.getExe piCfg.package)} ${lib.escapeShellArgs finalArgs} "$@"
-              ;;
-          esac
-        '';
   in {
     imports = [./themes/module.nix] ++ extensionModules;
 
@@ -107,7 +114,7 @@ in
         type = lib.types.package;
         default = pkgs.llm-agents.pi;
         defaultText = lib.literalExpression "pkgs.llm-agents.pi";
-        description = "The Pi package the dotfiles wrap and install.";
+        description = "The Pi package the dotfiles install.";
       };
 
       settings = lib.mkOption {
@@ -126,42 +133,24 @@ in
         description = "Contents of Pi's `~/.pi/agent/models.json` custom-provider catalogue.";
         example = lib.literalExpression ''{providers.gemma.baseUrl = "http://localhost:10302/v1";}'';
       };
-
-      finalArgs = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        internal = true;
-        readOnly = true;
-      };
-
-      finalPackage = lib.mkOption {
-        type = lib.types.package;
-        internal = true;
-        readOnly = true;
-      };
     };
 
-    config = lib.mkMerge [
-      {
-        programs.agents.pi = {
-          inherit finalArgs;
-          finalPackage = wrapped;
-        };
-      }
+    config = lib.mkIf (cfg.enable && piCfg.enable) {
+      home.packages = [piCfg.package];
 
-      (lib.mkIf (cfg.enable && piCfg.enable) {
-        home.packages = [piCfg.finalPackage];
-
-        home.file.".pi/agent/models.json" = lib.mkIf (piCfg.models != {}) {
-          source = json.generate "pi-models.json" piCfg.models;
+      home.file =
+        packageFiles
+        // themeFiles
+        // lib.optionalAttrs (piCfg.models != {}) {
+          ".pi/agent/models.json" = {
+            source = json.generate "pi-models.json" piCfg.models;
+          };
         };
 
-        home.activation.piSettings = lib.mkIf (piCfg.settings != {}) (
-          lib.hm.dag.entryAfter ["writeBoundary"] ''
-            run ${lib.getExe mergeSettings} \
-              ${lib.escapeShellArg "${config.home.homeDirectory}/.pi/agent/settings.json"} \
-              ${declaredSettings}
-          ''
-        );
-      })
-    ];
+      home.activation.piSettings = lib.hm.dag.entryAfter ["writeBoundary"] ''
+        run ${lib.getExe mergeSettings} \
+          ${lib.escapeShellArg "${config.home.homeDirectory}/.pi/agent/settings.json"} \
+          ${declaredSettings}
+      '';
+    };
   }

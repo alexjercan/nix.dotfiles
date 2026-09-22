@@ -16,8 +16,7 @@ in {
 
       source = lib.mkOption {
         type = lib.types.path;
-        # Keep each theme as a wrapper dependency so store GC cannot leave a
-        # dangling --theme argument.
+        # Give each theme a stable store path for the Home Manager link.
         default = builtins.path {
           path = themeRoot + "/${file}";
           name = "pi-theme-${name}.json";
