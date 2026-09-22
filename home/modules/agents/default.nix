@@ -2,7 +2,22 @@
   inputs,
   pkgs,
   ...
-}: {
+}: let
+  # Every provider below reaches the same local llama-cpp router; only the
+  # model catalogue differs, so Pi names the model family instead of lumping
+  # unrelated families under one provider.
+  llamaCpp = {
+    baseUrl = "http://localhost:10302/v1";
+    api = "openai-completions";
+    apiKey = "local";
+    compat = {
+      supportsDeveloperRole = false;
+      supportsReasoningEffort = false;
+      maxTokensField = "max_tokens";
+      thinkingTokenBudgetField = "thinking_budget_tokens";
+    };
+  };
+in {
   imports = [./module.nix];
 
   services = {
@@ -11,6 +26,9 @@
       host = "0.0.0.0";
       port = 10302;
       package = pkgs.llama-cpp.override {cudaSupport = true;};
+      # 32K leaves KV-cache headroom on the 8 GiB GPU. The module default of
+      # 128K forces this host to offload cache to CPU RAM.
+      contextSize = 32768;
     };
     piper-tts-api = {
       enable = true;
@@ -99,28 +117,47 @@
 
       settings.theme = "gruber-darker";
 
-      # Points at the local llama-cpp server declared above.
+      # Points at the local llama-cpp server declared above. The router serves
+      # every model under one --ctx-size, so each entry advertises the service
+      # context rather than the model maximum.
       models = {
-        providers.gemma = {
-          baseUrl = "http://localhost:10302/v1";
-          api = "openai-completions";
-          apiKey = "local";
-          compat = {
-            supportsDeveloperRole = false;
-            supportsReasoningEffort = false;
-            maxTokensField = "max_tokens";
-            thinkingTokenBudgetField = "thinking_budget_tokens";
-          };
-          models = [
-            {
-              id = "gemma-4-26B-A4B-it";
-              name = "Gemma 4 26B A4B";
-              reasoning = true;
-              input = ["text"];
-              contextWindow = 128000;
-              maxTokens = 16384;
-            }
-          ];
+        providers = {
+          gemma =
+            llamaCpp
+            // {
+              models = [
+                {
+                  id = "gemma-4-12B-it-qat";
+                  name = "Gemma 4 12B IT QAT";
+                  reasoning = true;
+                  input = ["text"];
+                  contextWindow = 32768;
+                  maxTokens = 16384;
+                }
+                {
+                  id = "gemma-4-26B-A4B-it";
+                  name = "Gemma 4 26B A4B";
+                  reasoning = true;
+                  input = ["text"];
+                  contextWindow = 32768;
+                  maxTokens = 16384;
+                }
+              ];
+            };
+          qwen =
+            llamaCpp
+            // {
+              models = [
+                {
+                  id = "Qwen3.5-9B";
+                  name = "Qwen3.5 9B";
+                  reasoning = true;
+                  input = ["text"];
+                  contextWindow = 32768;
+                  maxTokens = 16384;
+                }
+              ];
+            };
         };
       };
     };
