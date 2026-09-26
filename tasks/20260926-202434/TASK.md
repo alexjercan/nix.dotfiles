@@ -1,6 +1,6 @@
 # Promote tasks Pi extension from automation
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 50
 - TAGS: 
 
