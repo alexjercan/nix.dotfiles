@@ -81,7 +81,7 @@ in {
             agentMaxTurns = 16;
             model = {
               provider = "openai-codex";
-              id = "gpt-5.6-luna";
+              id = "gpt-6-luna";
               thinking = "medium";
             };
             showWorkerNotifications = true;
@@ -90,6 +90,7 @@ in {
           };
         };
         plannotator.enable = true;
+        tasks.enable = true;
 
         voice-stt = {
           enable = true;
