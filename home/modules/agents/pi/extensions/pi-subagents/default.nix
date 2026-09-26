@@ -1,10 +1,10 @@
 {pkgs}: let
-  version = "0.1.6";
+  version = "0.1.7";
   source = pkgs.fetchFromGitHub {
     owner = "alexjercan";
     repo = "pi-subagents";
     rev = "v${version}";
-    hash = "sha256-snuTCAhxJw4YKwxDv6SbbeJ79/0HDR9y3CMhtHbX2io=";
+    hash = "sha256-5wz8XMske7HuM3yQB14k/J7DXTmOVRL6XVNmudS08zw=";
   };
   manifest = pkgs.lib.importJSON (source + "/package.json");
   lock = pkgs.lib.importJSON (source + "/package-lock.json");
