@@ -24,6 +24,8 @@ in {
   # link superseded tasks. `/todos` or Alt+T opens a keyboard list: arrows or j/k
   # move, Space toggles completion, x archives, u restores, and v shows
   # archived tasks. Nothing is deleted. The ledger follows the session branch.
+  # Waiting for a subagent is in_progress; blocked means external input is
+  # needed. Each new user turn asks the agent to revisit blocked tasks.
   # At the settle boundary, open tasks cause a reminder and continuation.
   # Aborted runs do not continue. For local checks, run `npm install`,
   # `npm test`, and `npm run typecheck` in this directory.

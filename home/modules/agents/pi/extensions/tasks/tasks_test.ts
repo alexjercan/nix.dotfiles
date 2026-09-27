@@ -10,6 +10,8 @@ type Entry = { id: string; type: string; customType?: string; data?: unknown };
 type ToolResult = { content: { text: string }[]; details?: { summary: string } };
 type Rendered = { render(width: number): string[] };
 type Tool = {
+	description: string;
+	promptGuidelines: string[];
 	execute: (id: string, params: unknown, signal: undefined, onUpdate: undefined, ctx: unknown) => Promise<ToolResult>;
 	renderCall: (args: Record<string, unknown>, theme: { fg: (color: string, text: string) => string }) => Rendered;
 	renderResult: (
@@ -160,6 +162,36 @@ test("records messages before the agent selects actionable tasks", async () => {
 	const replaced = await pi.tool({ action: "supersede", id: 2, title: "Revise documentation" });
 	assert.match(replaced, /\[~\] #2 P1: Update docs \(superseded by #4\)/);
 	assert.match(replaced, /\[ \] #4 Revise documentation/);
+});
+
+test("reviews blocked tasks once per new user turn and keeps worker tasks in progress", async () => {
+	const pi = fakePi();
+	await pi.emit("session_start", { reason: "startup" });
+	assert.match(pi.tools.get("tasks")!.description, /Waiting for your own subagent.*in_progress, not blocked/);
+	assert.match(pi.tools.get("tasks")!.promptGuidelines.join(" "), /reopen any whose stated blocker no longer applies/);
+	await pi.tool({ action: "add", titles: ["Worker running", "Needs credentials", "Archived blocker"] });
+	await pi.tool({ action: "update", id: 1, status: "in_progress" });
+	await pi.tool({ action: "update", id: 2, status: "blocked", note: "needs credentials" });
+	await pi.tool({ action: "update", id: 3, status: "blocked", note: "old blocker" });
+	await pi.tool({ action: "archive", id: 3 });
+	assert.equal(await pi.emit("before_agent_start", { prompt: "", systemPrompt: "" }), undefined);
+	await pi.emit("input", { text: "continue work", source: "interactive" });
+	const audit = await pi.emit("before_agent_start", { prompt: "continue work", systemPrompt: "" });
+	const message = audit?.message as { content: string; display: boolean };
+	assert.equal(message.display, false);
+	assert.match(message.content, /#2 Needs credentials - needs credentials/);
+	assert.match(message.content, /change the task to in_progress/);
+	assert.doesNotMatch(message.content, /#1 Worker running|#3 Archived blocker/);
+	assert.equal(await pi.emit("before_agent_start", { prompt: "continue work", systemPrompt: "" }), undefined);
+	const continuation = await pi.settle();
+	assert.equal(continuation?.continue, true, "in-progress tasks keep continuation active");
+	assert.doesNotMatch(JSON.stringify(continuation), /#2 Needs credentials/);
+
+	await pi.emit("input", { text: "new request", source: "extension" });
+	assert.match(JSON.stringify(await pi.emit("before_agent_start", { prompt: "new request", systemPrompt: "" })), /#2 Needs credentials/);
+	await pi.tool({ action: "update", id: 2, status: "in_progress" });
+	await pi.emit("input", { text: "resume", source: "interactive" });
+	assert.equal(await pi.emit("before_agent_start", { prompt: "resume", systemPrompt: "" }), undefined);
 });
 
 test("/todos shows the checklist but not the recorded message history", async () => {

@@ -1,6 +1,6 @@
 # Migrate llama.cpp to ai-tools-api v0.2.0
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 100
 - TAGS: nix,llm,service
 

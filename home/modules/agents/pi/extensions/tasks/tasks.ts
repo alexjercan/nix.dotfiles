@@ -253,6 +253,12 @@ function openTaskLines(ledger: Ledger): string[] {
 		.map(({ task, depth }) => formatTask(task, depth));
 }
 
+function blockedTaskLines(ledger: Ledger): string[] {
+	return treeRows(ledger)
+		.filter(({ task }) => task.status === "blocked")
+		.map(({ task, depth }) => formatTask(task, depth));
+}
+
 function isLedger(value: unknown): value is Ledger {
 	const ledger = value as Ledger | undefined;
 	return (
@@ -396,6 +402,7 @@ class TaskListComponent {
 
 export default function (pi: ExtensionAPI) {
 	let ledger = emptyLedger();
+	let auditBlockedOnStart = false;
 	function updateStatus(ctx: ExtensionContext) {
 		const active = ledger.tasks.filter((task) => !isArchived(task));
 		const total = active.filter((task) => task.status !== "superseded").length;
@@ -414,6 +421,7 @@ export default function (pi: ExtensionAPI) {
 
 	function restore(ctx: ExtensionContext) {
 		ledger = emptyLedger();
+		auditBlockedOnStart = false;
 		for (const entry of ctx.sessionManager.getBranch()) {
 			if (entry.type === "custom" && entry.customType === STATE_TYPE && isLedger(entry.data)) {
 				ledger = structuredClone(entry.data);
@@ -434,11 +442,17 @@ export default function (pi: ExtensionAPI) {
 			"archive (id): hide a task and its subtasks without changing their status, only when the user asks; " +
 			"restore (id): show an archived task again with the subtasks archived with it. " +
 			"list hides archived tasks unless archived is true. " +
-			"A parent cannot be completed while its subtasks are unresolved.",
+			"A parent cannot be completed while its subtasks are unresolved. " +
+			"Waiting for your own subagent or ongoing work is in_progress, not blocked. " +
+			"Block only for a real external dependency such as missing user input or credentials; " +
+			"blocked tasks pause automatic continuation until reopened.",
 		promptSnippet: "Track multi-step work and user requests in a task ledger",
 		promptGuidelines: [
 			"Before adding tasks, parse the user's message into actionable work. Add clear task titles and useful subtasks. Do not create tasks for chat or questions with no work. Optionally link tasks to a recorded P<n> using promptId.",
-			"Do not stop while tasks are pending or in_progress. Mark each task completed, blocked with a reason, or superseded with a linked replacement.",
+			"Keep work in_progress while your subagents run; their completion does not complete the task. " +
+				"Use blocked only for a concrete external dependency that prevents further work, not to wait for a worker or avoid continuation. " +
+				"On each new user turn, review blocked tasks and reopen any whose stated blocker no longer applies. " +
+				"Do not stop while tasks are pending or in_progress. Complete or supersede tasks only when the work is done or replaced.",
 		],
 		parameters: Type.Object({
 			action: StringEnum(["list", "add", "update", "supersede", "archive", "restore"] as const),
@@ -600,8 +614,26 @@ export default function (pi: ExtensionAPI) {
 			change(ctx, (next) => {
 				addPrompt(next, event.text, event.source);
 			});
+			auditBlockedOnStart = true;
 		}
 		return { action: "continue" };
+	});
+
+	pi.on("before_agent_start", async () => {
+		if (!auditBlockedOnStart) return;
+		auditBlockedOnStart = false;
+		const blocked = blockedTaskLines(ledger);
+		if (blocked.length === 0) return;
+		return {
+			message: {
+				customType: "tasks-blocked-review",
+				content:
+					"Review these blocked tasks now. If a subagent is running, a result has arrived, or the blocker no longer applies, " +
+					"change the task to in_progress and continue it. Keep blocked only for a real external dependency; " +
+					"blocked tasks do not trigger automatic continuation.\n" + blocked.join("\n"),
+				display: false,
+			},
+		};
 	});
 
 	pi.on("agent_before_settle", async (event, ctx) => {
@@ -614,7 +646,8 @@ export default function (pi: ExtensionAPI) {
 		// after a final assistant message. The reminder makes the context continuable.
 		const content =
 			`The task ledger still has open tasks. Continue the work, or update each task with the tasks tool: ` +
-			`completed, blocked with a reason, or superseded with a replacement.\n${open.join("\n")}`;
+			`completed or superseded with a replacement when done. Keep work in_progress while your subagents run; ` +
+			`use blocked only for a real external dependency, not to stop this continuation.\n${open.join("\n")}`;
 		return {
 			entries: [...event.entries, { type: "custom_message", customType: REMINDER_TYPE, content, display: true }],
 			continue: true,
