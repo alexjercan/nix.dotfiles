@@ -2,7 +2,7 @@ import { StringEnum, Type } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ExtensionContext, Theme } from "@earendil-works/pi-coding-agent";
 import { Key, matchesKey, Text, truncateToWidth } from "@earendil-works/pi-tui";
 
-export type TaskStatus = "pending" | "in_progress" | "completed" | "blocked" | "superseded";
+export type TaskStatus = "pending" | "in_progress" | "waiting" | "completed" | "blocked" | "superseded";
 
 export type Task = {
 	id: number;
@@ -40,6 +40,7 @@ const MAX_TITLE_CHARS = 120;
 const STATUS_MARK: Record<TaskStatus, string> = {
 	pending: "[ ]",
 	in_progress: "[>]",
+	waiting: "[w]",
 	completed: "[x]",
 	blocked: "[!]",
 	superseded: "[~]",
@@ -53,9 +54,9 @@ function isOpen(task: Task): boolean {
 	return task.status === "pending" || task.status === "in_progress";
 }
 
-/** Tasks that still need a decision: open or blocked. */
+/** Waiting and blocked tasks remain unresolved but do not trigger continuation. */
 function isUnresolved(task: Task): boolean {
-	return isOpen(task) || task.status === "blocked";
+	return isOpen(task) || task.status === "waiting" || task.status === "blocked";
 }
 
 function isArchived(task: Task): boolean {
@@ -142,9 +143,11 @@ export function setStatus(ledger: Ledger, id: number, status: Exclude<TaskStatus
 			throw new Error(`task #${id} has unresolved subtasks: ${open.map((child) => `#${child.id}`).join(", ")}`);
 		}
 	}
-	if (status === "blocked" && !note?.trim()) throw new Error("a blocked task needs a reason in note");
+	if ((status === "blocked" || status === "waiting") && !note?.trim()) {
+		throw new Error(`a ${status} task needs a reason in note`);
+	}
 	task.status = status;
-	if (status === "blocked" && note) task.note = note.trim();
+	if ((status === "blocked" || status === "waiting") && note) task.note = note.trim();
 	else delete task.note;
 	reopenAncestors(ledger, task);
 	return task;
@@ -276,7 +279,7 @@ type ListView = { selected: number; showArchived: boolean };
 type ListAction =
 	| { kind: "close" }
 	| ({ kind: "add"; parentId?: number } & ListView)
-	| ({ kind: "block"; id: number } & ListView)
+	| ({ kind: "block" | "wait"; id: number } & ListView)
 	| ({ kind: "supersede"; id: number } & ListView);
 
 /** Keyboard-driven view of the ledger for /todos. */
@@ -363,8 +366,8 @@ class TaskListComponent {
 		} else if (matchesKey(data, "n")) {
 			this.done({ kind: "add", parentId: task.id, ...this.view() });
 			return;
-		} else if (matchesKey(data, "b")) {
-			this.done({ kind: "block", id: task.id, ...this.view() });
+		} else if (matchesKey(data, "b") || matchesKey(data, "w")) {
+			this.done({ kind: matchesKey(data, "w") ? "wait" : "block", id: task.id, ...this.view() });
 			return;
 		} else if (matchesKey(data, "r")) {
 			this.done({ kind: "supersede", id: task.id, ...this.view() });
@@ -392,7 +395,8 @@ class TaskListComponent {
 		lines.push("");
 		if (this.message) lines.push(truncateToWidth(th.fg("error", `  ${this.message}`), width));
 		lines.push(truncateToWidth(th.fg("dim", "  up/down move  space done  x archive  u restore  v show archived"), width));
-		lines.push(truncateToWidth(th.fg("dim", "  i doing  p pending  b blocked  r supersede  a add  n subtask"), width));
+		lines.push(truncateToWidth(th.fg("dim", "  i doing  p pending  w waiting  b blocked  r supersede"), width));
+		lines.push(truncateToWidth(th.fg("dim", "  a add  n subtask"), width));
 		lines.push(truncateToWidth(th.fg("dim", "  alt+t / esc close"), width));
 		return lines;
 	}
@@ -437,20 +441,23 @@ export default function (pi: ExtensionAPI) {
 			"Manage the session task ledger. User messages are recorded as P<n> without creating tasks. " +
 			"Parse each message and add tasks only for actionable work. " +
 			"Actions: list; add (title or titles, optional parentId for subtasks and promptId to link to a message); " +
-			"update (id, status: pending|in_progress|completed|blocked, note required for blocked); " +
+			"update (id, status: pending|in_progress|waiting|completed|blocked, note required for waiting and blocked); " +
 			"supersede (id, replacementId or title for a new replacement, optional note); " +
 			"archive (id): hide a task and its subtasks without changing their status, only when the user asks; " +
 			"restore (id): show an archived task again with the subtasks archived with it. " +
 			"list hides archived tasks unless archived is true. " +
 			"A parent cannot be completed while its subtasks are unresolved. " +
-			"Waiting for your own subagent or ongoing work is in_progress, not blocked. " +
-			"Block only for a real external dependency such as missing user input or credentials; " +
-			"blocked tasks pause automatic continuation until reopened.",
+			"Use waiting when your own subagent will wake you; give a reason naming what you await. " +
+			"Mark the parent waiting too if all remaining work depends on the child. " +
+			"On the wake, resume waiting tasks as in_progress; a subagent result alone does not complete a task. " +
+			"Block only for a real external dependency such as missing user input or credentials. " +
+			"Waiting and blocked tasks do not trigger automatic continuation.",
 		promptSnippet: "Track multi-step work and user requests in a task ledger",
 		promptGuidelines: [
 			"Before adding tasks, parse the user's message into actionable work. Add clear task titles and useful subtasks. Do not create tasks for chat or questions with no work. Optionally link tasks to a recorded P<n> using promptId.",
-			"Keep work in_progress while your subagents run; their completion does not complete the task. " +
-				"Use blocked only for a concrete external dependency that prevents further work, not to wait for a worker or avoid continuation. " +
+			"When no actionable work remains until a subagent responds, mark its tasks (and parent, if applicable) waiting with a reason, then end the turn. " +
+				"A subagent wake is a new turn: move its waiting tasks to in_progress, then verify the work before completing them. " +
+				"Use blocked only for a concrete external dependency that prevents further work. " +
 				"On each new user turn, review blocked tasks and reopen any whose stated blocker no longer applies. " +
 				"Do not stop while tasks are pending or in_progress. Complete or supersede tasks only when the work is done or replaced.",
 		],
@@ -461,8 +468,8 @@ export default function (pi: ExtensionAPI) {
 			titles: Type.Optional(Type.Array(Type.String(), { description: "Several new task titles for add" })),
 			parentId: Type.Optional(Type.Integer({ description: "Parent task id for new subtasks" })),
 			promptId: Type.Optional(Type.Integer({ description: "Recorded user message id to link to a new task" })),
-			status: Type.Optional(StringEnum(["pending", "in_progress", "completed", "blocked"] as const)),
-			note: Type.Optional(Type.String({ description: "Blocked reason or supersession reason" })),
+			status: Type.Optional(StringEnum(["pending", "in_progress", "waiting", "completed", "blocked"] as const)),
+			note: Type.Optional(Type.String({ description: "Waiting/blocked reason or supersession reason" })),
 			replacementId: Type.Optional(Type.Integer({ description: "Existing task that replaces the superseded task" })),
 			archived: Type.Optional(Type.Boolean({ description: "Include archived tasks in the result" })),
 		}),
@@ -580,9 +587,10 @@ export default function (pi: ExtensionAPI) {
 					const label = action.parentId === undefined ? "New task" : `New subtask of #${action.parentId}`;
 					const title = await ctx.ui.input(label);
 					if (title?.trim()) change(ctx, (next) => addTask(next, title, action.parentId));
-				} else if (action.kind === "block") {
-					const reason = await ctx.ui.input(`Why is #${action.id} blocked?`);
-					if (reason?.trim()) change(ctx, (next) => setStatus(next, action.id, "blocked", reason));
+				} else if (action.kind === "block" || action.kind === "wait") {
+					const status = action.kind === "wait" ? "waiting" : "blocked";
+					const reason = await ctx.ui.input(`Why is #${action.id} ${status}?`);
+					if (reason?.trim()) change(ctx, (next) => setStatus(next, action.id, status, reason));
 				} else {
 					const title = await ctx.ui.input(`Replacement for #${action.id}`);
 					if (title?.trim()) change(ctx, (next) => supersede(next, action.id, { title }));
@@ -628,8 +636,9 @@ export default function (pi: ExtensionAPI) {
 			message: {
 				customType: "tasks-blocked-review",
 				content:
-					"Review these blocked tasks now. If a subagent is running, a result has arrived, or the blocker no longer applies, " +
-					"change the task to in_progress and continue it. Keep blocked only for a real external dependency; " +
+					"Review these blocked tasks now. If one is only awaiting a subagent, mark it waiting; " +
+					"if its result has arrived or the blocker no longer applies, change it to in_progress. " +
+					"Keep blocked only for a real external dependency; " +
 					"blocked tasks do not trigger automatic continuation.\n" + blocked.join("\n"),
 				display: false,
 			},
@@ -646,8 +655,9 @@ export default function (pi: ExtensionAPI) {
 		// after a final assistant message. The reminder makes the context continuable.
 		const content =
 			`The task ledger still has open tasks. Continue the work, or update each task with the tasks tool: ` +
-			`completed or superseded with a replacement when done. Keep work in_progress while your subagents run; ` +
-			`use blocked only for a real external dependency, not to stop this continuation.\n${open.join("\n")}`;
+			`completed or superseded with a replacement when done. If all remaining work awaits a subagent, ` +
+			`mark the tasks and their parent waiting with a reason, then end the turn. ` +
+			`Use blocked only for a real external dependency.\n${open.join("\n")}`;
 		return {
 			entries: [...event.entries, { type: "custom_message", customType: REMINDER_TYPE, content, display: true }],
 			continue: true,

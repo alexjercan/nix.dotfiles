@@ -164,10 +164,10 @@ test("records messages before the agent selects actionable tasks", async () => {
 	assert.match(replaced, /\[ \] #4 Revise documentation/);
 });
 
-test("reviews blocked tasks once per new user turn and keeps worker tasks in progress", async () => {
+test("reviews blocked tasks once per new user turn", async () => {
 	const pi = fakePi();
 	await pi.emit("session_start", { reason: "startup" });
-	assert.match(pi.tools.get("tasks")!.description, /Waiting for your own subagent.*in_progress, not blocked/);
+	assert.match(pi.tools.get("tasks")!.description, /Use waiting when your own subagent will wake you/);
 	assert.match(pi.tools.get("tasks")!.promptGuidelines.join(" "), /reopen any whose stated blocker no longer applies/);
 	await pi.tool({ action: "add", titles: ["Worker running", "Needs credentials", "Archived blocker"] });
 	await pi.tool({ action: "update", id: 1, status: "in_progress" });
@@ -180,7 +180,7 @@ test("reviews blocked tasks once per new user turn and keeps worker tasks in pro
 	const message = audit?.message as { content: string; display: boolean };
 	assert.equal(message.display, false);
 	assert.match(message.content, /#2 Needs credentials - needs credentials/);
-	assert.match(message.content, /change the task to in_progress/);
+	assert.match(message.content, /change it to in_progress/);
 	assert.doesNotMatch(message.content, /#1 Worker running|#3 Archived blocker/);
 	assert.equal(await pi.emit("before_agent_start", { prompt: "continue work", systemPrompt: "" }), undefined);
 	const continuation = await pi.settle();
@@ -192,6 +192,30 @@ test("reviews blocked tasks once per new user turn and keeps worker tasks in pro
 	await pi.tool({ action: "update", id: 2, status: "in_progress" });
 	await pi.emit("input", { text: "resume", source: "interactive" });
 	assert.equal(await pi.emit("before_agent_start", { prompt: "resume", systemPrompt: "" }), undefined);
+});
+
+test("waiting tasks pause reminders but remain unresolved until the worker wakes", async () => {
+	const pi = fakePi();
+	await pi.emit("session_start", { reason: "startup" });
+	await pi.tool({ action: "add", title: "Review worker result" });
+	await pi.tool({ action: "add", title: "Worker task", parentId: 1 });
+	await assert.rejects(pi.tool({ action: "update", id: 2, status: "waiting" }), /needs a reason/);
+	await pi.tool({ action: "update", id: 2, status: "waiting", note: "worker zoom is running" });
+	await assert.rejects(pi.tool({ action: "update", id: 1, status: "completed" }), /unresolved subtasks/);
+	assert.equal((await pi.settle())?.continue, true, "parent is still actionable");
+	await pi.tool({ action: "update", id: 1, status: "waiting", note: "worker zoom is running" });
+	assert.equal(await pi.settle(), undefined, "all remaining work is waiting");
+	assert.match(await pi.tool({ action: "list" }), /\[w\] #1 Review worker result - worker zoom is running/);
+	const resumed = fakePi([...pi.branch]);
+	await resumed.emit("session_start", { reason: "resume" });
+	assert.equal(await resumed.settle(), undefined, "waiting survives restoration");
+	// A subagent wake resumes the agent; it does not complete the task.
+	await resumed.tool({ action: "update", id: 1, status: "in_progress" });
+	await resumed.tool({ action: "update", id: 2, status: "in_progress" });
+	assert.equal((await resumed.settle())?.continue, true);
+	await resumed.tool({ action: "update", id: 2, status: "completed" });
+	await resumed.tool({ action: "update", id: 1, status: "completed" });
+	assert.equal(await resumed.settle(), undefined);
 });
 
 test("/todos shows the checklist but not the recorded message history", async () => {
@@ -233,6 +257,21 @@ test("Alt+T closes an open checklist and can reopen it", async () => {
 	pi.keys.push([KEY.escape]);
 	await pi.shortcuts.get("alt+t")!.handler(pi.ctx);
 	assert.match(pi.screen().join("\n"), /> \[ \] #1 Toggle checklist/);
+});
+
+test("/todos marks a task waiting and resumes it with i", async () => {
+	const pi = fakePi();
+	await pi.emit("session_start", { reason: "startup" });
+	await pi.tool({ action: "add", title: "Wait for subagent" });
+	pi.keys.push(["w"], [KEY.escape]);
+	pi.inputs.push("subagent zoom is running");
+	await pi.commands.get("todos")!.handler("", pi.ctx);
+	assert.match(pi.screen().join("\n"), /\[w\] #1 Wait for subagent - subagent zoom is running/);
+	assert.equal(await pi.settle(), undefined);
+	pi.keys.push(["i", KEY.escape]);
+	await pi.commands.get("todos")!.handler("", pi.ctx);
+	assert.match(pi.screen().join("\n"), /\[>\] #1 Wait for subagent/);
+	assert.equal((await pi.settle())?.continue, true);
 });
 
 test("clips long recorded messages without generating task titles", async () => {
