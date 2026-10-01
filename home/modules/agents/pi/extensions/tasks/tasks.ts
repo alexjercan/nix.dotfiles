@@ -449,14 +449,15 @@ export default function (pi: ExtensionAPI) {
 			"A parent cannot be completed while its subtasks are unresolved. " +
 			"Use waiting when your own subagent will wake you; give a reason naming what you await. " +
 			"Mark the parent waiting too if all remaining work depends on the child. " +
-			"On the wake, resume waiting tasks as in_progress; a subagent result alone does not complete a task. " +
+			"Any new user or extension message moves all waiting tasks to pending; review them before resuming work. " +
+			"A subagent result alone does not complete a task. " +
 			"Block only for a real external dependency such as missing user input or credentials. " +
 			"Waiting and blocked tasks do not trigger automatic continuation.",
 		promptSnippet: "Track multi-step work and user requests in a task ledger",
 		promptGuidelines: [
 			"Before adding tasks, parse the user's message into actionable work. Add clear task titles and useful subtasks. Do not create tasks for chat or questions with no work. Optionally link tasks to a recorded P<n> using promptId.",
 			"When no actionable work remains until a subagent responds, mark its tasks (and parent, if applicable) waiting with a reason, then end the turn. " +
-				"A subagent wake is a new turn: move its waiting tasks to in_progress, then verify the work before completing them. " +
+				"On any new user or extension message, waiting tasks become pending automatically. Review them and verify subagent work before completing them. " +
 				"Use blocked only for a concrete external dependency that prevents further work. " +
 				"On each new user turn, review blocked tasks and reopen any whose stated blocker no longer applies. " +
 				"Do not stop while tasks are pending or in_progress. Complete or supersede tasks only when the work is done or replaced.",
@@ -612,6 +613,19 @@ export default function (pi: ExtensionAPI) {
 
 	pi.on("session_start", async (_event, ctx) => restore(ctx));
 	pi.on("session_tree", async (_event, ctx) => restore(ctx));
+
+	// Incoming messages make waiting work actionable again. Do not react to
+	// assistant/tool output or our own reminders and blocked-task review.
+	pi.on("message_start", async (event, ctx) => {
+		if (event.message.role !== "user" &&
+			(event.message.role !== "custom" || event.message.customType === REMINDER_TYPE || event.message.customType === "tasks-blocked-review")) return;
+		if (!ledger.tasks.some((task) => task.status === "waiting" && !isArchived(task))) return;
+		change(ctx, (next) => {
+			for (const task of next.tasks) {
+				if (task.status === "waiting" && !isArchived(task)) setStatus(next, task.id, "pending");
+			}
+		});
+	});
 
 	// Record messages, not tasks: only the agent can decide what work a message
 	// requires. Extension commands never reach input; messages from other

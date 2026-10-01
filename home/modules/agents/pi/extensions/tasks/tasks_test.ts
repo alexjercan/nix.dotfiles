@@ -194,7 +194,7 @@ test("reviews blocked tasks once per new user turn", async () => {
 	assert.equal(await pi.emit("before_agent_start", { prompt: "resume", systemPrompt: "" }), undefined);
 });
 
-test("waiting tasks pause reminders but remain unresolved until the worker wakes", async () => {
+test("waiting tasks pause reminders and resume on any incoming message", async () => {
 	const pi = fakePi();
 	await pi.emit("session_start", { reason: "startup" });
 	await pi.tool({ action: "add", title: "Review worker result" });
@@ -209,13 +209,38 @@ test("waiting tasks pause reminders but remain unresolved until the worker wakes
 	const resumed = fakePi([...pi.branch]);
 	await resumed.emit("session_start", { reason: "resume" });
 	assert.equal(await resumed.settle(), undefined, "waiting survives restoration");
-	// A subagent wake resumes the agent; it does not complete the task.
-	await resumed.tool({ action: "update", id: 1, status: "in_progress" });
-	await resumed.tool({ action: "update", id: 2, status: "in_progress" });
-	assert.equal((await resumed.settle())?.continue, true);
+	await resumed.emit("message_start", { message: { role: "assistant" } });
+	await resumed.emit("message_start", { message: { role: "toolResult" } });
+	await resumed.emit("message_start", { message: { role: "custom", customType: "tasks-reminder" } });
+	assert.equal(await resumed.settle(), undefined, "internal output does not resume waiting work");
+	const snapshots = resumed.branch.length;
+	await resumed.emit("message_start", { message: { role: "custom", customType: "subagent-result" } });
+	assert.deepEqual(resumed.ledger().tasks.map((task) => [task.status, task.note]),
+		[["pending", undefined], ["pending", undefined]]);
+	assert.equal(resumed.branch.length, snapshots + 1, "one message saves one snapshot for all waiting tasks");
+	assert.equal((await resumed.settle())?.continue, true, "a subagent result does not complete the tasks");
 	await resumed.tool({ action: "update", id: 2, status: "completed" });
 	await resumed.tool({ action: "update", id: 1, status: "completed" });
 	assert.equal(await resumed.settle(), undefined);
+});
+
+test("user messages resume all visible waiting tasks without changing blocked or archived tasks", async () => {
+	const pi = fakePi();
+	await pi.emit("session_start", { reason: "startup" });
+	await pi.tool({ action: "add", titles: ["Waiting", "Blocked", "Archived"] });
+	await pi.tool({ action: "update", id: 1, status: "waiting", note: "worker running" });
+	await pi.tool({ action: "update", id: 2, status: "blocked", note: "needs credentials" });
+	await pi.tool({ action: "update", id: 3, status: "waiting", note: "old worker" });
+	await pi.tool({ action: "archive", id: 3 });
+	const count = pi.branch.length;
+	await pi.emit("message_start", { message: { role: "user" } });
+	assert.deepEqual(pi.ledger().tasks.map((task) => [task.status, task.note]),
+		[["pending", undefined], ["blocked", "needs credentials"], ["waiting", "old worker"]]);
+	assert.equal(pi.branch.length, count + 1);
+	await pi.emit("message_start", { message: { role: "user" } });
+	assert.equal(pi.branch.length, count + 1, "no extra snapshot when nothing is waiting");
+	await pi.tool({ action: "restore", id: 3 });
+	assert.equal(pi.ledger().tasks[2]!.status, "waiting", "restoration preserves archived status");
 });
 
 test("/todos shows the checklist but not the recorded message history", async () => {
