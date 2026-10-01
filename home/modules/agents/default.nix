@@ -91,6 +91,7 @@ in {
         };
         plannotator.enable = true;
         tasks.enable = true;
+        grilling.enable = true;
 
         voice-stt = {
           enable = true;
