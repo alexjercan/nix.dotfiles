@@ -49,9 +49,7 @@
       if [ -f "$cache_file" ] && [ "$cache_age" -ge 0 ] && [ "$cache_age" -lt "$cache_ttl" ]; then
         response=$(cat "$cache_file")
       elif [ -f "$failure_file" ] && [ "$failure_age" -ge 0 ] && [ "$failure_age" -lt "$failure_ttl" ]; then
-        if [ -f "$cache_file" ]; then
-          response=$(cat "$cache_file")
-        fi
+        : # Do not show an old percentage while requests fail.
       else
         response_file=$(mktemp "$cache_dir/$provider.XXXXXX")
         request_ok=false
@@ -69,9 +67,16 @@
             fi
             ;;
           codex)
-            credentials="$HOME/.codex/auth.json"
-            token=$(jq -r '.tokens.access_token // empty' "$credentials" 2>/dev/null || true)
-            account=$(jq -r '.tokens.account_id // empty' "$credentials" 2>/dev/null || true)
+            # Pi refreshes its own Codex token; the Codex CLI token may be expired.
+            credentials="$HOME/.pi/agent/auth.json"
+            token=$(jq -r '."openai-codex".access // empty' "$credentials" 2>/dev/null || true)
+            account=$(jq -r '."openai-codex".accountId // empty' "$credentials" 2>/dev/null || true)
+            expires=$(jq -r '."openai-codex".expires // 0' "$credentials" 2>/dev/null || echo 0)
+            if [ -z "$token" ] || [ -z "$account" ] || [ "$expires" -le "$((now * 1000))" ]; then
+              credentials="$HOME/.codex/auth.json"
+              token=$(jq -r '.tokens.access_token // empty' "$credentials" 2>/dev/null || true)
+              account=$(jq -r '.tokens.account_id // empty' "$credentials" 2>/dev/null || true)
+            fi
             if [ -n "$token" ] && [ -n "$account" ] && curl --silent --show-error --fail --max-time 10 --output "$response_file" --config - <<EOF
       url = "https://chatgpt.com/backend-api/wham/usage"
       header = "Authorization: Bearer $token"
@@ -88,7 +93,7 @@
           mv "$response_file" "$cache_file"
           rm -f "$failure_file"
         else
-          rm -f "$response_file"
+          rm -f "$response_file" "$cache_file"
           touch "$failure_file"
         fi
 
