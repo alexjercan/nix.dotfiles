@@ -12,6 +12,7 @@ type Rendered = { render(width: number): string[] };
 type Tool = {
 	description: string;
 	promptGuidelines: string[];
+	parameters: { properties: Record<string, { enum?: string[] }> };
 	execute: (id: string, params: unknown, signal: undefined, onUpdate: undefined, ctx: unknown) => Promise<ToolResult>;
 	renderCall: (args: Record<string, unknown>, theme: { fg: (color: string, text: string) => string }) => Rendered;
 	renderResult: (
@@ -115,16 +116,7 @@ function fakePi(branch: Entry[] = []) {
 		return snapshots.at(-1)?.data as Ledger;
 	}
 
-	function settle(outcome = "completed", pendingMessages: unknown[] = []) {
-		return emit("agent_before_settle", {
-			outcome,
-			entries: [],
-			continue: false,
-			context: { canContinue: false, pendingMessages },
-		});
-	}
-
-	return { branch, notes, widgets, statuses, inputs, keys, ctx, emit, tool, tools, ledger, settle, commands, shortcuts, screen: () => screens.at(-1) ?? [], screens };
+	return { branch, notes, widgets, statuses, inputs, keys, ctx, emit, tool, tools, ledger, handlers, commands, shortcuts, screen: () => screens.at(-1) ?? [], screens };
 }
 
 test("records messages before the agent selects actionable tasks", async () => {
@@ -137,7 +129,6 @@ test("records messages before the agent selects actionable tasks", async () => {
 	await pi.emit("input", { text: " \n ", source: "interactive" });
 	assert.equal(pi.branch.length, snapshots, "empty input must not write snapshots");
 	assert.deepEqual(pi.ledger().tasks, [], "input does not create tasks");
-	assert.equal(await pi.settle(), undefined, "messages alone do not trigger reminders");
 	assert.deepEqual(pi.ledger().prompts.map((prompt) => [prompt.id, prompt.source]),
 		[[1, "interactive"], [2, "extension"], [3, "rpc"]]);
 
@@ -149,98 +140,37 @@ test("records messages before the agent selects actionable tasks", async () => {
 	assert.equal(pi.ledger().tasks.length, 3);
 	await pi.tool({ action: "update", id: 3, status: "completed" });
 	await pi.tool({ action: "update", id: 1, status: "completed" });
-	assert.equal(await pi.emit("before_agent_start", { prompt: "x", systemPrompt: "" }), undefined);
-	const reminder = await pi.settle();
-	const content = (reminder?.entries as { content: string }[])[0]!.content;
-	assert.doesNotMatch(content, /#1 /);
-	assert.match(content, /\[ \] #2 P1: Update docs/);
-	assert.doesNotMatch(content, /Thanks/);
 	const listing = await pi.tool({ action: "list" });
 	assert.match(listing, /P2: Thanks/);
 	assert.match(listing, /\[x\] #1 P1: Fix parser/);
+	assert.match(listing, /\[ \] #2 P1: Update docs/);
 
 	const replaced = await pi.tool({ action: "supersede", id: 2, title: "Revise documentation" });
 	assert.match(replaced, /\[~\] #2 P1: Update docs \(superseded by #4\)/);
 	assert.match(replaced, /\[ \] #4 Revise documentation/);
 });
 
-test("reviews blocked tasks once per new user turn", async () => {
+test("is a passive ledger without waiting, blocked, resume, or continuation behavior", async () => {
 	const pi = fakePi();
-	await pi.emit("session_start", { reason: "startup" });
-	assert.match(pi.tools.get("tasks")!.description, /Use waiting when your own subagent will wake you/);
-	assert.match(pi.tools.get("tasks")!.promptGuidelines.join(" "), /reopen any whose stated blocker no longer applies/);
-	await pi.tool({ action: "add", titles: ["Worker running", "Needs credentials", "Archived blocker"] });
-	await pi.tool({ action: "update", id: 1, status: "in_progress" });
-	await pi.tool({ action: "update", id: 2, status: "blocked", note: "needs credentials" });
-	await pi.tool({ action: "update", id: 3, status: "blocked", note: "old blocker" });
-	await pi.tool({ action: "archive", id: 3 });
-	assert.equal(await pi.emit("before_agent_start", { prompt: "", systemPrompt: "" }), undefined);
-	await pi.emit("input", { text: "continue work", source: "interactive" });
-	const audit = await pi.emit("before_agent_start", { prompt: "continue work", systemPrompt: "" });
-	const message = audit?.message as { content: string; display: boolean };
-	assert.equal(message.display, false);
-	assert.match(message.content, /#2 Needs credentials - needs credentials/);
-	assert.match(message.content, /change it to in_progress/);
-	assert.doesNotMatch(message.content, /#1 Worker running|#3 Archived blocker/);
-	assert.equal(await pi.emit("before_agent_start", { prompt: "continue work", systemPrompt: "" }), undefined);
-	const continuation = await pi.settle();
-	assert.equal(continuation?.continue, true, "in-progress tasks keep continuation active");
-	assert.doesNotMatch(JSON.stringify(continuation), /#2 Needs credentials/);
+	for (const event of ["message_start", "before_agent_start", "agent_before_settle"]) {
+		assert.equal(pi.handlers.has(event), false, `no ${event} handler`);
+	}
+	const tasks = pi.tools.get("tasks")!;
+	assert.deepEqual(tasks.parameters.properties.status!.enum, ["pending", "in_progress", "completed"]);
+	assert.doesNotMatch(`${tasks.description} ${tasks.promptGuidelines.join(" ")}`, /waiting|blocked/);
 
-	await pi.emit("input", { text: "new request", source: "extension" });
-	assert.match(JSON.stringify(await pi.emit("before_agent_start", { prompt: "new request", systemPrompt: "" })), /#2 Needs credentials/);
-	await pi.tool({ action: "update", id: 2, status: "in_progress" });
-	await pi.emit("input", { text: "resume", source: "interactive" });
-	assert.equal(await pi.emit("before_agent_start", { prompt: "resume", systemPrompt: "" }), undefined);
-});
-
-test("waiting tasks pause reminders and resume on any incoming message", async () => {
-	const pi = fakePi();
+	// w and b no longer open dialogs or change tasks.
 	await pi.emit("session_start", { reason: "startup" });
-	await pi.tool({ action: "add", title: "Review worker result" });
-	await pi.tool({ action: "add", title: "Worker task", parentId: 1 });
-	await assert.rejects(pi.tool({ action: "update", id: 2, status: "waiting" }), /needs a reason/);
-	await pi.tool({ action: "update", id: 2, status: "waiting", note: "worker zoom is running" });
-	await assert.rejects(pi.tool({ action: "update", id: 1, status: "completed" }), /unresolved subtasks/);
-	assert.equal((await pi.settle())?.continue, true, "parent is still actionable");
-	await pi.tool({ action: "update", id: 1, status: "waiting", note: "worker zoom is running" });
-	assert.equal(await pi.settle(), undefined, "all remaining work is waiting");
-	assert.match(await pi.tool({ action: "list" }), /\[w\] #1 Review worker result - worker zoom is running/);
-	const resumed = fakePi([...pi.branch]);
-	await resumed.emit("session_start", { reason: "resume" });
-	assert.equal(await resumed.settle(), undefined, "waiting survives restoration");
-	await resumed.emit("message_start", { message: { role: "assistant" } });
-	await resumed.emit("message_start", { message: { role: "toolResult" } });
-	await resumed.emit("message_start", { message: { role: "custom", customType: "tasks-reminder" } });
-	assert.equal(await resumed.settle(), undefined, "internal output does not resume waiting work");
-	const snapshots = resumed.branch.length;
-	await resumed.emit("message_start", { message: { role: "custom", customType: "subagent-result" } });
-	assert.deepEqual(resumed.ledger().tasks.map((task) => [task.status, task.note]),
-		[["pending", undefined], ["pending", undefined]]);
-	assert.equal(resumed.branch.length, snapshots + 1, "one message saves one snapshot for all waiting tasks");
-	assert.equal((await resumed.settle())?.continue, true, "a subagent result does not complete the tasks");
-	await resumed.tool({ action: "update", id: 2, status: "completed" });
-	await resumed.tool({ action: "update", id: 1, status: "completed" });
-	assert.equal(await resumed.settle(), undefined);
-});
-
-test("user messages resume all visible waiting tasks without changing blocked or archived tasks", async () => {
-	const pi = fakePi();
-	await pi.emit("session_start", { reason: "startup" });
-	await pi.tool({ action: "add", titles: ["Waiting", "Blocked", "Archived"] });
-	await pi.tool({ action: "update", id: 1, status: "waiting", note: "worker running" });
-	await pi.tool({ action: "update", id: 2, status: "blocked", note: "needs credentials" });
-	await pi.tool({ action: "update", id: 3, status: "waiting", note: "old worker" });
-	await pi.tool({ action: "archive", id: 3 });
-	const count = pi.branch.length;
-	await pi.emit("message_start", { message: { role: "user" } });
-	assert.deepEqual(pi.ledger().tasks.map((task) => [task.status, task.note]),
-		[["pending", undefined], ["blocked", "needs credentials"], ["waiting", "old worker"]]);
-	assert.equal(pi.branch.length, count + 1);
-	await pi.emit("message_start", { message: { role: "user" } });
-	assert.equal(pi.branch.length, count + 1, "no extra snapshot when nothing is waiting");
-	await pi.tool({ action: "restore", id: 3 });
-	assert.equal(pi.ledger().tasks[2]!.status, "waiting", "restoration preserves archived status");
+	await pi.tool({ action: "add", title: "Open work" });
+	const snapshots = pi.branch.length;
+	pi.keys.push(["w", "b", KEY.escape]);
+	pi.inputs.push("unused");
+	await pi.commands.get("todos")!.handler("", pi.ctx);
+	assert.equal(pi.branch.length, snapshots);
+	assert.deepEqual(pi.inputs, ["unused"]);
+	const screen = pi.screen().join("\n");
+	assert.match(screen, /> \[ \] #1 Open work/);
+	assert.doesNotMatch(screen, /waiting|blocked/);
 });
 
 test("/todos shows the checklist but not the recorded message history", async () => {
@@ -282,21 +212,6 @@ test("Alt+T closes an open checklist and can reopen it", async () => {
 	pi.keys.push([KEY.escape]);
 	await pi.shortcuts.get("alt+t")!.handler(pi.ctx);
 	assert.match(pi.screen().join("\n"), /> \[ \] #1 Toggle checklist/);
-});
-
-test("/todos marks a task waiting and resumes it with i", async () => {
-	const pi = fakePi();
-	await pi.emit("session_start", { reason: "startup" });
-	await pi.tool({ action: "add", title: "Wait for subagent" });
-	pi.keys.push(["w"], [KEY.escape]);
-	pi.inputs.push("subagent zoom is running");
-	await pi.commands.get("todos")!.handler("", pi.ctx);
-	assert.match(pi.screen().join("\n"), /\[w\] #1 Wait for subagent - subagent zoom is running/);
-	assert.equal(await pi.settle(), undefined);
-	pi.keys.push(["i", KEY.escape]);
-	await pi.commands.get("todos")!.handler("", pi.ctx);
-	assert.match(pi.screen().join("\n"), /\[>\] #1 Wait for subagent/);
-	assert.equal((await pi.settle())?.continue, true);
 });
 
 test("clips long recorded messages without generating task titles", async () => {
@@ -348,7 +263,6 @@ test("supersedes a task with a linked replacement and moves open subtasks", asyn
 	await assert.rejects(pi.tool({ action: "update", id: 1, status: "pending" }), /superseded by #3/);
 	await assert.rejects(pi.tool({ action: "update", id: 3, status: "completed" }), /unresolved subtasks: #2/);
 	await assert.rejects(pi.tool({ action: "supersede", id: 3, replacementId: 2 }), /its subtask/);
-	await assert.rejects(pi.tool({ action: "update", id: 2, status: "blocked" }), /needs a reason/);
 	const snapshots = pi.branch.length;
 
 	await pi.tool({ action: "add", title: "Other" });
@@ -390,16 +304,16 @@ test("persists tool and /todos changes and restores them in a new runtime", asyn
 	await pi.emit("session_start", { reason: "startup" });
 	await pi.tool({ action: "add", titles: ["First", "Second"] });
 
-	// Complete #2, block #1, add a subtask to #1, then supersede it.
-	pi.keys.push([KEY.down, KEY.space, KEY.up, "b"], ["n"], [KEY.down, "r"], [KEY.escape]);
-	pi.inputs.push("waiting for review", "Sub", "Sub v2");
+	// Complete #2, start #1, add a subtask to #1, then supersede it.
+	pi.keys.push([KEY.down, KEY.space, KEY.up, "i", "n"], [KEY.down, "r"], [KEY.escape]);
+	pi.inputs.push("Sub", "Sub v2");
 	await pi.commands.get("todos")!.handler("", pi.ctx);
 
 	const expected = pi.ledger();
 	assert.deepEqual(
 		expected.tasks.map((task) => [task.id, task.status, task.parentId, task.replacedBy, task.note]),
 		[
-			[1, "blocked", undefined, undefined, "waiting for review"],
+			[1, "in_progress", undefined, undefined, undefined],
 			[2, "completed", undefined, undefined, undefined],
 			[3, "superseded", 1, 4, undefined],
 			[4, "pending", 1, undefined, undefined],
@@ -434,44 +348,6 @@ test("restores the ledger of the selected branch", async () => {
 	pi.branch.splice(0);
 	await pi.emit("session_tree", { newLeafId: null, oldLeafId: null });
 	assert.equal(await pi.tool({ action: "list" }), "No tasks.");
-});
-
-test("continues while actionable tasks remain, without a retry limit", async () => {
-	const pi = fakePi();
-	await pi.emit("session_start", { reason: "startup" });
-	assert.equal(await pi.settle(), undefined, "no tasks, no continuation");
-
-	await pi.tool({ action: "add", titles: ["A", "B"] });
-	assert.equal(await pi.settle("error"), undefined);
-	assert.equal(await pi.settle("aborted"), undefined, "Esc cancels the run");
-	assert.equal(await pi.settle("completed", [{ role: "user" }]), undefined, "queued input continues the run");
-
-	for (let index = 1; index <= 6; index++) {
-		if (index === 2) {
-			await pi.tool({ action: "add", title: "C" });
-			await pi.tool({ action: "archive", id: 1 });
-		}
-		if (index === 3) await pi.tool({ action: "restore", id: 1 });
-		const result = await pi.settle();
-		assert.equal(result?.continue, true);
-		const [entry] = result?.entries as { type: string; content: string }[];
-		assert.equal(entry!.type, "custom_message");
-		assert.match(entry!.content, /#2 B/);
-		assert.doesNotMatch(entry!.content, /Continuation \d+ of/);
-	}
-	assert.equal(pi.notes.length, 0, "no retry-limit warning");
-
-	await pi.tool({ action: "update", id: 1, status: "completed" });
-	assert.equal((await pi.settle())?.continue, true);
-	await pi.emit("input", { text: "keep going", source: "interactive" });
-	await pi.tool({ action: "add", title: "Continue work", promptId: 1 });
-	assert.equal((await pi.settle())?.continue, true);
-
-	// Blocked tasks need the user, so they do not continue the run.
-	await pi.tool({ action: "update", id: 3, status: "completed" });
-	await pi.tool({ action: "update", id: 4, status: "completed" });
-	await pi.tool({ action: "update", id: 2, status: "blocked", note: "needs credentials" });
-	assert.equal(await pi.settle(), undefined);
 });
 
 test("archives a task tree without changing statuses, links, or prompts", async () => {
@@ -510,11 +386,8 @@ test("archives a task tree without changing statuses, links, or prompts", async 
 	assert.match(full, /\[ \] #1 P1: Old request \(archived\)/);
 	assert.match(full, /    \[>\] #3 Detail \(archived\)/);
 
-	// Archived tasks leave reminders and continuations.
+	// Archived tasks leave the status count.
 	await pi.tool({ action: "update", id: 5, status: "completed" });
-	const start = await pi.emit("before_agent_start", { prompt: "x", systemPrompt: "" });
-	assert.equal(start, undefined);
-	assert.equal(await pi.settle(), undefined);
 	assert.equal(pi.statuses.get("tasks"), "tasks 1/1");
 
 	// Restore brings back the whole tree with the old statuses.
@@ -530,7 +403,6 @@ test("archives a task tree without changing statuses, links, or prompts", async 
 			[5, "completed", undefined],
 		],
 	);
-	assert.equal((await pi.settle())?.continue, true);
 	assert.equal(pi.statuses.get("tasks"), "tasks 1/4");
 });
 
@@ -654,13 +526,11 @@ test("restores archive state from the selected branch", async () => {
 	pi.branch.splice(fork);
 	await pi.emit("session_tree", { newLeafId: `e${fork}`, oldLeafId: null });
 	assert.match(await pi.tool({ action: "list" }), /\[ \] #1 P1: Request\n    \[ \] #2 Step$/);
-	assert.equal((await pi.settle())?.continue, true);
 
 	const resumed = fakePi(archivedBranch);
 	await resumed.emit("session_start", { reason: "resume" });
 	const listing = await resumed.tool({ action: "list" });
 	assert.match(listing, /P1: Request\nNo tasks\.\n2 archived tasks hidden\./);
-	assert.equal(await resumed.settle(), undefined);
 	await resumed.tool({ action: "restore", id: 1 });
 	assert.match(await resumed.tool({ action: "list" }), /\[ \] #1 P1: Request\n    \[ \] #2 Step$/);
 	// Every snapshot keeps every task. Archive and restore never delete.

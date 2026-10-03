@@ -22,13 +22,10 @@ in {
   # The extension records each user prompt as P<n>. The agent uses the `tasks`
   # tool to add tasks for actionable work, add subtasks, change statuses, and
   # link superseded tasks. `/todos` or Alt+T opens a keyboard list: arrows or j/k
-  # move, Space toggles completion, w waits, x archives, u restores, and v
-  # shows archived tasks. Nothing is deleted. The ledger follows the branch.
-  # Waiting for a subagent pauses continuation; any new user or extension
-  # message moves waiting tasks to pending. Blocked means external input is
-  # needed. New user turns prompt review of blocked tasks. At settle, pending
-  # or in-progress tasks cause a reminder.
-  # Aborted runs do not continue. For local checks, run `npm install`,
+  # move, Space toggles completion, x archives, u restores, and v shows
+  # archived tasks. Nothing is deleted. The ledger follows the branch.
+  # Tasks record progress; they never continue or retry an agent run.
+  # For local checks, run `npm install`,
   # `npm test`, and `npm run typecheck` in this directory.
   config = lib.mkIf cfg.enable {
     assertions = [

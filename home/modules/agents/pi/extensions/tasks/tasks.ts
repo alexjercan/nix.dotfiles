@@ -2,7 +2,7 @@ import { StringEnum, Type } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ExtensionContext, Theme } from "@earendil-works/pi-coding-agent";
 import { Key, matchesKey, Text, truncateToWidth } from "@earendil-works/pi-tui";
 
-export type TaskStatus = "pending" | "in_progress" | "waiting" | "completed" | "blocked" | "superseded";
+export type TaskStatus = "pending" | "in_progress" | "completed" | "superseded";
 
 export type Task = {
 	id: number;
@@ -11,7 +11,7 @@ export type Task = {
 	parentId?: number;
 	/** User prompt that this task addresses, when supplied by the agent. */
 	promptId?: number;
-	/** Blocked reason or supersession reason. */
+	/** Supersession reason. */
 	note?: string;
 	/** Task that replaces this superseded task. */
 	replacedBy?: number;
@@ -34,15 +34,12 @@ export type Ledger = {
 };
 
 const STATE_TYPE = "tasks-ledger";
-const REMINDER_TYPE = "tasks-reminder";
 const MAX_PROMPT_CHARS = 1000;
 const MAX_TITLE_CHARS = 120;
 const STATUS_MARK: Record<TaskStatus, string> = {
 	pending: "[ ]",
 	in_progress: "[>]",
-	waiting: "[w]",
 	completed: "[x]",
-	blocked: "[!]",
 	superseded: "[~]",
 };
 
@@ -50,13 +47,8 @@ export function emptyLedger(): Ledger {
 	return { version: 1, nextTaskId: 1, nextPromptId: 1, prompts: [], tasks: [] };
 }
 
-function isOpen(task: Task): boolean {
-	return task.status === "pending" || task.status === "in_progress";
-}
-
-/** Waiting and blocked tasks remain unresolved but do not trigger continuation. */
 function isUnresolved(task: Task): boolean {
-	return isOpen(task) || task.status === "waiting" || task.status === "blocked";
+	return task.status === "pending" || task.status === "in_progress";
 }
 
 function isArchived(task: Task): boolean {
@@ -134,7 +126,7 @@ function createTask(ledger: Ledger, title: string, parentId?: number): Task {
 	return task;
 }
 
-export function setStatus(ledger: Ledger, id: number, status: Exclude<TaskStatus, "superseded">, note?: string): Task {
+export function setStatus(ledger: Ledger, id: number, status: Exclude<TaskStatus, "superseded">): Task {
 	const task = findActiveTask(ledger, id);
 	if (task.status === "superseded") throw new Error(`task #${id} is superseded by #${task.replacedBy}`);
 	if (status === "completed") {
@@ -143,12 +135,8 @@ export function setStatus(ledger: Ledger, id: number, status: Exclude<TaskStatus
 			throw new Error(`task #${id} has unresolved subtasks: ${open.map((child) => `#${child.id}`).join(", ")}`);
 		}
 	}
-	if ((status === "blocked" || status === "waiting") && !note?.trim()) {
-		throw new Error(`a ${status} task needs a reason in note`);
-	}
 	task.status = status;
-	if ((status === "blocked" || status === "waiting") && note) task.note = note.trim();
-	else delete task.note;
+	delete task.note;
 	reopenAncestors(ledger, task);
 	return task;
 }
@@ -250,18 +238,6 @@ export function formatLedger(ledger: Ledger, showArchived = false): string {
 	return lines.join("\n");
 }
 
-function openTaskLines(ledger: Ledger): string[] {
-	return treeRows(ledger)
-		.filter(({ task }) => isOpen(task))
-		.map(({ task, depth }) => formatTask(task, depth));
-}
-
-function blockedTaskLines(ledger: Ledger): string[] {
-	return treeRows(ledger)
-		.filter(({ task }) => task.status === "blocked")
-		.map(({ task, depth }) => formatTask(task, depth));
-}
-
 function isLedger(value: unknown): value is Ledger {
 	const ledger = value as Ledger | undefined;
 	return (
@@ -279,7 +255,6 @@ type ListView = { selected: number; showArchived: boolean };
 type ListAction =
 	| { kind: "close" }
 	| ({ kind: "add"; parentId?: number } & ListView)
-	| ({ kind: "block" | "wait"; id: number } & ListView)
 	| ({ kind: "supersede"; id: number } & ListView);
 
 /** Keyboard-driven view of the ledger for /todos. */
@@ -366,9 +341,6 @@ class TaskListComponent {
 		} else if (matchesKey(data, "n")) {
 			this.done({ kind: "add", parentId: task.id, ...this.view() });
 			return;
-		} else if (matchesKey(data, "b") || matchesKey(data, "w")) {
-			this.done({ kind: matchesKey(data, "w") ? "wait" : "block", id: task.id, ...this.view() });
-			return;
 		} else if (matchesKey(data, "r")) {
 			this.done({ kind: "supersede", id: task.id, ...this.view() });
 			return;
@@ -384,18 +356,14 @@ class TaskListComponent {
 		if (rows.length === 0) lines.push(th.fg("dim", "  No tasks."));
 		rows.forEach(({ task, depth }, index) => {
 			const color =
-				isArchived(task) || task.status === "completed" || task.status === "superseded"
-					? "dim"
-					: task.status === "blocked"
-						? "warning"
-						: "text";
+				isArchived(task) || task.status === "completed" || task.status === "superseded" ? "dim" : "text";
 			const cursor = index === this.selected ? th.fg("accent", "> ") : "  ";
 			lines.push(truncateToWidth(cursor + th.fg(color, formatTask(task, depth)), width));
 		});
 		lines.push("");
 		if (this.message) lines.push(truncateToWidth(th.fg("error", `  ${this.message}`), width));
 		lines.push(truncateToWidth(th.fg("dim", "  up/down move  space done  x archive  u restore  v show archived"), width));
-		lines.push(truncateToWidth(th.fg("dim", "  i doing  p pending  w waiting  b blocked  r supersede"), width));
+		lines.push(truncateToWidth(th.fg("dim", "  i doing  p pending  r supersede"), width));
 		lines.push(truncateToWidth(th.fg("dim", "  a add  n subtask"), width));
 		lines.push(truncateToWidth(th.fg("dim", "  alt+t / esc close"), width));
 		return lines;
@@ -406,7 +374,6 @@ class TaskListComponent {
 
 export default function (pi: ExtensionAPI) {
 	let ledger = emptyLedger();
-	let auditBlockedOnStart = false;
 	function updateStatus(ctx: ExtensionContext) {
 		const active = ledger.tasks.filter((task) => !isArchived(task));
 		const total = active.filter((task) => task.status !== "superseded").length;
@@ -425,7 +392,6 @@ export default function (pi: ExtensionAPI) {
 
 	function restore(ctx: ExtensionContext) {
 		ledger = emptyLedger();
-		auditBlockedOnStart = false;
 		for (const entry of ctx.sessionManager.getBranch()) {
 			if (entry.type === "custom" && entry.customType === STATE_TYPE && isLedger(entry.data)) {
 				ledger = structuredClone(entry.data);
@@ -441,26 +407,18 @@ export default function (pi: ExtensionAPI) {
 			"Manage the session task ledger. User messages are recorded as P<n> without creating tasks. " +
 			"Parse each message and add tasks only for actionable work. " +
 			"Actions: list; add (title or titles, optional parentId for subtasks and promptId to link to a message); " +
-			"update (id, status: pending|in_progress|waiting|completed|blocked, note required for waiting and blocked); " +
+			"update (id, status: pending|in_progress|completed); " +
 			"supersede (id, replacementId or title for a new replacement, optional note); " +
 			"archive (id): hide a task and its subtasks without changing their status, only when the user asks; " +
 			"restore (id): show an archived task again with the subtasks archived with it. " +
 			"list hides archived tasks unless archived is true. " +
 			"A parent cannot be completed while its subtasks are unresolved. " +
-			"Use waiting when your own subagent will wake you; give a reason naming what you await. " +
-			"Mark the parent waiting too if all remaining work depends on the child. " +
-			"Any new user or extension message moves all waiting tasks to pending; review them before resuming work. " +
-			"A subagent result alone does not complete a task. " +
-			"Block only for a real external dependency such as missing user input or credentials. " +
-			"Waiting and blocked tasks do not trigger automatic continuation.",
+			"Tasks record progress only; they do not continue or retry an agent run.",
 		promptSnippet: "Track multi-step work and user requests in a task ledger",
 		promptGuidelines: [
 			"Before adding tasks, parse the user's message into actionable work. Add clear task titles and useful subtasks. Do not create tasks for chat or questions with no work. Optionally link tasks to a recorded P<n> using promptId.",
-			"When no actionable work remains until a subagent responds, mark its tasks (and parent, if applicable) waiting with a reason, then end the turn. " +
-				"On any new user or extension message, waiting tasks become pending automatically. Review them and verify subagent work before completing them. " +
-				"Use blocked only for a concrete external dependency that prevents further work. " +
-				"On each new user turn, review blocked tasks and reopen any whose stated blocker no longer applies. " +
-				"Do not stop while tasks are pending or in_progress. Complete or supersede tasks only when the work is done or replaced.",
+			"Update tasks as work progresses. A subagent result alone does not complete a task. " +
+				"Complete or supersede tasks only when the work is done or replaced.",
 		],
 		parameters: Type.Object({
 			action: StringEnum(["list", "add", "update", "supersede", "archive", "restore"] as const),
@@ -469,8 +427,8 @@ export default function (pi: ExtensionAPI) {
 			titles: Type.Optional(Type.Array(Type.String(), { description: "Several new task titles for add" })),
 			parentId: Type.Optional(Type.Integer({ description: "Parent task id for new subtasks" })),
 			promptId: Type.Optional(Type.Integer({ description: "Recorded user message id to link to a new task" })),
-			status: Type.Optional(StringEnum(["pending", "in_progress", "waiting", "completed", "blocked"] as const)),
-			note: Type.Optional(Type.String({ description: "Waiting/blocked reason or supersession reason" })),
+			status: Type.Optional(StringEnum(["pending", "in_progress", "completed"] as const)),
+			note: Type.Optional(Type.String({ description: "Supersession reason" })),
 			replacementId: Type.Optional(Type.Integer({ description: "Existing task that replaces the superseded task" })),
 			archived: Type.Optional(Type.Boolean({ description: "Include archived tasks in the result" })),
 		}),
@@ -494,7 +452,7 @@ export default function (pi: ExtensionAPI) {
 					if (params.id === undefined || params.status === undefined) throw new Error("update needs id and status");
 					const { id, status } = params;
 					change(ctx, (next) => {
-						setStatus(next, id, status, params.note);
+						setStatus(next, id, status);
 						summary = `Task #${id} is ${status}.`;
 					});
 					break;
@@ -527,7 +485,7 @@ export default function (pi: ExtensionAPI) {
 			const listing = formatLedger(ledger, params.archived === true);
 			const text = summary ? `${summary}\n\n${listing}` : listing;
 			const visible = ledger.tasks.filter((task) => params.archived === true || !isArchived(task));
-			const open = visible.filter(isOpen).length;
+			const open = visible.filter(isUnresolved).length;
 			return {
 				content: [{ type: "text" as const, text }],
 				details: { summary: summary || `${visible.length} task${visible.length === 1 ? "" : "s"}, ${open} open` },
@@ -588,10 +546,6 @@ export default function (pi: ExtensionAPI) {
 					const label = action.parentId === undefined ? "New task" : `New subtask of #${action.parentId}`;
 					const title = await ctx.ui.input(label);
 					if (title?.trim()) change(ctx, (next) => addTask(next, title, action.parentId));
-				} else if (action.kind === "block" || action.kind === "wait") {
-					const status = action.kind === "wait" ? "waiting" : "blocked";
-					const reason = await ctx.ui.input(`Why is #${action.id} ${status}?`);
-					if (reason?.trim()) change(ctx, (next) => setStatus(next, action.id, status, reason));
 				} else {
 					const title = await ctx.ui.input(`Replacement for #${action.id}`);
 					if (title?.trim()) change(ctx, (next) => supersede(next, action.id, { title }));
@@ -614,67 +568,16 @@ export default function (pi: ExtensionAPI) {
 	pi.on("session_start", async (_event, ctx) => restore(ctx));
 	pi.on("session_tree", async (_event, ctx) => restore(ctx));
 
-	// Incoming messages make waiting work actionable again. Do not react to
-	// assistant/tool output or our own reminders and blocked-task review.
-	pi.on("message_start", async (event, ctx) => {
-		if (event.message.role !== "user" &&
-			(event.message.role !== "custom" || event.message.customType === REMINDER_TYPE || event.message.customType === "tasks-blocked-review")) return;
-		if (!ledger.tasks.some((task) => task.status === "waiting" && !isArchived(task))) return;
-		change(ctx, (next) => {
-			for (const task of next.tasks) {
-				if (task.status === "waiting" && !isArchived(task)) setStatus(next, task.id, "pending");
-			}
-		});
-	});
-
 	// Record messages, not tasks: only the agent can decide what work a message
 	// requires. Extension commands never reach input; messages from other
-	// extensions (for example Telegram) do. Reminders and subagent wakes are
-	// custom messages and do not create prompts.
+	// extensions (for example Telegram) do. Subagent wakes are custom messages
+	// and do not create prompts.
 	pi.on("input", async (event, ctx) => {
 		if (event.text.trim()) {
 			change(ctx, (next) => {
 				addPrompt(next, event.text, event.source);
 			});
-			auditBlockedOnStart = true;
 		}
 		return { action: "continue" };
-	});
-
-	pi.on("before_agent_start", async () => {
-		if (!auditBlockedOnStart) return;
-		auditBlockedOnStart = false;
-		const blocked = blockedTaskLines(ledger);
-		if (blocked.length === 0) return;
-		return {
-			message: {
-				customType: "tasks-blocked-review",
-				content:
-					"Review these blocked tasks now. If one is only awaiting a subagent, mark it waiting; " +
-					"if its result has arrived or the blocker no longer applies, change it to in_progress. " +
-					"Keep blocked only for a real external dependency; " +
-					"blocked tasks do not trigger automatic continuation.\n" + blocked.join("\n"),
-				display: false,
-			},
-		};
-	});
-
-	pi.on("agent_before_settle", async (event, ctx) => {
-		if (event.outcome !== "completed") return;
-		// Another handler or a queued user message already continues the run.
-		if (event.continue || event.context.pendingMessages.length > 0) return;
-		const open = openTaskLines(ledger);
-		if (open.length === 0) return;
-		// event.context predates the reminder draft, so its canContinue is false
-		// after a final assistant message. The reminder makes the context continuable.
-		const content =
-			`The task ledger still has open tasks. Continue the work, or update each task with the tasks tool: ` +
-			`completed or superseded with a replacement when done. If all remaining work awaits a subagent, ` +
-			`mark the tasks and their parent waiting with a reason, then end the turn. ` +
-			`Use blocked only for a real external dependency.\n${open.join("\n")}`;
-		return {
-			entries: [...event.entries, { type: "custom_message", customType: REMINDER_TYPE, content, display: true }],
-			continue: true,
-		};
 	});
 }
