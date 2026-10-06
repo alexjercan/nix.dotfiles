@@ -1,4 +1,4 @@
-local function copy_file_reference(visual)
+local function prompt_pi(visual)
   local name = vim.api.nvim_buf_get_name(0)
   if name == "" then
     vim.notify("No filename to copy", vim.log.levels.WARN)
@@ -19,7 +19,7 @@ local function copy_file_reference(visual)
   end
   local buf = vim.api.nvim_create_buf(false, true)
   vim.bo[buf].buftype = "prompt"
-  vim.fn.prompt_setprompt(buf, "Annotation: ")
+  vim.fn.prompt_setprompt(buf, "Prompt: ")
 
   local width = math.max(1, math.min(80, vim.o.columns - 4))
   local win = vim.api.nvim_open_win(buf, true, {
@@ -40,20 +40,22 @@ local function copy_file_reference(visual)
     end
   end
 
-  vim.fn.prompt_setcallback(buf, function(annotation)
+  vim.fn.prompt_setcallback(buf, function(text)
     close()
-    annotation = vim.trim(annotation)
-    local text = reference
-    if annotation ~= "" then
-      text = text .. " - " .. annotation
+    text = vim.trim(text)
+    if text == "" then
+      return
     end
-    vim.fn.setreg("+", text)
-    vim.notify("Copied " .. text)
+    local location = name .. ":" .. first
+    if visual then
+      location = location .. "-" .. last
+    end
+    require("pi_nvim_bridge").send(text .. "\n\n" .. location)
   end)
 
   vim.keymap.set({ "i", "n" }, "<Esc>", close, { buffer = buf })
   vim.cmd.startinsert()
 end
 
-vim.keymap.set("n", "<leader>n", function() copy_file_reference(false) end, { desc = "Copy file and line" })
-vim.keymap.set("x", "<leader>n", function() copy_file_reference(true) end, { desc = "Copy file and line range" })
+vim.keymap.set("n", "<leader>n", function() prompt_pi(false) end, { desc = "Prompt Pi about file and line" })
+vim.keymap.set("x", "<leader>n", function() prompt_pi(true) end, { desc = "Prompt Pi about file and line range" })

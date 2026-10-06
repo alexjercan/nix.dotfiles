@@ -91,6 +91,7 @@ in {
         };
         plannotator.enable = true;
         tasks.enable = true;
+        nvim-bridge.enable = true;
 
         voice-stt = {
           enable = true;

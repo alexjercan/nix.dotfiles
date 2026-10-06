@@ -1,0 +1,11 @@
+{
+  "name": "agents-nix-pi-extension-nvim-bridge",
+  "private": true,
+  "type": "module",
+  "pi": {
+    "extensions": ["./bridge.ts"]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  }
+}
