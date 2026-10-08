@@ -44,6 +44,7 @@ in {
     ./agent-browser/module.nix
     ./claude-code/module.nix
     ./codex/module.nix
+    ./kev/module.nix
     ./llama-cpp/module.nix
     ./opencode/module.nix
     ./pi/module.nix
