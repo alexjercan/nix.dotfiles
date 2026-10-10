@@ -1,12 +1,12 @@
 {
-  "name": "agents-nix-pi-extension-tasks",
+  "name": "agents-nix-pi-extension-todos",
   "private": true,
   "type": "module",
   "pi": {
-    "extensions": ["./tasks.ts"]
+    "extensions": ["./todos.ts"]
   },
   "scripts": {
-    "test": "node tasks_test.ts",
+    "test": "node todos_test.ts",
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {

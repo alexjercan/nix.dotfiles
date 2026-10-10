@@ -9,5 +9,5 @@
     "target": "ES2022",
     "types": ["node"]
   },
-  "include": ["tasks.ts"]
+  "include": ["todos.ts"]
 }

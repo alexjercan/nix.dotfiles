@@ -1,8 +1,4 @@
-{
-  inputs,
-  pkgs,
-  ...
-}: let
+{pkgs, ...}: let
   # Every provider below reaches the same local llama-cpp router; only the
   # model catalogue differs, so Pi names the model family instead of lumping
   # unrelated families under one provider.
@@ -47,13 +43,8 @@ in {
     enable = true;
     agentsFile = toString ./AGENTS.md;
 
-    # A global tool gets a global skill. Every project used to carry its own
-    # copy and they drifted. A skill that is tuned per project, such as review
-    # or pair, still belongs to that project.
-    skills = {
-      sprout = toString ../scripts/skills/sprout;
-      tatr = inputs.tatr.skills.tatr;
-    };
+    # Projects that use Tatr provide their own issue tracker skill.
+    skills.sprout = toString ../scripts/skills/sprout;
 
     agentBrowser.enable = true;
     claudeCode.enable = true;
@@ -91,7 +82,7 @@ in {
           };
         };
         plannotator.enable = true;
-        tasks.enable = true;
+        todos.enable = true;
         nvim-bridge.enable = true;
 
         voice-stt = {

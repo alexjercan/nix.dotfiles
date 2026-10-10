@@ -110,7 +110,7 @@ export default function (pi: ExtensionAPI) {
       });
       chmodSync(socketPath, 0o600);
       tmux("set-option", "-p", "-t", pane, OPTION, socketPath);
-      ctx.ui.setStatus("nvim-bridge", "nvim-bridge: on");
+      ctx.ui.setStatus("nvim-bridge", "nvim-bridge:on");
     } catch (error) {
       console.error("Pi Neovim bridge:", error);
       await stop(ctx);

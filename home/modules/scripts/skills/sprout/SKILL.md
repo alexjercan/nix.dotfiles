@@ -1,6 +1,7 @@
 ---
 name: sprout
 description: Create, inspect, synchronize, land, and remove isolated Git worktrees with Sprout when the user requests one.
+disable-model-invocation: true
 ---
 
 # Sprout

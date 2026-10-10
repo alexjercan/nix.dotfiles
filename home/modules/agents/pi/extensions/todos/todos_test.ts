@@ -1,9 +1,9 @@
-// Runs the tasks extension against a minimal fake Pi runtime.
+// Runs the todos extension against a minimal fake Pi runtime.
 // Run with: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import extension, { type Ledger } from "./tasks.ts";
+import extension, { type Ledger } from "./todos.ts";
 
 type Handler = (event: unknown, ctx: unknown) => unknown;
 type Entry = { id: string; type: string; customType?: string; data?: unknown };
@@ -107,7 +107,7 @@ function fakePi(branch: Entry[] = []) {
 	}
 
 	async function tool(params: Record<string, unknown>) {
-		const result = await tools.get("tasks")!.execute("call", params, undefined, undefined, ctx);
+		const result = await tools.get("todos")!.execute("call", params, undefined, undefined, ctx);
 		return result.content[0]!.text;
 	}
 
@@ -119,7 +119,7 @@ function fakePi(branch: Entry[] = []) {
 	return { branch, notes, widgets, statuses, inputs, keys, ctx, emit, tool, tools, ledger, handlers, commands, shortcuts, screen: () => screens.at(-1) ?? [], screens };
 }
 
-test("records messages before the agent selects actionable tasks", async () => {
+test("records messages before the agent selects actionable todos", async () => {
 	const pi = fakePi();
 	await pi.emit("session_start", { reason: "startup" });
 	await pi.emit("input", { text: "Fix the parser and update docs", source: "interactive" });
@@ -128,7 +128,7 @@ test("records messages before the agent selects actionable tasks", async () => {
 	const snapshots = pi.branch.length;
 	await pi.emit("input", { text: " \n ", source: "interactive" });
 	assert.equal(pi.branch.length, snapshots, "empty input must not write snapshots");
-	assert.deepEqual(pi.ledger().tasks, [], "input does not create tasks");
+	assert.deepEqual(pi.ledger().tasks, [], "input does not create todos");
 	assert.deepEqual(pi.ledger().prompts.map((prompt) => [prompt.id, prompt.source]),
 		[[1, "interactive"], [2, "extension"], [3, "rpc"]]);
 
@@ -155,11 +155,12 @@ test("is a passive ledger without waiting, blocked, resume, or continuation beha
 	for (const event of ["message_start", "before_agent_start", "agent_before_settle"]) {
 		assert.equal(pi.handlers.has(event), false, `no ${event} handler`);
 	}
-	const tasks = pi.tools.get("tasks")!;
-	assert.deepEqual(tasks.parameters.properties.status!.enum, ["pending", "in_progress", "completed"]);
-	assert.doesNotMatch(`${tasks.description} ${tasks.promptGuidelines.join(" ")}`, /waiting|blocked/);
+	const todos = pi.tools.get("todos")!;
+	assert.deepEqual(todos.parameters.properties.status!.enum, ["pending", "in_progress", "completed"]);
+	assert.doesNotMatch(`${todos.description} ${todos.promptGuidelines.join(" ")}`, /waiting|blocked/);
+	assert.match(todos.description, /not Tatr repository issues/);
 
-	// w and b no longer open dialogs or change tasks.
+	// w and b no longer open dialogs or change todos.
 	await pi.emit("session_start", { reason: "startup" });
 	await pi.tool({ action: "add", title: "Open work" });
 	const snapshots = pi.branch.length;
@@ -179,7 +180,7 @@ test("/todos shows the checklist but not the recorded message history", async ()
 	await pi.emit("input", { text: "Fix parser", source: "interactive" });
 	await pi.emit("input", { text: "Thanks for the help", source: "interactive" });
 	await pi.commands.get("todos")!.handler("", pi.ctx);
-	assert.match(pi.screen().join("\n"), /No tasks\./);
+	assert.match(pi.screen().join("\n"), /No todos\./);
 	assert.doesNotMatch(pi.screen().join("\n"), /Fix parser|Thanks for the help/);
 
 	await pi.tool({ action: "add", title: "Fix parser", promptId: 1 });
@@ -214,7 +215,7 @@ test("Alt+T closes an open checklist and can reopen it", async () => {
 	assert.match(pi.screen().join("\n"), /> \[ \] #1 Toggle checklist/);
 });
 
-test("clips long recorded messages without generating task titles", async () => {
+test("clips long recorded messages without generating todo titles", async () => {
 	const pi = fakePi();
 	await pi.emit("session_start", { reason: "startup" });
 	await pi.emit("input", { text: "x".repeat(2000), source: "interactive" });
@@ -222,7 +223,7 @@ test("clips long recorded messages without generating task titles", async () => 
 	assert.deepEqual(pi.ledger().tasks, []);
 });
 
-test("restores recorded messages and agent-selected tasks without duplicates", async () => {
+test("restores recorded messages and agent-selected todos without duplicates", async () => {
 	const pi = fakePi();
 	await pi.emit("session_start", { reason: "startup" });
 	await pi.emit("input", { text: "First request", source: "interactive" });
@@ -242,7 +243,7 @@ test("restores recorded messages and agent-selected tasks without duplicates", a
 	assert.deepEqual(restored.ledger().prompts.map((prompt) => prompt.id), [1, 2, 3]);
 });
 
-test("supersedes a task with a linked replacement and moves open subtasks", async () => {
+test("supersedes a todo with a linked replacement and moves open subtodos", async () => {
 	const pi = fakePi();
 	await pi.emit("session_start", { reason: "startup" });
 	await pi.tool({ action: "add", title: "Old approach" });
@@ -261,8 +262,8 @@ test("supersedes a task with a linked replacement and moves open subtasks", asyn
 	assert.equal(ledger.tasks[2]!.title, "New approach");
 
 	await assert.rejects(pi.tool({ action: "update", id: 1, status: "pending" }), /superseded by #3/);
-	await assert.rejects(pi.tool({ action: "update", id: 3, status: "completed" }), /unresolved subtasks: #2/);
-	await assert.rejects(pi.tool({ action: "supersede", id: 3, replacementId: 2 }), /its subtask/);
+	await assert.rejects(pi.tool({ action: "update", id: 3, status: "completed" }), /unresolved subtodos: #2/);
+	await assert.rejects(pi.tool({ action: "supersede", id: 3, replacementId: 2 }), /its subtodo/);
 	const snapshots = pi.branch.length;
 
 	await pi.tool({ action: "add", title: "Other" });
@@ -273,14 +274,14 @@ test("supersedes a task with a linked replacement and moves open subtasks", asyn
 	assert.equal(pi.branch.length, snapshots + 2, "failed changes must not write snapshots");
 });
 
-test("reopens completed parents when a subtask becomes unresolved", async () => {
+test("reopens completed parents when a subtodo becomes unresolved", async () => {
 	const pi = fakePi();
 	await pi.emit("session_start", { reason: "startup" });
 	await pi.tool({ action: "add", title: "Parent" });
 	await pi.tool({ action: "add", title: "Child", parentId: 1 });
 	await pi.tool({ action: "update", id: 2, status: "completed" });
 	await pi.tool({ action: "update", id: 1, status: "completed" });
-	await assert.rejects(pi.tool({ action: "add", title: "Late", parentId: 1 }), /parent task #1 is completed/);
+	await assert.rejects(pi.tool({ action: "add", title: "Late", parentId: 1 }), /parent todo #1 is completed/);
 
 	await pi.tool({ action: "update", id: 2, status: "pending" });
 	assert.equal(pi.ledger().tasks[0]!.status, "pending");
@@ -347,10 +348,10 @@ test("restores the ledger of the selected branch", async () => {
 
 	pi.branch.splice(0);
 	await pi.emit("session_tree", { newLeafId: null, oldLeafId: null });
-	assert.equal(await pi.tool({ action: "list" }), "No tasks.");
+	assert.equal(await pi.tool({ action: "list" }), "No todos.");
 });
 
-test("archives a task tree without changing statuses, links, or prompts", async () => {
+test("archives a todo tree without changing statuses, links, or prompts", async () => {
 	const pi = fakePi();
 	await pi.emit("session_start", { reason: "startup" });
 	await pi.emit("input", { text: "Old request", source: "interactive" });
@@ -366,8 +367,8 @@ test("archives a task tree without changing statuses, links, or prompts", async 
 	assert.match(archived, /^Archived #1, #2, #3\./);
 	assert.doesNotMatch(archived, /#[123] /);
 	assert.match(archived, /P1: Old request/, "prompt history stays");
-	assert.match(archived, /3 archived tasks hidden\./);
-	assert.equal(pi.statuses.get("tasks"), "tasks 0/1");
+	assert.match(archived, /3 archived todos hidden\./);
+	assert.equal(pi.statuses.get("todos"), "todos 0/1");
 
 	// Only archivedWith changes. Nothing is deleted.
 	const after = pi.ledger();
@@ -386,9 +387,9 @@ test("archives a task tree without changing statuses, links, or prompts", async 
 	assert.match(full, /\[ \] #1 P1: Old request \(archived\)/);
 	assert.match(full, /    \[>\] #3 Detail \(archived\)/);
 
-	// Archived tasks leave the status count.
+	// Archived todos leave the status count.
 	await pi.tool({ action: "update", id: 5, status: "completed" });
-	assert.equal(pi.statuses.get("tasks"), "tasks 1/1");
+	assert.equal(pi.statuses.get("todos"), "todos 1/1");
 
 	// Restore brings back the whole tree with the old statuses.
 	const restored = await pi.tool({ action: "restore", id: 1 });
@@ -403,10 +404,10 @@ test("archives a task tree without changing statuses, links, or prompts", async 
 			[5, "completed", undefined],
 		],
 	);
-	assert.equal(pi.statuses.get("tasks"), "tasks 1/4");
+	assert.equal(pi.statuses.get("todos"), "todos 1/4");
 });
 
-test("keeps archive groups coherent and rejects changes to archived tasks", async () => {
+test("keeps archive groups coherent and rejects changes to archived todos", async () => {
 	const pi = fakePi();
 	await pi.emit("session_start", { reason: "startup" });
 	await pi.tool({ action: "add", title: "Parent" });
@@ -420,15 +421,15 @@ test("keeps archive groups coherent and rejects changes to archived tasks", asyn
 	);
 
 	const snapshots = pi.branch.length;
-	await assert.rejects(pi.tool({ action: "archive", id: 1 }), /task #1 is archived/);
-	await assert.rejects(pi.tool({ action: "restore", id: 4 }), /task #4 is not archived/);
+	await assert.rejects(pi.tool({ action: "archive", id: 1 }), /todo #1 is archived/);
+	await assert.rejects(pi.tool({ action: "restore", id: 4 }), /todo #4 is not archived/);
 	await assert.rejects(pi.tool({ action: "restore", id: 3 }), /archived with #1; restore #1/);
-	await assert.rejects(pi.tool({ action: "restore", id: 2 }), /parent task #1 is archived/);
+	await assert.rejects(pi.tool({ action: "restore", id: 2 }), /parent todo #1 is archived/);
 	await assert.rejects(pi.tool({ action: "restore" }), /restore needs id/);
-	await assert.rejects(pi.tool({ action: "update", id: 3, status: "completed" }), /task #3 is archived/);
-	await assert.rejects(pi.tool({ action: "add", title: "Late", parentId: 1 }), /task #1 is archived/);
-	await assert.rejects(pi.tool({ action: "supersede", id: 1, title: "New" }), /task #1 is archived/);
-	await assert.rejects(pi.tool({ action: "supersede", id: 4, replacementId: 1 }), /task #1 is archived/);
+	await assert.rejects(pi.tool({ action: "update", id: 3, status: "completed" }), /todo #3 is archived/);
+	await assert.rejects(pi.tool({ action: "add", title: "Late", parentId: 1 }), /todo #1 is archived/);
+	await assert.rejects(pi.tool({ action: "supersede", id: 1, title: "New" }), /todo #1 is archived/);
+	await assert.rejects(pi.tool({ action: "supersede", id: 4, replacementId: 1 }), /todo #1 is archived/);
 	assert.equal(pi.branch.length, snapshots, "failed changes must not write snapshots");
 
 	// The parent group comes back without the subtask archived on its own.
@@ -488,15 +489,15 @@ test("archives and restores from /todos and keeps the view across dialogs", asyn
 	await pi.commands.get("todos")!.handler("", pi.ctx);
 	assert.equal(pi.branch.length, snapshots, "rejected restore and archive must not write snapshots");
 	const [, , afterRestore, afterArchive] = pi.screens.slice(-5).map((lines) => lines.join("\n"));
-	assert.match(afterRestore!, /Tasks \(with archived\)/);
+	assert.match(afterRestore!, /Todos \(with archived\)/);
 	assert.match(afterRestore!, /> {3}\[ \] #2 Child \(archived\)/);
 	assert.match(afterRestore!, /archived with #1; restore #1/);
-	assert.match(afterArchive!, /task #2 is archived/);
+	assert.match(afterArchive!, /todo #2 is archived/);
 
 	pi.keys.push(["v", "a"], [KEY.escape]);
 	pi.inputs.push("Added");
 	await pi.commands.get("todos")!.handler("", pi.ctx);
-	assert.match(pi.screen().join("\n"), /Tasks \(with archived\)/, "the view stays after the add dialog");
+	assert.match(pi.screen().join("\n"), /Todos \(with archived\)/, "the view stays after the add dialog");
 
 	pi.keys.push(["v", "u", KEY.escape]);
 	await pi.commands.get("todos")!.handler("", pi.ctx);
@@ -522,7 +523,7 @@ test("restores archive state from the selected branch", async () => {
 	await pi.tool({ action: "archive", id: 1 });
 	const archivedBranch = [...pi.branch];
 
-	// Leaving the branch brings the tasks back. The archive snapshot stays in history.
+	// Leaving the branch brings the todos back. The archive snapshot stays in history.
 	pi.branch.splice(fork);
 	await pi.emit("session_tree", { newLeafId: `e${fork}`, oldLeafId: null });
 	assert.match(await pi.tool({ action: "list" }), /\[ \] #1 P1: Request\n    \[ \] #2 Step$/);
@@ -530,7 +531,7 @@ test("restores archive state from the selected branch", async () => {
 	const resumed = fakePi(archivedBranch);
 	await resumed.emit("session_start", { reason: "resume" });
 	const listing = await resumed.tool({ action: "list" });
-	assert.match(listing, /P1: Request\nNo tasks\.\n2 archived tasks hidden\./);
+	assert.match(listing, /P1: Request\nNo todos\.\n2 archived todos hidden\./);
 	await resumed.tool({ action: "restore", id: 1 });
 	assert.match(await resumed.tool({ action: "list" }), /\[ \] #1 P1: Request\n    \[ \] #2 Step$/);
 	// Every snapshot keeps every task. Archive and restore never delete.
@@ -539,34 +540,34 @@ test("restores archive state from the selected branch", async () => {
 	}
 });
 
-test("renders compact task calls and results, with the full ledger on expansion", async () => {
+test("renders compact todo calls and results, with the full ledger on expansion", async () => {
 	const pi = fakePi();
 	await pi.emit("session_start", { reason: "startup" });
 	await pi.emit("input", { text: "Fix parser", source: "interactive" });
 	await pi.tool({ action: "add", title: "Fix parser", promptId: 1 });
-	const tasks = pi.tools.get("tasks")!;
+	const todos = pi.tools.get("todos")!;
 	const theme = { fg: (_color: string, text: string) => text };
 	const text = (component: Rendered) => component.render(100).map((line) => line.trimEnd()).join("\n").trimEnd();
-	const call = (args: Record<string, unknown>) => text(tasks.renderCall(args, theme));
-	assert.equal(call({ action: "update", id: 1, status: "completed" }), "tasks update #1 completed");
+	const call = (args: Record<string, unknown>) => text(todos.renderCall(args, theme));
+	assert.equal(call({ action: "update", id: 1, status: "completed" }), "todos update #1 completed");
 	assert.equal(call({ action: "add", parentId: 1, promptId: 1, title: "Read parser" }),
-		'tasks add under #1 for P1 "Read parser"');
+		'todos add under #1 for P1 "Read parser"');
 	assert.equal(call({ action: "supersede", id: 1, replacementId: 2, note: "new plan" }),
-		'tasks supersede #1 with #2 note="new plan"');
-	assert.equal(call({ action: "list", archived: true }), "tasks list including archived");
+		'todos supersede #1 with #2 note="new plan"');
+	assert.equal(call({ action: "list", archived: true }), "todos list including archived");
 
-	const list = await tasks.execute("call", { action: "list" }, undefined, undefined, pi.ctx);
-	const collapsed = text(tasks.renderResult(list, { expanded: false }, theme, { isError: false }));
-	assert.equal(collapsed, "1 task, 1 open");
-	const expanded = text(tasks.renderResult(list, { expanded: true }, theme, { isError: false }));
+	const list = await todos.execute("call", { action: "list" }, undefined, undefined, pi.ctx);
+	const collapsed = text(todos.renderResult(list, { expanded: false }, theme, { isError: false }));
+	assert.equal(collapsed, "1 todo, 1 open");
+	const expanded = text(todos.renderResult(list, { expanded: true }, theme, { isError: false }));
 	assert.match(expanded, /\[ \] #1 P1: Fix parser/);
 
-	const update = await tasks.execute("call", { action: "update", id: 1, status: "completed" }, undefined, undefined, pi.ctx);
-	assert.equal(text(tasks.renderResult(update, { expanded: false }, theme, { isError: false })),
-		"Task #1 is completed.");
-	assert.match(text(tasks.renderResult(update, { expanded: true }, theme, { isError: false })),
+	const update = await todos.execute("call", { action: "update", id: 1, status: "completed" }, undefined, undefined, pi.ctx);
+	assert.equal(text(todos.renderResult(update, { expanded: false }, theme, { isError: false })),
+		"Todo #1 is completed.");
+	assert.match(text(todos.renderResult(update, { expanded: true }, theme, { isError: false })),
 		/\[x\] #1 P1: Fix parser/);
-	const error = { content: [{ type: "text", text: "Task not found" }] };
-	assert.equal(text(tasks.renderResult(error, { expanded: false }, theme, { isError: true })),
-		"Task not found");
+	const error = { content: [{ type: "text", text: "Todo not found" }] };
+	assert.equal(text(todos.renderResult(error, { expanded: false }, theme, { isError: true })),
+		"Todo not found");
 });

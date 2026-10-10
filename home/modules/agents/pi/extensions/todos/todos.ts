@@ -33,6 +33,7 @@ export type Ledger = {
 	tasks: Task[];
 };
 
+// Keep this session entry type and the ledger field names for existing sessions.
 const STATE_TYPE = "tasks-ledger";
 const MAX_PROMPT_CHARS = 1000;
 const MAX_TITLE_CHARS = 120;
@@ -57,18 +58,18 @@ function isArchived(task: Task): boolean {
 
 function findTask(ledger: Ledger, id: number): Task {
 	const task = ledger.tasks.find((candidate) => candidate.id === id);
-	if (!task) throw new Error(`task #${id} does not exist`);
+	if (!task) throw new Error(`todo #${id} does not exist`);
 	return task;
 }
 
-/** Find a task that is not archived. Archived tasks do not change until restored. */
+/** Find a todo that is not archived. Archived todos do not change until restored. */
 function findActiveTask(ledger: Ledger, id: number): Task {
 	const task = findTask(ledger, id);
-	if (isArchived(task)) throw new Error(`task #${id} is archived`);
+	if (isArchived(task)) throw new Error(`todo #${id} is archived`);
 	return task;
 }
 
-/** A task and all of its subtasks. */
+/** A todo and all of its subtodos. */
 function subtree(ledger: Ledger, id: number): Task[] {
 	return ledger.tasks.filter((task) => task.id === id || isDescendant(ledger, task.id, id));
 }
@@ -94,7 +95,7 @@ export function addPrompt(ledger: Ledger, text: string, source: string): Prompt 
 	return prompt;
 }
 
-/** Set completed ancestors of an unresolved task back to pending. */
+/** Set completed ancestors of an unresolved todo back to pending. */
 function reopenAncestors(ledger: Ledger, task: Task) {
 	if (!isUnresolved(task)) return;
 	let parent = ledger.tasks.find((candidate) => candidate.id === task.parentId);
@@ -107,7 +108,7 @@ function reopenAncestors(ledger: Ledger, task: Task) {
 export function addTask(ledger: Ledger, title: string, parentId?: number, promptId?: number): Task {
 	if (parentId !== undefined) {
 		const parent = findActiveTask(ledger, parentId);
-		if (!isUnresolved(parent)) throw new Error(`parent task #${parentId} is ${parent.status}`);
+		if (!isUnresolved(parent)) throw new Error(`parent todo #${parentId} is ${parent.status}`);
 	}
 	if (promptId !== undefined && !ledger.prompts.some((prompt) => prompt.id === promptId)) {
 		throw new Error(`prompt P${promptId} does not exist`);
@@ -119,7 +120,7 @@ export function addTask(ledger: Ledger, title: string, parentId?: number, prompt
 
 function createTask(ledger: Ledger, title: string, parentId?: number): Task {
 	const trimmed = title.trim();
-	if (!trimmed) throw new Error("task title must not be empty");
+	if (!trimmed) throw new Error("todo title must not be empty");
 	const task: Task = { id: ledger.nextTaskId++, title: trimmed, status: "pending" };
 	if (parentId !== undefined) task.parentId = parentId;
 	ledger.tasks.push(task);
@@ -128,11 +129,11 @@ function createTask(ledger: Ledger, title: string, parentId?: number): Task {
 
 export function setStatus(ledger: Ledger, id: number, status: Exclude<TaskStatus, "superseded">): Task {
 	const task = findActiveTask(ledger, id);
-	if (task.status === "superseded") throw new Error(`task #${id} is superseded by #${task.replacedBy}`);
+	if (task.status === "superseded") throw new Error(`todo #${id} is superseded by #${task.replacedBy}`);
 	if (status === "completed") {
 		const open = ledger.tasks.filter((child) => child.parentId === id && isUnresolved(child) && !isArchived(child));
 		if (open.length > 0) {
-			throw new Error(`task #${id} has unresolved subtasks: ${open.map((child) => `#${child.id}`).join(", ")}`);
+			throw new Error(`todo #${id} has unresolved subtodos: ${open.map((child) => `#${child.id}`).join(", ")}`);
 		}
 	}
 	task.status = status;
@@ -141,7 +142,7 @@ export function setStatus(ledger: Ledger, id: number, status: Exclude<TaskStatus
 	return task;
 }
 
-/** Mark a task superseded and link it to an existing or new replacement task. */
+/** Mark a todo superseded and link it to an existing or new replacement todo. */
 export function supersede(
 	ledger: Ledger,
 	id: number,
@@ -149,14 +150,14 @@ export function supersede(
 	note?: string,
 ): Task {
 	const task = findActiveTask(ledger, id);
-	if (task.status === "superseded") throw new Error(`task #${id} is already superseded by #${task.replacedBy}`);
+	if (task.status === "superseded") throw new Error(`todo #${id} is already superseded by #${task.replacedBy}`);
 	let target: Task;
 	if ("id" in replacement) {
 		target = findActiveTask(ledger, replacement.id);
 		if (target.id === id || isDescendant(ledger, target.id, id)) {
-			throw new Error(`task #${target.id} cannot replace #${id} because it is the same task or its subtask`);
+			throw new Error(`todo #${target.id} cannot replace #${id} because it is the same todo or its subtodo`);
 		}
-		if (target.status === "superseded") throw new Error(`replacement task #${target.id} is superseded`);
+		if (target.status === "superseded") throw new Error(`replacement todo #${target.id} is superseded`);
 	} else {
 		target = createTask(ledger, replacement.title, task.parentId);
 	}
@@ -164,7 +165,7 @@ export function supersede(
 	task.replacedBy = target.id;
 	if (note?.trim()) task.note = note.trim();
 	else delete task.note;
-	// Unfinished subtasks now belong to the replacement. Archived subtasks move too and stay archived.
+	// Unfinished subtodos now belong to the replacement. Archived subtodos move too and stay archived.
 	for (const child of ledger.tasks) {
 		if (child.parentId === id && isUnresolved(child)) {
 			child.parentId = target.id;
@@ -175,30 +176,30 @@ export function supersede(
 	return target;
 }
 
-/** Hide a task and its subtasks. Statuses, links, and prompts do not change. */
+/** Hide a todo and its subtodos. Statuses, links, and prompts do not change. */
 export function archive(ledger: Ledger, id: number): Task[] {
 	findActiveTask(ledger, id);
-	// Subtasks archived before keep their own archive group.
+	// Subtodos archived before keep their own archive group.
 	const archived = subtree(ledger, id).filter((task) => !isArchived(task));
 	for (const task of archived) task.archivedWith = id;
 	return archived;
 }
 
-/** Show an archived task again, with the subtasks archived together with it. */
+/** Show an archived todo again, with the subtodos archived together with it. */
 export function restoreArchived(ledger: Ledger, id: number): Task[] {
 	const task = findTask(ledger, id);
-	if (!isArchived(task)) throw new Error(`task #${id} is not archived`);
-	if (task.archivedWith !== id) throw new Error(`task #${id} was archived with #${task.archivedWith}; restore #${task.archivedWith}`);
+	if (!isArchived(task)) throw new Error(`todo #${id} is not archived`);
+	if (task.archivedWith !== id) throw new Error(`todo #${id} was archived with #${task.archivedWith}; restore #${task.archivedWith}`);
 	const parent = ledger.tasks.find((candidate) => candidate.id === task.parentId);
-	if (parent && isArchived(parent)) throw new Error(`parent task #${parent.id} is archived; restore it first`);
+	if (parent && isArchived(parent)) throw new Error(`parent todo #${parent.id} is archived; restore it first`);
 	const restored = subtree(ledger, id).filter((candidate) => candidate.archivedWith === id);
 	for (const candidate of restored) delete candidate.archivedWith;
-	// A restored unresolved subtask reopens a parent completed in the meantime.
+	// A restored unresolved subtodo reopens a parent completed in the meantime.
 	for (const candidate of restored) reopenAncestors(ledger, candidate);
 	return restored;
 }
 
-/** Tasks in tree order with their depth. Archived tasks show only on request. */
+/** Todos in tree order with their depth. Archived todos show only on request. */
 export function treeRows(ledger: Ledger, showArchived = false): { task: Task; depth: number }[] {
 	const rows: { task: Task; depth: number }[] = [];
 	const tasks = showArchived ? ledger.tasks : ledger.tasks.filter((task) => !isArchived(task));
@@ -231,10 +232,10 @@ export function formatLedger(ledger: Ledger, showArchived = false): string {
 		for (const prompt of ledger.prompts) lines.push(`  P${prompt.id}: ${prompt.text.replace(/\s+/g, " ")}`);
 	}
 	const rows = treeRows(ledger, showArchived);
-	lines.push(rows.length > 0 ? "Tasks:" : "No tasks.");
+	lines.push(rows.length > 0 ? "Todos:" : "No todos.");
 	for (const { task, depth } of rows) lines.push(`  ${formatTask(task, depth)}`);
 	const hidden = ledger.tasks.length - rows.length;
-	if (hidden > 0) lines.push(`${hidden} archived task${hidden === 1 ? "" : "s"} hidden.`);
+	if (hidden > 0) lines.push(`${hidden} archived todo${hidden === 1 ? "" : "s"} hidden.`);
 	return lines.join("\n");
 }
 
@@ -326,7 +327,7 @@ class TaskListComponent {
 			this.showArchived = !this.showArchived;
 			this.clamp();
 		} else if (!task) {
-			// The remaining keys act on the selected task.
+			// The remaining keys act on the selected todo.
 		} else if (matchesKey(data, "space") || matchesKey(data, "enter")) {
 			const next = task.status === "completed" ? "pending" : "completed";
 			this.apply((ledger) => setStatus(ledger, task.id, next));
@@ -351,9 +352,9 @@ class TaskListComponent {
 	render(width: number): string[] {
 		const th = this.theme;
 		const rows = this.rows();
-		const title = this.showArchived ? " Tasks (with archived)" : " Tasks";
+		const title = this.showArchived ? " Todos (with archived)" : " Todos";
 		const lines = ["", truncateToWidth(th.fg("accent", th.bold(title)), width), ""];
-		if (rows.length === 0) lines.push(th.fg("dim", "  No tasks."));
+		if (rows.length === 0) lines.push(th.fg("dim", "  No todos."));
 		rows.forEach(({ task, depth }, index) => {
 			const color =
 				isArchived(task) || task.status === "completed" || task.status === "superseded" ? "dim" : "text";
@@ -364,7 +365,7 @@ class TaskListComponent {
 		if (this.message) lines.push(truncateToWidth(th.fg("error", `  ${this.message}`), width));
 		lines.push(truncateToWidth(th.fg("dim", "  up/down move  space done  x archive  u restore  v show archived"), width));
 		lines.push(truncateToWidth(th.fg("dim", "  i doing  p pending  r supersede"), width));
-		lines.push(truncateToWidth(th.fg("dim", "  a add  n subtask"), width));
+		lines.push(truncateToWidth(th.fg("dim", "  a add  n subtodo"), width));
 		lines.push(truncateToWidth(th.fg("dim", "  alt+t / esc close"), width));
 		return lines;
 	}
@@ -378,7 +379,7 @@ export default function (pi: ExtensionAPI) {
 		const active = ledger.tasks.filter((task) => !isArchived(task));
 		const total = active.filter((task) => task.status !== "superseded").length;
 		const done = active.filter((task) => task.status === "completed").length;
-		ctx.ui.setStatus("tasks", total > 0 ? `tasks ${done}/${total}` : undefined);
+		ctx.ui.setStatus("todos", total > 0 ? `todos ${done}/${total}` : undefined);
 	}
 
 	/** Apply a change to a copy and save a snapshot only when it succeeds. */
@@ -401,36 +402,37 @@ export default function (pi: ExtensionAPI) {
 	}
 
 	pi.registerTool({
-		name: "tasks",
-		label: "Tasks",
+		name: "todos",
+		label: "Todos",
 		description:
-			"Manage the session task ledger. User messages are recorded as P<n> without creating tasks. " +
-			"Parse each message and add tasks only for actionable work. " +
-			"Actions: list; add (title or titles, optional parentId for subtasks and promptId to link to a message); " +
+			"Manage session todos for progress on the current conversation, not Tatr repository issues. " +
+			"User messages are recorded as P<n> without creating todos. " +
+			"Add todos only for actionable work. " +
+			"Actions: list; add (title or titles, optional parentId for subtodos and promptId to link to a message); " +
 			"update (id, status: pending|in_progress|completed); " +
 			"supersede (id, replacementId or title for a new replacement, optional note); " +
-			"archive (id): hide a task and its subtasks without changing their status, only when the user asks; " +
-			"restore (id): show an archived task again with the subtasks archived with it. " +
-			"list hides archived tasks unless archived is true. " +
-			"A parent cannot be completed while its subtasks are unresolved. " +
-			"Tasks record progress only; they do not continue or retry an agent run.",
-		promptSnippet: "Track multi-step work and user requests in a task ledger",
+			"archive (id): hide a todo and its subtodos without changing their status, only when the user asks; " +
+			"restore (id): show an archived todo again with the subtodos archived with it. " +
+			"list hides archived todos unless archived is true. " +
+			"A parent cannot be completed while its subtodos are unresolved. " +
+			"Todos record progress only; they do not continue or retry an agent run.",
+		promptSnippet: "Track work in session todos, separate from Tatr repository issues",
 		promptGuidelines: [
-			"Before adding tasks, parse the user's message into actionable work. Add clear task titles and useful subtasks. Do not create tasks for chat or questions with no work. Optionally link tasks to a recorded P<n> using promptId.",
-			"Update tasks as work progresses. A subagent result alone does not complete a task. " +
-				"Complete or supersede tasks only when the work is done or replaced.",
+			"Before adding todos, parse the user's message into actionable work. Add clear todo titles and useful subtodos. Do not create todos for chat or questions with no work. Optionally link todos to a recorded P<n> using promptId.",
+			"Update todos as work progresses. A subagent result alone does not complete a todo. " +
+				"Complete or supersede todos only when the work is done or replaced. Todos have no priority; do not create a Tatr issue just to prioritize a todo.",
 		],
 		parameters: Type.Object({
 			action: StringEnum(["list", "add", "update", "supersede", "archive", "restore"] as const),
-			id: Type.Optional(Type.Integer({ description: "Task id for update, supersede, archive, or restore" })),
-			title: Type.Optional(Type.String({ description: "New task title for add, or replacement title for supersede" })),
-			titles: Type.Optional(Type.Array(Type.String(), { description: "Several new task titles for add" })),
-			parentId: Type.Optional(Type.Integer({ description: "Parent task id for new subtasks" })),
-			promptId: Type.Optional(Type.Integer({ description: "Recorded user message id to link to a new task" })),
+			id: Type.Optional(Type.Integer({ description: "Todo id for update, supersede, archive, or restore" })),
+			title: Type.Optional(Type.String({ description: "New todo title for add, or replacement title for supersede" })),
+			titles: Type.Optional(Type.Array(Type.String(), { description: "Several new todo titles for add" })),
+			parentId: Type.Optional(Type.Integer({ description: "Parent todo id for new subtodos" })),
+			promptId: Type.Optional(Type.Integer({ description: "Recorded user message id to link to a new todo" })),
 			status: Type.Optional(StringEnum(["pending", "in_progress", "completed"] as const)),
 			note: Type.Optional(Type.String({ description: "Supersession reason" })),
-			replacementId: Type.Optional(Type.Integer({ description: "Existing task that replaces the superseded task" })),
-			archived: Type.Optional(Type.Boolean({ description: "Include archived tasks in the result" })),
+			replacementId: Type.Optional(Type.Integer({ description: "Existing todo that replaces the superseded todo" })),
+			archived: Type.Optional(Type.Boolean({ description: "Include archived todos in the result" })),
 		}),
 		executionMode: "sequential",
 
@@ -453,7 +455,7 @@ export default function (pi: ExtensionAPI) {
 					const { id, status } = params;
 					change(ctx, (next) => {
 						setStatus(next, id, status);
-						summary = `Task #${id} is ${status}.`;
+						summary = `Todo #${id} is ${status}.`;
 					});
 					break;
 				}
@@ -466,7 +468,7 @@ export default function (pi: ExtensionAPI) {
 					const replacement = params.replacementId !== undefined ? { id: params.replacementId } : { title: params.title ?? "" };
 					change(ctx, (next) => {
 						const target = supersede(next, id, replacement, params.note);
-						summary = `Task #${id} is superseded by #${target.id}.`;
+						summary = `Todo #${id} is superseded by #${target.id}.`;
 					});
 					break;
 				}
@@ -488,12 +490,12 @@ export default function (pi: ExtensionAPI) {
 			const open = visible.filter(isUnresolved).length;
 			return {
 				content: [{ type: "text" as const, text }],
-				details: { summary: summary || `${visible.length} task${visible.length === 1 ? "" : "s"}, ${open} open` },
+				details: { summary: summary || `${visible.length} todo${visible.length === 1 ? "" : "s"}, ${open} open` },
 			};
 		},
 
 		renderCall(args, theme) {
-			let command = `tasks ${args.action}`;
+			let command = `todos ${args.action}`;
 			if (args.id !== undefined) command += ` #${args.id}`;
 			if (args.status) command += ` ${args.status}`;
 			if (args.parentId !== undefined) command += ` under #${args.parentId}`;
@@ -543,7 +545,7 @@ export default function (pi: ExtensionAPI) {
 			view = { selected: action.selected, showArchived: action.showArchived };
 			try {
 				if (action.kind === "add") {
-					const label = action.parentId === undefined ? "New task" : `New subtask of #${action.parentId}`;
+					const label = action.parentId === undefined ? "New todo" : `New subtodo of #${action.parentId}`;
 					const title = await ctx.ui.input(label);
 					if (title?.trim()) change(ctx, (next) => addTask(next, title, action.parentId));
 				} else {
@@ -557,18 +559,18 @@ export default function (pi: ExtensionAPI) {
 	}
 
 	pi.registerCommand("todos", {
-		description: "Show and edit the task ledger for this branch",
+		description: "Show and edit session todos for this branch",
 		handler: async (_args, ctx) => showTodos(ctx),
 	});
 	pi.registerShortcut(Key.alt("t"), {
-		description: "Open the task checklist",
+		description: "Open the session todo checklist",
 		handler: showTodos,
 	});
 
 	pi.on("session_start", async (_event, ctx) => restore(ctx));
 	pi.on("session_tree", async (_event, ctx) => restore(ctx));
 
-	// Record messages, not tasks: only the agent can decide what work a message
+	// Record messages, not todos: only the agent can decide what work a message
 	// requires. Extension commands never reach input; messages from other
 	// extensions (for example Telegram) do. Subagent wakes are custom messages
 	// and do not create prompts.
