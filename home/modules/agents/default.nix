@@ -17,7 +17,7 @@ in {
   imports = [./module.nix];
 
   services = {
-    kev.enable = true;
+    kev.enable = false;
     llama-cpp = {
       enable = true;
       host = "0.0.0.0";
