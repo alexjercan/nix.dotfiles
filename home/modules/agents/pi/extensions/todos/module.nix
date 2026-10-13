@@ -19,8 +19,9 @@ in {
     };
   };
 
-  # The extension records each user prompt as P<n>. The agent uses the `todos`
-  # tool to track work in this session. `/todos` or Alt+T opens a keyboard list:
+  # The extension records each user prompt as P<n>. The agent uses separate
+  # todo_list, todo_add, todo_add_subtodo, todo_update, and todo_delete tools
+  # to track work in this session. `/todos` or Alt+T opens a keyboard list:
   # arrows or j/k move, Space closes or reopens a todo, and x deletes a todo
   # with its subtodos. A replacement is a new todo. The ledger follows the
   # branch.

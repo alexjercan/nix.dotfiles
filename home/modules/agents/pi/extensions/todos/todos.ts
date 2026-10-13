@@ -1,5 +1,5 @@
 import { StringEnum, Type } from "@earendil-works/pi-ai";
-import type { ExtensionAPI, ExtensionContext, Theme } from "@earendil-works/pi-coding-agent";
+import type { AgentToolResult, ExtensionAPI, ExtensionContext, Theme } from "@earendil-works/pi-coding-agent";
 import { Key, matchesKey, Text, truncateToWidth } from "@earendil-works/pi-tui";
 
 export type TaskStatus = "open" | "closed";
@@ -9,8 +9,6 @@ export type Task = {
 	title: string;
 	status: TaskStatus;
 	parentId?: number;
-	/** User prompt that this task addresses, when supplied by the agent. */
-	promptId?: number;
 };
 
 export type Prompt = {
@@ -89,19 +87,15 @@ function reopenAncestors(ledger: Ledger, task: Task) {
 	}
 }
 
-export function addTask(ledger: Ledger, title: string, parentId?: number, promptId?: number): Task {
+export function addTask(ledger: Ledger, title: string, parentId?: number): Task {
 	if (parentId !== undefined) {
 		const parent = findTask(ledger, parentId);
 		if (!isOpen(parent)) throw new Error(`parent todo #${parentId} is ${parent.status}`);
-	}
-	if (promptId !== undefined && !ledger.prompts.some((prompt) => prompt.id === promptId)) {
-		throw new Error(`prompt P${promptId} does not exist`);
 	}
 	const trimmed = title.trim();
 	if (!trimmed) throw new Error("todo title must not be empty");
 	const task: Task = { id: ledger.nextTaskId++, title: trimmed, status: "open" };
 	if (parentId !== undefined) task.parentId = parentId;
-	if (promptId !== undefined) task.promptId = promptId;
 	ledger.tasks.push(task);
 	return task;
 }
@@ -142,8 +136,7 @@ export function treeRows(ledger: Ledger): { task: Task; depth: number }[] {
 }
 
 export function formatTask(task: Task, depth = 0): string {
-	const request = task.promptId !== undefined ? `P${task.promptId}: ` : "";
-	return `${"  ".repeat(depth)}${STATUS_MARK[task.status]} #${task.id} ${request}${task.title}`;
+	return `${"  ".repeat(depth)}${STATUS_MARK[task.status]} #${task.id} ${task.title}`;
 }
 
 export function formatLedger(ledger: Ledger): string {
@@ -311,99 +304,106 @@ export default function (pi: ExtensionAPI) {
 		updateStatus(ctx);
 	}
 
+	function result(summary = "") {
+		const listing = formatLedger(ledger);
+		const total = ledger.tasks.length;
+		const open = ledger.tasks.filter(isOpen).length;
+		return {
+			content: [{ type: "text" as const, text: summary ? `${summary}\n\n${listing}` : listing }],
+			details: { summary: summary || `${total} todo${total === 1 ? "" : "s"}, ${open} open` },
+		};
+	}
+
+	function renderResult(toolResult: AgentToolResult<{ summary: string }>, { expanded }: { expanded: boolean }, theme: Theme, context: { isError: boolean }) {
+		const text = toolResult.content.find((item) => item.type === "text");
+		const full = text?.type === "text" ? text.text : "";
+		const summary = toolResult.details?.summary ?? full.split("\n")[0] ?? "";
+		return new Text(expanded ? full : theme.fg(context.isError ? "error" : "muted", summary), 0, 0);
+	}
+
+	const promptGuidelines = [
+		"Before adding todos, parse the user's message into actionable work. Add clear todo titles and useful subtodos. Do not create todos for chat or questions with no work.",
+		"Update todos as work progresses. A subagent result alone does not close a todo. " +
+			"Close todos only when the work is done. Delete todos that are dropped or replaced, and add new todos for replacement work. " +
+			"Todos have no priority; do not create a Tatr issue just to prioritize a todo.",
+		"Open todos keep the run going. If you need something that will wake you later, or you cannot make progress, end your turn without tool calls. Do not close unfinished todos to stop.",
+	];
+	const shared = {
+		executionMode: "sequential" as const,
+		renderResult,
+	};
+
 	pi.registerTool({
-		name: "todos",
-		label: "Todos",
-		description:
-			"Manage session todos for progress on the current conversation, not Tatr repository issues. " +
-			"User messages are recorded as P<n> without creating todos. " +
-			"Add todos only for actionable work. " +
-			"Actions: list; add (title or titles, optional parentId for subtodos and promptId to link to a message); " +
-			"update (id, status: open|closed); " +
-			"delete (id): remove a todo and its subtodos for good. " +
-			"To replace a todo, delete it and add the new todo. " +
-			"A parent cannot be closed while its subtodos are open. " +
-			"While todos are open, the agent is told to continue when it stops.",
+		...shared,
 		promptSnippet: "Track work in session todos, separate from Tatr repository issues",
-		promptGuidelines: [
-			"Before adding todos, parse the user's message into actionable work. Add clear todo titles and useful subtodos. Do not create todos for chat or questions with no work. Optionally link todos to a recorded P<n> using promptId.",
-			"Update todos as work progresses. A subagent result alone does not close a todo. " +
-				"Close todos only when the work is done. Delete todos that are dropped or replaced, and add new todos for replacement work. " +
-				"Todos have no priority; do not create a Tatr issue just to prioritize a todo.",
-			"Open todos keep the run going. If you need something that will wake you later, or you cannot make progress, end your turn without tool calls. Do not close unfinished todos to stop.",
-		],
-		parameters: Type.Object({
-			action: StringEnum(["list", "add", "update", "delete"] as const),
-			id: Type.Optional(Type.Integer({ description: "Todo id for update or delete" })),
-			title: Type.Optional(Type.String({ description: "New todo title for add" })),
-			titles: Type.Optional(Type.Array(Type.String(), { description: "Several new todo titles for add" })),
-			parentId: Type.Optional(Type.Integer({ description: "Parent todo id for new subtodos" })),
-			promptId: Type.Optional(Type.Integer({ description: "Recorded user message id to link to a new todo" })),
-			status: Type.Optional(StringEnum(["open", "closed"] as const)),
-		}),
-		executionMode: "sequential",
+		promptGuidelines,
+		name: "todo_list",
+		label: "Todo list",
+		description: "List session todos and recorded user messages. These are not Tatr repository issues.",
+		parameters: Type.Object({}),
+		async execute() { return result(); },
+		renderCall(_args, theme) { return new Text(theme.fg("toolTitle", "todo_list"), 0, 0); },
+	});
 
-		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+	pi.registerTool({
+		...shared,
+		name: "todo_add",
+		label: "Add todo",
+		description: "Add one top-level session todo for actionable work. Use todo_add_subtodo for a child. User messages are recorded separately as P<n>.",
+		parameters: Type.Object({ title: Type.String({ description: "New todo title" }) }),
+		async execute(_id, { title }, _signal, _onUpdate, ctx) {
 			let summary = "";
-			switch (params.action) {
-				case "list":
-					break;
-				case "add": {
-					const titles = [...(params.titles ?? []), ...(params.title ? [params.title] : [])];
-					if (titles.length === 0) throw new Error("add needs title or titles");
-					change(ctx, (next) => {
-						const added = titles.map((title) => addTask(next, title, params.parentId, params.promptId));
-						summary = `Added ${added.map((task) => `#${task.id}`).join(", ")}.`;
-					});
-					break;
-				}
-				case "update": {
-					if (params.id === undefined || params.status === undefined) throw new Error("update needs id and status");
-					const { id, status } = params;
-					change(ctx, (next) => {
-						setStatus(next, id, status);
-						summary = `Todo #${id} is ${status}.`;
-					});
-					break;
-				}
-				case "delete": {
-					if (params.id === undefined) throw new Error("delete needs id");
-					const { id } = params;
-					change(ctx, (next) => {
-						const removed = deleteTask(next, id);
-						summary = `Deleted ${removed.map((task) => `#${task.id}`).join(", ")}.`;
-					});
-					break;
-				}
-			}
-			const listing = formatLedger(ledger);
-			const text = summary ? `${summary}\n\n${listing}` : listing;
-			const total = ledger.tasks.length;
-			const open = ledger.tasks.filter(isOpen).length;
-			return {
-				content: [{ type: "text" as const, text }],
-				details: { summary: summary || `${total} todo${total === 1 ? "" : "s"}, ${open} open` },
-			};
+			change(ctx, (next) => { summary = `Added #${addTask(next, title).id}.`; });
+			return result(summary);
 		},
+		renderCall({ title }, theme) { return new Text(theme.fg("toolTitle", `todo_add ${JSON.stringify(clip(title.replace(/\s+/g, " "), 72))}`), 0, 0); },
+	});
 
-		renderCall(args, theme) {
-			let command = `todos ${args.action}`;
-			if (args.id !== undefined) command += ` #${args.id}`;
-			if (args.status) command += ` ${args.status}`;
-			if (args.parentId !== undefined) command += ` under #${args.parentId}`;
-			if (args.promptId !== undefined) command += ` for P${args.promptId}`;
-			if (args.title) command += ` ${JSON.stringify(clip(args.title.replace(/\s+/g, " "), 72))}`;
-			if (args.titles) command += ` ${args.titles.length} titles`;
-			return new Text(theme.fg("toolTitle", command), 0, 0);
+	pi.registerTool({
+		...shared,
+		name: "todo_add_subtodo",
+		label: "Add subtodo",
+		description: "Add one child of an existing open session todo. parentId must be an existing todo id, not 0. Use todo_list to find ids.",
+		parameters: Type.Object({
+			parentId: Type.Integer({ minimum: 1, description: "Existing open parent todo id (at least 1)" }),
+			title: Type.String({ description: "New subtodo title" }),
+		}),
+		async execute(_id, { parentId, title }, _signal, _onUpdate, ctx) {
+			let summary = "";
+			change(ctx, (next) => { summary = `Added #${addTask(next, title, parentId).id}.`; });
+			return result(summary);
 		},
+		renderCall({ parentId, title }, theme) { return new Text(theme.fg("toolTitle", `todo_add_subtodo under #${parentId} ${JSON.stringify(clip(title.replace(/\s+/g, " "), 72))}`), 0, 0); },
+	});
 
-		renderResult(result, { expanded }, theme, context) {
-			const text = result.content.find((item) => item.type === "text");
-			const full = text?.type === "text" ? text.text : "";
-			const details = result.details as { summary?: string } | undefined;
-			const summary = details?.summary ?? full.split("\n")[0] ?? "";
-			return new Text(expanded ? full : theme.fg(context.isError ? "error" : "muted", summary), 0, 0);
+	pi.registerTool({
+		...shared,
+		name: "todo_update",
+		label: "Update todo",
+		description: "Set a session todo to open or closed. A parent cannot close while its subtodos are open. Close only when the work is done.",
+		parameters: Type.Object({
+			id: Type.Integer({ minimum: 1, description: "Existing todo id" }),
+			status: StringEnum(["open", "closed"] as const),
+		}),
+		async execute(_callId, { id, status }, _signal, _onUpdate, ctx) {
+			change(ctx, (next) => { setStatus(next, id, status); });
+			return result(`Todo #${id} is ${status}.`);
 		},
+		renderCall({ id, status }, theme) { return new Text(theme.fg("toolTitle", `todo_update #${id} ${status}`), 0, 0); },
+	});
+
+	pi.registerTool({
+		...shared,
+		name: "todo_delete",
+		label: "Delete todo",
+		description: "Remove a session todo and its subtodos for good. To replace one, delete it and add a new todo.",
+		parameters: Type.Object({ id: Type.Integer({ minimum: 1, description: "Existing todo id" }) }),
+		async execute(_callId, { id }, _signal, _onUpdate, ctx) {
+			let summary = "";
+			change(ctx, (next) => { summary = `Deleted ${deleteTask(next, id).map((task) => `#${task.id}`).join(", ")}.`; });
+			return result(summary);
+		},
+		renderCall({ id }, theme) { return new Text(theme.fg("toolTitle", `todo_delete #${id}`), 0, 0); },
 	});
 
 	async function showTodos(ctx: ExtensionContext) {
