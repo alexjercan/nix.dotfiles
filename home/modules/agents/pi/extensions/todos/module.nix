@@ -21,9 +21,14 @@ in {
 
   # The extension records each user prompt as P<n>. The agent uses the `todos`
   # tool to track work in this session. `/todos` or Alt+T opens a keyboard list:
-  # arrows or j/k move, Space toggles completion, x archives, u restores, and v
-  # shows archived todos. Nothing is deleted. The ledger follows the branch.
-  # Todos record progress; they never continue or retry an agent run.
+  # arrows or j/k move, Space closes or reopens a todo, and x deletes a todo
+  # with its subtodos. A replacement is a new todo. The ledger follows the
+  # branch.
+  # While todos are open, the agent is told to continue when it stops. The loop
+  # ends when all todos are closed, when the agent makes no tool calls after a
+  # nudge, or after 5 nudges with no todo change. It does not nudge while a
+  # message is queued. A later wake, for example from a finished job, starts a
+  # new activity with a fresh budget.
   # For local checks, run `npm install`,
   # `npm test`, and `npm run typecheck` in this directory.
   config = lib.mkIf cfg.enable {
