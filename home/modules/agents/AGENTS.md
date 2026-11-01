@@ -13,3 +13,4 @@ workflow, and conventions.
   a Tatr issue just to assign priority to a session todo.
 - Stop helper processes by recorded PID. Never use broad process matching.
 - Never kill a tmux server. Target only owned panes, windows, or sessions.
+- For commands give me `fish` based commands.
