@@ -2,6 +2,6 @@
   "name": "agents-nix-pi-extension-pi-ask-user",
   "private": true,
   "dependencies": {
-    "pi-ask-user": "0.15.0"
+    "pi-ask-user": "0.17.1"
   }
 }

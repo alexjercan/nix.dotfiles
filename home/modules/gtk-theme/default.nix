@@ -17,8 +17,8 @@
     };
 
     theme = {
-      name = "Graphite-Dark";
-      package = pkgs.graphite-gtk-theme;
+      name = "Adwaita-dark";
+      package = pkgs.gnome-themes-extra;
     };
 
     gtk3.extraConfig = {

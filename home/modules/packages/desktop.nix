@@ -7,7 +7,6 @@
     lxappearance
     networkmanager-openvpn
     networkmanagerapplet
-    nitrogen
     openvpn
     pcmanfm
     pw-volume

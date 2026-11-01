@@ -16,7 +16,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   src = fetchurl {
     url = "https://github.com/backnotprop/plannotator/releases/download/v${finalAttrs.version}/plannotator-linux-x64";
-    hash = "sha256-6tHSdH1uWFYRm8lCpufmyFH2czh6P1Z+cyKm2TseHLA=";
+    hash = "sha256-G6idzyoyE8aTEUSQtGPweThYh+l3aj/L0e5Eu5vgQ/Y=";
   };
 
   dontUnpack = true;

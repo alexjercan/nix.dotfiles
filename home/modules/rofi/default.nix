@@ -6,10 +6,10 @@
   programs.rofi = {
     enable = true;
     plugins = [pkgs.rofi-emoji];
-    font = "Iosevka 16";
-    terminal = "${pkgs.kitty}/bin/kitty";
-    cycle = true;
-    extraConfig = {
+    settings = {
+      font = "Iosevka 16";
+      terminal = "${pkgs.kitty}/bin/kitty";
+      cycle = true;
       modi = "window,drun,run,emoji,ssh";
       show-icons = true;
     };
