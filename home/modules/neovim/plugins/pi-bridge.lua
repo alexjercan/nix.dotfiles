@@ -75,16 +75,18 @@ local function progress()
   end
 end
 
-function M.send(message)
+function M.send(message, on_accepted, on_finished)
   local path, err = target_socket()
   if not path then
     vim.notify(err, vim.log.levels.ERROR)
+    if on_finished then on_finished() end
     return
   end
 
   local set_progress = progress()
   local pipe = vim.uv.new_pipe(false)
   local finished = false
+  local accepted = false
   local buffer = ""
   local id = tostring(vim.uv.hrtime())
   local function finish(error_message)
@@ -94,6 +96,7 @@ function M.send(message)
     finished = true
     pipe:close()
     set_progress()
+    if on_finished then on_finished() end
     if error_message then
       vim.notify(error_message, vim.log.levels.ERROR)
     else
@@ -128,6 +131,12 @@ function M.send(message)
             finish("Invalid Pi bridge response")
           elseif response.status == "running" or response.status == "queued" then
             set_progress(response.status)
+            if not accepted then
+              accepted = true
+              if on_accepted then
+                on_accepted()
+              end
+            end
           elseif response.status == "done" then
             finish()
           elseif response.status == "error" then

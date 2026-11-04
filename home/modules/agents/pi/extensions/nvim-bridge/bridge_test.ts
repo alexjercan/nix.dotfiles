@@ -54,7 +54,7 @@ test("routes user messages through the registered Pi pane and reports completion
     await handlers.get("session_start")!({}, ctx);
     const path = tmux("show-options", "-p", "-v", "-t", pane, "@pi_nvim_socket");
     assert.ok(existsSync(path));
-    assert.deepEqual(statuses.at(-1), { key: "nvim-bridge", text: "nvim-bridge: on" });
+    assert.deepEqual(statuses.at(-1), { key: "nvim-bridge", text: "nvim-bridge:on" });
 
     const first = connect(path);
     first.write(JSON.stringify({ id: "1", message: "Check file\n\n/tmp/code.lua:4" }) + "\n");
@@ -88,8 +88,15 @@ test("routes user messages through the registered Pi pane and reports completion
       vim.notify = function(message)
         if message == "Pi finished" then vim.g.pi_finished = true end
       end
-      require("pi_nvim_bridge").send("Review\\n\\n/tmp/example.lua:4")
+      local accepted, finished = 0, 0
+      require("pi_nvim_bridge").send("Review\\n\\n/tmp/example.lua:4", function()
+        accepted = accepted + 1
+      end, function()
+        finished = finished + 1
+      end)
       assert(vim.wait(3000, function() return vim.g.pi_finished == true end), "Pi did not finish")
+      assert(accepted == 1, "Acceptance must be reported exactly once")
+      assert(finished == 1, "Completion must be reported exactly once")
     `);
     try {
       const result = new Promise<{ code: number | null; output: string }>((resolveExit) => {

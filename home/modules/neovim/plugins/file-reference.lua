@@ -1,4 +1,31 @@
-local function prompt_pi(visual)
+local function netrw_locations(first, last)
+  if (vim.b.netrw_liststyle or vim.w.netrw_liststyle or vim.g.netrw_liststyle or 0) ~= 0 then
+    vim.notify("Use netrw thin listing (i) for Pi file comments", vim.log.levels.WARN)
+    return
+  end
+  local directory = vim.b.netrw_curdir
+  if not directory or directory:match("^%a+://") then
+    vim.notify("Pi comments require a local netrw directory", vim.log.levels.WARN)
+    return
+  end
+  local locations = {}
+  for _, line in ipairs(vim.api.nvim_buf_get_lines(0, first - 1, last, false)) do
+    if line ~= "" and not line:match('^"') then
+      local entry = line:gsub("\t %-%->.*$", ""):gsub("[@*]$", "")
+      local path = vim.fs.normalize(directory .. "/" .. entry)
+      if vim.uv.fs_stat(path) then
+        table.insert(locations, (vim.fn.isdirectory(path) == 1 and "Folder: " or "File: ") .. path)
+      end
+    end
+  end
+  if #locations == 0 then
+    vim.notify("No files or folders selected", vim.log.levels.WARN)
+    return
+  end
+  return table.concat(locations, "\n")
+end
+
+local function prompt_pi(visual, queued)
   local name = vim.api.nvim_buf_get_name(0)
   if name == "" then
     vim.notify("No filename to copy", vim.log.levels.WARN)
@@ -13,10 +40,19 @@ local function prompt_pi(visual)
     first, last = math.min(first, last), math.max(first, last)
   end
 
-  local reference = path .. ":" .. first
-  if visual then
-    reference = reference .. "-" .. last
+  local location
+  local reference
+  if vim.bo.filetype == "netrw" then
+    location = netrw_locations(first, last)
+    if not location then
+      return
+    end
+    reference = "Files/folders: " .. (last - first + 1)
+  else
+    location = name .. ":" .. first .. (visual and ("-" .. last) or "")
+    reference = path .. ":" .. first .. (visual and ("-" .. last) or "")
   end
+  local project = require("pi_queue").project()
   local buf = vim.api.nvim_create_buf(false, true)
   vim.bo[buf].buftype = "prompt"
   vim.fn.prompt_setprompt(buf, "Prompt: ")
@@ -30,7 +66,7 @@ local function prompt_pi(visual)
     row = math.floor((vim.o.lines - 3) / 2),
     style = "minimal",
     border = "rounded",
-    title = reference,
+    title = (queued and "Queue: " or "Send: ") .. reference,
     title_pos = "center",
   })
 
@@ -46,11 +82,12 @@ local function prompt_pi(visual)
     if text == "" then
       return
     end
-    local location = name .. ":" .. first
-    if visual then
-      location = location .. "-" .. last
+    local message = text .. "\n\n" .. location
+    if queued then
+      require("pi_queue").add(project, message)
+    else
+      require("pi_nvim_bridge").send(message)
     end
-    require("pi_nvim_bridge").send(text .. "\n\n" .. location)
   end)
 
   vim.keymap.set({ "i", "n" }, "<Esc>", close, { buffer = buf })
@@ -59,3 +96,6 @@ end
 
 vim.keymap.set("n", "<leader>n", function() prompt_pi(false) end, { desc = "Prompt Pi about file and line" })
 vim.keymap.set("x", "<leader>n", function() prompt_pi(true) end, { desc = "Prompt Pi about file and line range" })
+vim.keymap.set("n", "<leader>m", function() prompt_pi(false, true) end, { desc = "Queue Pi comment" })
+vim.keymap.set("x", "<leader>m", function() prompt_pi(true, true) end, { desc = "Queue Pi comment on selection" })
+vim.keymap.set("n", "<leader>q", function() require("pi_queue").open() end, { desc = "Open Pi comment queue" })
