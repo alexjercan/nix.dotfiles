@@ -116,6 +116,7 @@ in {
       # context rather than the model maximum.
       models = {
         providers = {
+          openai-codex.modelOverrides."gpt-6.1-sol".contextWindow = 250000;
           gemma =
             llamaCpp
             // {
