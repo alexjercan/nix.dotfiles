@@ -75,7 +75,7 @@ local function progress()
   end
 end
 
-function M.send(message, on_accepted, on_finished)
+local function request(message, kind, on_accepted, on_finished, on_answer)
   local path, err = target_socket()
   if not path then
     vim.notify(err, vim.log.levels.ERROR)
@@ -89,7 +89,7 @@ function M.send(message, on_accepted, on_finished)
   local accepted = false
   local buffer = ""
   local id = tostring(vim.uv.hrtime())
-  local function finish(error_message)
+  local function finish(error_message, answer)
     if finished then
       return
     end
@@ -99,6 +99,8 @@ function M.send(message, on_accepted, on_finished)
     if on_finished then on_finished() end
     if error_message then
       vim.notify(error_message, vim.log.levels.ERROR)
+    elseif on_answer then
+      on_answer(answer)
     else
       vim.notify("Pi finished")
     end
@@ -115,6 +117,10 @@ function M.send(message, on_accepted, on_finished)
         return
       end
       buffer = buffer .. chunk
+      if #buffer > 2 * 1024 * 1024 then
+        vim.schedule(function() finish("Pi response is too long") end)
+        return
+      end
       while true do
         local newline = buffer:find("\n", 1, true)
         if not newline then
@@ -138,7 +144,11 @@ function M.send(message, on_accepted, on_finished)
               end
             end
           elseif response.status == "done" then
-            finish()
+            if on_answer and type(response.answer) ~= "string" then
+              finish("Pi returned no BTW answer")
+            else
+              finish(nil, response.answer)
+            end
           elseif response.status == "error" then
             finish(response.error or "Pi rejected the prompt")
           else
@@ -147,8 +157,16 @@ function M.send(message, on_accepted, on_finished)
         end)
       end
     end)
-    pipe:write(vim.json.encode({ id = id, message = message }) .. "\n")
+    pipe:write(vim.json.encode({ id = id, message = message, kind = kind }) .. "\n")
   end)
+end
+
+function M.send(message, on_accepted, on_finished)
+  request(message, "prompt", on_accepted, on_finished)
+end
+
+function M.ask(message, on_answer)
+  request(message, "btw", nil, nil, on_answer)
 end
 
 return M

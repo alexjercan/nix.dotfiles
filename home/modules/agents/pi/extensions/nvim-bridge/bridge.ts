@@ -3,23 +3,25 @@ import { chmodSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { createServer, type Server, type Socket } from "node:net";
 import { join } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { AnswerBtw } from "./btw.ts";
 
 const OPTION = "@pi_nvim_socket";
 const MAX_MESSAGE = 64 * 1024;
 
-type Request = { id: string; message: string };
+type Request = { id: string; message: string; kind?: "prompt" | "btw" };
 
 function tmux(...args: string[]): string {
   return execFileSync("tmux", args, { encoding: "utf8" }).trim();
 }
 
-export default function (pi: ExtensionAPI) {
+export function createBridge(pi: ExtensionAPI, answerBtw: AnswerBtw) {
   let server: Server | undefined;
   let directory: string | undefined;
   let pane: string | undefined;
   let socketPath: string | undefined;
   const clients = new Set<Socket>();
   const pending = new Map<Socket, Request & { queued: boolean }>();
+  const questions = new Map<Socket, AbortController>();
 
   function reply(socket: Socket, data: object) {
     if (!socket.destroyed) socket.write(JSON.stringify(data) + "\n");
@@ -27,6 +29,8 @@ export default function (pi: ExtensionAPI) {
 
   async function stop(ctx: ExtensionContext) {
     if (ctx.mode === "tui") ctx.ui.setStatus("nvim-bridge", undefined);
+    for (const controller of questions.values()) controller.abort();
+    questions.clear();
     for (const socket of clients) socket.destroy();
     clients.clear();
     pending.clear();
@@ -66,10 +70,10 @@ export default function (pi: ExtensionAPI) {
         clients.add(socket);
         let buffer = "";
         socket.setTimeout(10000, () => {
-          if (!pending.has(socket)) socket.destroy();
+          if (!pending.has(socket) && !questions.has(socket)) socket.destroy();
         });
         socket.on("data", (chunk: Buffer) => {
-          if (pending.has(socket)) return;
+          if (pending.has(socket) || questions.has(socket)) return;
           buffer += chunk.toString("utf8");
           if (Buffer.byteLength(buffer) > MAX_MESSAGE) {
             reply(socket, { status: "error", error: "Message is too long" });
@@ -82,8 +86,27 @@ export default function (pi: ExtensionAPI) {
             const request = JSON.parse(buffer.slice(0, newline)) as Request;
             if (typeof request.id !== "string" || !request.id ||
                 typeof request.message !== "string" || !request.message.trim() ||
-                Buffer.byteLength(request.message) > MAX_MESSAGE) {
+                Buffer.byteLength(request.message) > MAX_MESSAGE ||
+                (request.kind !== undefined && request.kind !== "prompt" && request.kind !== "btw")) {
               throw new Error("Invalid prompt");
+            }
+            if (request.kind === "btw") {
+              if (questions.size >= 3) throw new Error("Too many BTW questions in progress");
+              const controller = new AbortController();
+              questions.set(socket, controller);
+              socket.setTimeout(0);
+              reply(socket, { id: request.id, status: "running" });
+              const timeout = setTimeout(() => controller.abort(new Error("BTW question timed out")), 120000);
+              void answerBtw(request.message, ctx, controller.signal).then((answer) => {
+                reply(socket, { id: request.id, status: "done", answer });
+              }).catch((error) => {
+                reply(socket, { id: request.id, status: "error", error: String(error) });
+              }).finally(() => {
+                clearTimeout(timeout);
+                questions.delete(socket);
+                socket.end();
+              });
+              return;
             }
             const busy = !ctx.isIdle();
             pi.sendUserMessage(request.message, busy ? { deliverAs: "followUp" } : undefined);
@@ -98,6 +121,8 @@ export default function (pi: ExtensionAPI) {
         socket.on("close", () => {
           clients.delete(socket);
           pending.delete(socket);
+          questions.get(socket)?.abort();
+          questions.delete(socket);
         });
         socket.on("error", () => {});
       });
@@ -136,4 +161,9 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.on("session_shutdown", async (_event, ctx) => stop(ctx));
+}
+
+export default async function (pi: ExtensionAPI) {
+  const { default: registerBtw } = await import("./btw.ts");
+  createBridge(pi, await registerBtw(pi));
 }

@@ -25,7 +25,7 @@ local function netrw_locations(first, last)
   return table.concat(locations, "\n")
 end
 
-local function prompt_pi(visual, queued)
+local function prompt_pi(visual, btw)
   local name = vim.api.nvim_buf_get_name(0)
   if name == "" then
     vim.notify("No filename to copy", vim.log.levels.WARN)
@@ -66,7 +66,7 @@ local function prompt_pi(visual, queued)
     row = math.floor((vim.o.lines - 3) / 2),
     style = "minimal",
     border = "rounded",
-    title = (queued and "Queue: " or "Send: ") .. reference,
+    title = (btw and "BTW: " or "Queue: ") .. reference,
     title_pos = "center",
   })
 
@@ -83,10 +83,10 @@ local function prompt_pi(visual, queued)
       return
     end
     local message = text .. "\n\n" .. location
-    if queued then
-      require("pi_queue").add(project, message)
+    if btw then
+      require("pi_btw").ask(message)
     else
-      require("pi_nvim_bridge").send(message)
+      require("pi_queue").add(project, message)
     end
   end)
 
@@ -94,8 +94,8 @@ local function prompt_pi(visual, queued)
   vim.cmd.startinsert()
 end
 
-vim.keymap.set("n", "<leader>n", function() prompt_pi(false) end, { desc = "Prompt Pi about file and line" })
-vim.keymap.set("x", "<leader>n", function() prompt_pi(true) end, { desc = "Prompt Pi about file and line range" })
-vim.keymap.set("n", "<leader>m", function() prompt_pi(false, true) end, { desc = "Queue Pi comment" })
-vim.keymap.set("x", "<leader>m", function() prompt_pi(true, true) end, { desc = "Queue Pi comment on selection" })
+vim.keymap.set("n", "<leader>n", function() prompt_pi(false) end, { desc = "Queue Pi comment" })
+vim.keymap.set("x", "<leader>n", function() prompt_pi(true) end, { desc = "Queue Pi comment on selection" })
 vim.keymap.set("n", "<leader>q", function() require("pi_queue").open() end, { desc = "Open Pi comment queue" })
+vim.keymap.set("n", "<leader>b", function() prompt_pi(false, true) end, { desc = "Ask Pi a read-only side question" })
+vim.keymap.set("x", "<leader>b", function() prompt_pi(true, true) end, { desc = "Ask Pi about selection (read-only)" })

@@ -5,7 +5,7 @@ import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { test } from "node:test";
-import bridge from "./bridge.ts";
+import { createBridge } from "./bridge.ts";
 
 function tmux(...args: string[]) {
   return execFileSync("tmux", args, { encoding: "utf8" }).trim();
@@ -50,7 +50,16 @@ test("routes user messages through the registered Pi pane and reports completion
   };
 
   try {
-    bridge(pi as never);
+    let resolveAnswer: (answer: string) => void;
+    let questionSignal: AbortSignal | undefined;
+    createBridge(pi as never, async (question, _ctx, signal) => {
+      if (question === "Why example?") return "A separate read-only answer.";
+      questionSignal = signal;
+      return new Promise<string>((resolveAnswerPromise, reject) => {
+        resolveAnswer = resolveAnswerPromise;
+        signal.addEventListener("abort", () => reject(new Error("Cancelled")), { once: true });
+      });
+    });
     await handlers.get("session_start")!({}, ctx);
     const path = tmux("show-options", "-p", "-v", "-t", pane, "@pi_nvim_socket");
     assert.ok(existsSync(path));
@@ -97,6 +106,10 @@ test("routes user messages through the registered Pi pane and reports completion
       assert(vim.wait(3000, function() return vim.g.pi_finished == true end), "Pi did not finish")
       assert(accepted == 1, "Acceptance must be reported exactly once")
       assert(finished == 1, "Completion must be reported exactly once")
+      local answer
+      require("pi_nvim_bridge").ask("Why example?", function(text) answer = text end)
+      assert(vim.wait(3000, function() return answer ~= nil end), "BTW answer did not arrive")
+      assert(answer == "A separate read-only answer.")
     `);
     try {
       const result = new Promise<{ code: number | null; output: string }>((resolveExit) => {
@@ -121,7 +134,23 @@ test("routes user messages through the registered Pi pane and reports completion
       rmSync(temp, { recursive: true, force: true });
     }
 
+    idle = false;
+    const question = connect(path);
+    question.write(JSON.stringify({ id: "btw", kind: "btw", message: "Why this code?" }) + "\n");
+    assert.deepEqual(await readLine(question), { id: "btw", status: "running" });
+    const answered = readLine(question);
+    handlers.get("agent_settled")!({});
+    assert.equal(calls.length, 3, "BTW must not enqueue or steer the main agent");
+    resolveAnswer!("Because it is read-only.");
+    assert.deepEqual(await answered, { id: "btw", status: "done", answer: "Because it is read-only." });
+    question.destroy();
+
+    const cancelled = connect(path);
+    cancelled.write(JSON.stringify({ id: "cancel", kind: "btw", message: "Another question" }) + "\n");
+    assert.deepEqual(await readLine(cancelled), { id: "cancel", status: "running" });
     await handlers.get("session_shutdown")!({}, ctx);
+    assert.equal(questionSignal!.aborted, true, "Shutdown must abort side work");
+    cancelled.destroy();
     assert.equal(existsSync(path), false);
     assert.deepEqual(statuses.at(-1), { key: "nvim-bridge", text: undefined });
   } finally {
