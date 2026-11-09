@@ -13,7 +13,7 @@ in {
     keymaps = [
       {
         mode = ["n" "x"];
-        key = "<leader>n";
+        key = "<leader>bn";
         action = ":BtwComment<CR>";
         options = {
           silent = true;
@@ -22,7 +22,7 @@ in {
       }
       {
         mode = ["n" "x"];
-        key = "<leader>b";
+        key = "<leader>bb";
         action = ":BtwAsk<CR>";
         options = {
           silent = true;
@@ -31,7 +31,7 @@ in {
       }
       {
         mode = "n";
-        key = "<leader>q";
+        key = "<leader>bq";
         action = "<cmd>BtwQueue<CR>";
         options = {
           silent = true;
@@ -40,7 +40,7 @@ in {
       }
       {
         mode = "n";
-        key = "<leader>f";
+        key = "<leader>bf";
         action = "<cmd>BtwFollowup<CR>";
         options = {
           silent = true;
@@ -49,7 +49,16 @@ in {
       }
       {
         mode = "n";
-        key = "<leader>p";
+        key = "<leader>bt";
+        action = "<cmd>BtwThreads<CR>";
+        options = {
+          silent = true;
+          desc = "List BTW threads";
+        };
+      }
+      {
+        mode = "n";
+        key = "<leader>bp";
         action = "<cmd>BtwSend<CR>";
         options = {
           silent = true;
