@@ -83,7 +83,7 @@ in {
         };
         plannotator.enable = true;
         todos.enable = true;
-        nvim-bridge.enable = true;
+        pi-btw.enable = true;
 
         voice-stt = {
           enable = true;

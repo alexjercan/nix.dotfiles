@@ -12,7 +12,7 @@
     ./copilot.nix
     ./_99.nix
     ./tatr.nix
-    ./file-reference.nix
+    ./pi-btw.nix
   ];
 
   programs.nixvim = {
