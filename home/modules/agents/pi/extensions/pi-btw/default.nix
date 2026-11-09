@@ -1,10 +1,10 @@
 {pkgs}: let
-  version = "0.1.1";
+  version = "0.1.2";
   source = pkgs.fetchFromGitHub {
     owner = "alexjercan";
     repo = "pi-btw";
     rev = "v${version}";
-    hash = "sha256-35HWCjOTN0GN3ad4e3O7YyEnc/0/7BHYeLzpTZ4Bgw8=";
+    hash = "sha256-BNeUILxEPDgMbCSIsvZO8QrrdUcU15FtsUdCAGSaw90=";
   };
   # Pi supplies the peer dependencies; this package has no runtime dependencies.
   extension =
