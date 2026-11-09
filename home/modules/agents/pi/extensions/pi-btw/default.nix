@@ -3,8 +3,8 @@
   source = pkgs.fetchFromGitHub {
     owner = "alexjercan";
     repo = "pi-btw";
-    rev = "7834f16fe47cc2f00d7cc8142473d3b39f5e2edd";
-    hash = "sha256-E+zKFgV11BbfXiVZ7HqXO+JcnEYhez68vmX/7aDKTiU=";
+    rev = "v${version}";
+    hash = "sha256-W8Ym6dEYzFj0+lF7NgNeZk9qgE8sFCGi67GJNtFWjEI=";
   };
   # Pi supplies the peer dependencies; this package has no runtime dependencies.
   extension =

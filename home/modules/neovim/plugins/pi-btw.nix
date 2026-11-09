@@ -1,17 +1,14 @@
 {pkgs, ...}: let
   # Share the Pi pin so both ends use the same bridge protocol.
   piBtw = import ../../agents/pi/extensions/pi-btw {inherit pkgs;};
-  plugin = pkgs.vimUtils.buildVimPlugin {
-    name = "pi-btw-nvim";
-    src = piBtw.source + "/nvim";
-  };
 in {
   programs.nixvim = {
-    extraPlugins = [plugin];
+    imports = [(piBtw.source + "/nix/nixvim.nix")];
 
-    extraConfigLua = ''
-      require("pi_btw").setup();
-    '';
+    plugins.pi-btw = {
+      enable = true;
+      settings = {};
+    };
 
     keymaps = [
       {
