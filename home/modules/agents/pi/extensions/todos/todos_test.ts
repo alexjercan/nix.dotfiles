@@ -26,7 +26,7 @@ type Command = { handler: (args: string, ctx: unknown) => Promise<void> };
 type Shortcut = { handler: (ctx: unknown) => Promise<void> };
 type ListComponent = { handleInput(data: string): void; render(width: number): string[] };
 
-const KEY = { up: "\x1b[A", down: "\x1b[B", space: " ", escape: "\x1b", altT: "\x1bt" };
+const KEY = { up: "\x1b[A", down: "\x1b[B", pageUp: "\x1b[5~", pageDown: "\x1b[6~", home: "\x1b[H", end: "\x1b[F", space: " ", escape: "\x1b", altT: "\x1bt" };
 
 function fakePi(branch: Entry[] = []) {
 	const handlers = new Map<string, Handler[]>();
@@ -201,6 +201,65 @@ test("/todos shows the checklist but not the recorded message history", async ()
 	assert.equal((screen.match(/Fix parser/g) ?? []).length, 1);
 	assert.doesNotMatch(screen, /Thanks for the help/);
 	assert.match(await pi.tool("todo_list"), /P2: Thanks for the help/, "history remains in the ledger");
+});
+
+test("limits the checklist to ten rows and scrolls with the selected todo", async () => {
+	const pi = fakePi();
+	await pi.emit("session_start", { reason: "startup" });
+	for (let id = 1; id <= 25; id++) await pi.tool("todo_add", { title: `Task ${id}` });
+	const snapshots = pi.branch.length;
+	pi.keys.push(["?", ...Array(10).fill(KEY.down), "k", "j", KEY.pageDown, KEY.pageDown, KEY.pageUp, KEY.home, KEY.end, KEY.escape]);
+	await pi.commands.get("todos")!.handler("", pi.ctx);
+	const screen = (index: number) => pi.screens[index]!.join("\n");
+	for (const lines of pi.screens) {
+		assert.equal(lines.filter((line) => /\[[ x]\] #/.test(line)).length, 10);
+		assert.equal(lines.filter((line) => line.startsWith("> ")).length, 1);
+	}
+	assert.match(screen(0), /Todos 1-10 of 25/);
+	assert.doesNotMatch(screen(0), /#11 Task/);
+	assert.match(screen(10), /Todos 2-11 of 25/);
+	assert.match(screen(10), /> \[ \] #11 Task 11/);
+	assert.match(screen(11), /> \[ \] #10 Task 10/);
+	assert.match(screen(13), /Todos 12-21 of 25/);
+	assert.match(screen(13), /> \[ \] #21 Task 21/);
+	assert.match(screen(14), /Todos 16-25 of 25/);
+	assert.match(screen(15), /Todos 6-15 of 25/);
+	assert.match(screen(15), /> \[ \] #15 Task 15/);
+	assert.match(screen(16), /Todos 1-10 of 25/);
+	assert.match(screen(16), /> \[ \] #1 Task 1/);
+	assert.match(screen(17), /> \[ \] #25 Task 25/);
+	assert.equal(pi.branch.length, snapshots, "scrolling must not change the ledger");
+	assert.match(await pi.tool("todo_list"), /#25 Task 25/, "model-facing listing is not truncated");
+});
+
+test("counts subtodos in the viewport and clamps it after deleting a subtree", async () => {
+	const pi = fakePi();
+	await pi.emit("session_start", { reason: "startup" });
+	await pi.tool("todo_add", { title: "Parent" });
+	for (let id = 2; id <= 15; id++) await pi.tool("todo_add_subtodo", { parentId: 1, title: `Child ${id}` });
+	await pi.tool("todo_add", { title: "Tail" });
+	pi.keys.push([KEY.end, KEY.home, "x", KEY.space, "x", KEY.up, KEY.pageDown, KEY.escape]);
+	await pi.commands.get("todos")!.handler("", pi.ctx);
+	assert.match(pi.screens[0]!.join("\n"), /Todos 7-16 of 16/);
+	assert.equal(pi.screens[0]!.filter((line) => /\[[ x]\] #/.test(line)).length, 10);
+	assert.match(pi.screens[0]!.join("\n"), /^    \[ \] #7 Child 7/m);
+	assert.match(pi.screens[2]!.join("\n"), /> \[ \] #16 Tail/);
+	assert.doesNotMatch(pi.screens[2]!.join("\n"), /of 16|Child|Parent/);
+	assert.match(pi.screens[3]!.join("\n"), /> \[x\] #16 Tail/);
+	assert.match(pi.screen().join("\n"), /No todos\./);
+	assert.deepEqual(pi.ledger().tasks, []);
+});
+
+test("keeps the scrolled viewport when returning from an add dialog", async () => {
+	const pi = fakePi();
+	await pi.emit("session_start", { reason: "startup" });
+	for (let id = 1; id <= 20; id++) await pi.tool("todo_add", { title: `Task ${id}` });
+	pi.keys.push([...Array(14).fill(KEY.down), "a"], ["?", KEY.escape]);
+	pi.inputs.push("New task");
+	await pi.commands.get("todos")!.handler("", pi.ctx);
+	assert.match(pi.screen().join("\n"), /Todos 6-15 of 21/);
+	assert.match(pi.screen().join("\n"), /> \[ \] #15 Task 15/);
+	assert.equal(pi.ledger().tasks.at(-1)!.title, "New task");
 });
 
 test("Alt+T opens the same checklist as /todos", async () => {

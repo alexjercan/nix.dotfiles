@@ -32,6 +32,7 @@ const CONTINUE_TYPE = "todos-continue";
 const MAX_STALLED_NUDGES = 5;
 const MAX_PROMPT_CHARS = 1000;
 const MAX_TITLE_CHARS = 120;
+const MAX_VISIBLE_TODOS = 10;
 const STATUS_MARK: Record<TaskStatus, string> = {
 	open: "[ ]",
 	closed: "[x]",
@@ -163,7 +164,7 @@ function isLedger(value: unknown): value is Ledger {
 }
 
 /** List position that stays the same while a prompt dialog is open. */
-type ListView = { selected: number };
+type ListView = { selected: number; offset: number };
 
 type ListAction = { kind: "close" } | ({ kind: "add"; parentId?: number } & ListView);
 
@@ -175,6 +176,7 @@ class TaskListComponent {
 	private readonly render_: () => void;
 	private readonly done: (action: ListAction) => void;
 	private selected: number;
+	private offset: number;
 	private message = "";
 
 	constructor(
@@ -188,6 +190,7 @@ class TaskListComponent {
 		this.ledger = ledger;
 		this.theme = theme;
 		this.selected = view.selected;
+		this.offset = view.offset;
 		this.change = change;
 		this.render_ = requestRender;
 		this.done = done;
@@ -198,12 +201,14 @@ class TaskListComponent {
 	}
 
 	private view(): ListView {
-		return { selected: this.selected };
+		return { selected: this.selected, offset: this.offset };
 	}
 
-	/** Keep the cursor on a row after rows disappear. */
-	private clamp() {
-		this.selected = Math.max(0, Math.min(this.selected, this.rows().length - 1));
+	/** Keep the selected row visible, including after rows disappear. */
+	private clamp(count = this.rows().length) {
+		this.selected = Math.max(0, Math.min(this.selected, count - 1));
+		this.offset = Math.max(0, Math.min(this.offset, this.selected, count - MAX_VISIBLE_TODOS));
+		this.offset = Math.max(this.offset, this.selected - MAX_VISIBLE_TODOS + 1);
 	}
 
 	private apply(mutate: (ledger: Ledger) => void) {
@@ -223,6 +228,12 @@ class TaskListComponent {
 			this.selected = Math.max(0, this.selected - 1);
 		} else if (matchesKey(data, "down") || matchesKey(data, "j")) {
 			this.selected = Math.min(rows.length - 1, this.selected + 1);
+		} else if (matchesKey(data, "pageUp")) {
+			this.selected = Math.max(0, this.selected - MAX_VISIBLE_TODOS);
+			this.offset = Math.max(0, this.offset - MAX_VISIBLE_TODOS);
+		} else if (matchesKey(data, "pageDown")) {
+			this.selected = Math.min(rows.length - 1, this.selected + MAX_VISIBLE_TODOS);
+			this.offset += MAX_VISIBLE_TODOS;
 		} else if (matchesKey(data, "home") || matchesKey(data, "g")) {
 			this.selected = 0;
 		} else if (matchesKey(data, "end") || matchesKey(data, "shift+g")) {
@@ -247,16 +258,19 @@ class TaskListComponent {
 	render(width: number): string[] {
 		const th = this.theme;
 		const rows = this.rows();
-		const lines = ["", truncateToWidth(th.fg("accent", th.bold(" Todos")), width), ""];
+		this.clamp(rows.length);
+		const end = Math.min(rows.length, this.offset + MAX_VISIBLE_TODOS);
+		const range = rows.length > MAX_VISIBLE_TODOS ? ` ${this.offset + 1}-${end} of ${rows.length}` : "";
+		const lines = ["", truncateToWidth(th.fg("accent", th.bold(` Todos${range}`)), width), ""];
 		if (rows.length === 0) lines.push(th.fg("dim", "  No todos."));
-		rows.forEach(({ task, depth }, index) => {
+		rows.slice(this.offset, end).forEach(({ task, depth }, index) => {
 			const color = isOpen(task) ? "text" : "dim";
-			const cursor = index === this.selected ? th.fg("accent", "> ") : "  ";
+			const cursor = index + this.offset === this.selected ? th.fg("accent", "> ") : "  ";
 			lines.push(truncateToWidth(cursor + th.fg(color, formatTask(task, depth)), width));
 		});
 		lines.push("");
 		if (this.message) lines.push(truncateToWidth(th.fg("error", `  ${this.message}`), width));
-		lines.push(truncateToWidth(th.fg("dim", "  up/down move  space close/reopen"), width));
+		lines.push(truncateToWidth(th.fg("dim", "  up/down move  pgup/pgdn scroll  space close/reopen"), width));
 		lines.push(truncateToWidth(th.fg("dim", "  a add  o subtodo  x delete"), width));
 		lines.push(truncateToWidth(th.fg("dim", "  alt+t / esc close"), width));
 		return lines;
@@ -411,7 +425,7 @@ export default function (pi: ExtensionAPI) {
 			ctx.ui.notify(formatLedger(ledger), "info");
 			return;
 		}
-		let view: ListView = { selected: 0 };
+		let view: ListView = { selected: 0, offset: 0 };
 		for (;;) {
 			const action = await ctx.ui.custom<ListAction>((tui, theme, _keybindings, done) =>
 				new TaskListComponent(
@@ -431,7 +445,7 @@ export default function (pi: ExtensionAPI) {
 				),
 			);
 			if (action.kind === "close") return;
-			view = { selected: action.selected };
+			view = { selected: action.selected, offset: action.offset };
 			try {
 				const label = action.parentId === undefined ? "New todo" : `New subtodo of #${action.parentId}`;
 				const title = await ctx.ui.input(label);

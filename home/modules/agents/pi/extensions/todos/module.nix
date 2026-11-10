@@ -22,9 +22,10 @@ in {
   # The extension records each user prompt as P<n>. The agent uses separate
   # todo_list, todo_add, todo_add_subtodo, todo_update, and todo_delete tools
   # to track work in this session. `/todos` or Alt+T opens a keyboard list:
-  # arrows or j/k move, Space closes or reopens a todo, and x deletes a todo
-  # with its subtodos. A replacement is a new todo. The ledger follows the
-  # branch.
+  # at most 10 todos are visible, including subtodos. Arrows or j/k scroll
+  # with the cursor. Page Up/Down scroll by a page; Home/End jump to the ends.
+  # Space closes or reopens a todo, and x deletes a todo with its subtodos.
+  # A replacement is a new todo. The ledger follows the branch.
   # While todos are open, the agent is told to continue when it stops. The loop
   # ends when all todos are closed, when the agent makes no tool calls after a
   # nudge, or after 5 nudges with no todo change. It does not nudge while a
