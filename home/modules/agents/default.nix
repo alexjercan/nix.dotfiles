@@ -83,7 +83,13 @@ in {
         };
         plannotator.enable = true;
         todos.enable = true;
-        pi-btw.enable = true;
+        pi-btw = {
+          enable = true;
+          settings = {
+            model = "openai-codex/gpt-6-luna";
+            thinkingLevel = "medium";
+          };
+        };
 
         voice-stt = {
           enable = true;

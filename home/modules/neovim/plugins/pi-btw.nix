@@ -14,55 +14,64 @@ in {
       {
         mode = ["n" "x"];
         key = "<leader>bn";
-        action = ":BtwComment<CR>";
+        action = ":BtwNote<CR>";
         options = {
           silent = true;
-          desc = "Queue Pi comment";
-        };
-      }
-      {
-        mode = ["n" "x"];
-        key = "<leader>bb";
-        action = ":BtwAsk<CR>";
-        options = {
-          silent = true;
-          desc = "Ask Pi side question";
+          desc = "BTW: annotate into prompt";
         };
       }
       {
         mode = "n";
-        key = "<leader>bq";
-        action = "<cmd>BtwQueue<CR>";
+        key = "<leader>be";
+        action = "<cmd>BtwPrompt<CR>";
         options = {
           silent = true;
-          desc = "Open Pi queue";
-        };
-      }
-      {
-        mode = "n";
-        key = "<leader>bf";
-        action = "<cmd>BtwFollowup<CR>";
-        options = {
-          silent = true;
-          desc = "Follow up in BTW thread";
-        };
-      }
-      {
-        mode = "n";
-        key = "<leader>bt";
-        action = "<cmd>BtwThreads<CR>";
-        options = {
-          silent = true;
-          desc = "List BTW threads";
+          desc = "BTW: edit prompt";
         };
       }
       {
         mode = "n";
         key = "<leader>bp";
-        action = "<cmd>BtwSend<CR>";
+        action = "<cmd>BtwSendRequest<CR>";
         options = {
           silent = true;
-          desc = "Send BTW buffer to Pi";
+          desc = "BTW: send prompt to Pi";
+        };
+      }
+      {
+        mode = "n";
+        key = "<leader>bt";
+        action = "<cmd>BtwSendThread<CR>";
+        options = {
+          silent = true;
+          desc = "BTW: send prompt to thread";
+        };
+      }
+      {
+        mode = "n";
+        key = "<leader>bo";
+        action = "<cmd>BtwThreads<CR>";
+        options = {
+          silent = true;
+          desc = "BTW: open a thread";
+        };
+      }
+      {
+        mode = ["n" "x"];
+        key = "<leader>bT";
+        action = ":BtwAsk<CR>";
+        options = {
+          silent = true;
+          desc = "BTW: quick ask thread";
+        };
+      }
+      {
+        mode = ["n" "x"];
+        key = "<leader>bP";
+        action = ":BtwRequest<CR>";
+        options = {
+          silent = true;
+          desc = "BTW: quick request to Pi";
         };
       }
     ];
