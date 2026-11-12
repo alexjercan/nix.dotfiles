@@ -48,7 +48,6 @@ in {
 
     agentBrowser.enable = true;
     claudeCode.enable = true;
-    codex.enable = true;
     opencode.enable = true;
 
     pi = {

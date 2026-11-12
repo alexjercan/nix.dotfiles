@@ -222,9 +222,9 @@ in {
         "${cfg.config.modifier}+Shift+r" = "mode resize";
         "Ctrl+Mod1+Delete" = "mode system";
 
-        "XF86AudioRaiseVolume" = "exec --no-startup-id pw-volume change +5.0%";
-        "XF86AudioLowerVolume" = "exec --no-startup-id pw-volume change -5.0%";
-        "XF86AudioMute" = "exec --no-startup-id pw-volume mute toggle";
+        "XF86AudioRaiseVolume" = "exec --no-startup-id ${pkgs.wireplumber}/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+";
+        "XF86AudioLowerVolume" = "exec --no-startup-id ${pkgs.wireplumber}/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-";
+        "XF86AudioMute" = "exec --no-startup-id ${pkgs.wireplumber}/bin/wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
       };
 
       modes = {

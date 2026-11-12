@@ -9,9 +9,9 @@
     networkmanagerapplet
     openvpn
     pcmanfm
-    pw-volume
     pwvucontrol
     scrot
     virt-manager
+    wireplumber
   ];
 }
