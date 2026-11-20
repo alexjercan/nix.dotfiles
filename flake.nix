@@ -22,6 +22,10 @@
       url = "github:nix-community/nixvim";
     };
 
+    stack-lang-c = {
+        url = "github:alexjercan/stack-lang-c";
+    };
+
     # Agent CLIs ship releases faster than nixpkgs packages them. The
     # `shared-nixpkgs` overlay adds a `pkgs.llm-agents` namespace instead of
     # shadowing the nixpkgs attributes, so both sets stay reachable.
