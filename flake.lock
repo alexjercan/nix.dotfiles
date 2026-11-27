@@ -341,11 +341,11 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1795430854,
-        "narHash": "sha256-nnNWWUKxkCkyjocJpUwUSxcFnJ8xpoBpd2FBkDdQqmc=",
+        "lastModified": 1795519709,
+        "narHash": "sha256-99Of+GtGLXYv5EG0/kbkuGtqmCXFyncpabsQKtoPVFE=",
         "owner": "alexjercan",
         "repo": "stack-lang-c",
-        "rev": "5e6a10dbb82b76a62a9c8911441011cf3dc86add",
+        "rev": "08a75c9f578cbb8a2bb5a2340a909a18771b65c0",
         "type": "github"
       },
       "original": {

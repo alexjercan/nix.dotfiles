@@ -1,5 +1,6 @@
 // Runs the todos extension against a minimal fake Pi runtime.
 // Run with: npm test
+import { validateToolArguments } from "@earendil-works/pi-ai";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -7,7 +8,7 @@ import extension, { type Ledger } from "./todos.ts";
 
 type Handler = (event: unknown, ctx: unknown) => unknown;
 type Entry = { id: string; type: string; customType?: string; data?: unknown };
-type ToolResult = { content: { text: string }[]; details?: { summary: string } };
+type ToolResult = { content: { type?: string; text: string }[]; details?: { summary: string } };
 type Rendered = { render(width: number): string[] };
 type Tool = {
 	description: string;
@@ -31,6 +32,7 @@ const KEY = { up: "\x1b[A", down: "\x1b[B", pageUp: "\x1b[5~", pageDown: "\x1b[6
 function fakePi(branch: Entry[] = []) {
 	const handlers = new Map<string, Handler[]>();
 	const tools = new Map<string, Tool>();
+	const renderers = new Map<string, (message: { content: string }, options: { expanded: boolean; outputPad: number; keyHint: (...args: string[]) => string }, theme: unknown) => Rendered>();
 	const commands = new Map<string, Command>();
 	const shortcuts = new Map<string, Shortcut>();
 	const notes: { message: string; type?: string }[] = [];
@@ -48,6 +50,12 @@ function fakePi(branch: Entry[] = []) {
 		},
 		registerTool(tool: Tool & { name: string }) {
 			tools.set(tool.name, tool);
+		},
+		registerEntryRenderer(name: string, renderer: typeof renderers extends Map<string, infer R> ? R : never) {
+			renderers.set(name, renderer);
+		},
+		registerMessageRenderer(name: string, renderer: typeof renderers extends Map<string, infer R> ? R : never) {
+			renderers.set(name, renderer);
 		},
 		registerCommand(name: string, command: Command) {
 			commands.set(name, command);
@@ -116,7 +124,7 @@ function fakePi(branch: Entry[] = []) {
 		return snapshots.at(-1)?.data as Ledger;
 	}
 
-	return { branch, notes, widgets, statuses, inputs, keys, ctx, emit, tool, tools, ledger, handlers, commands, shortcuts, screen: () => screens.at(-1) ?? [], screens };
+	return { branch, renderers, notes, widgets, statuses, inputs, keys, ctx, emit, tool, tools, ledger, handlers, commands, shortcuts, screen: () => screens.at(-1) ?? [], screens };
 }
 
 test("records messages before the agent selects actionable todos", async () => {
@@ -140,7 +148,7 @@ test("records messages before the agent selects actionable todos", async () => {
 	assert.equal(pi.ledger().tasks.length, 3);
 	await pi.tool("todo_update", {id: 3, status: "closed" });
 	await pi.tool("todo_update", {id: 1, status: "closed" });
-	const listing = await pi.tool("todo_list");
+	const listing = await pi.tool("todo_list", { includeRequests: true });
 	assert.match(listing, /P2: Thanks/);
 	assert.match(listing, /\[x\] #1 Fix parser/);
 	assert.match(listing, /\[ \] #2 Update docs/);
@@ -154,13 +162,13 @@ test("records messages before the agent selects actionable todos", async () => {
 
 test("has only open and closed todos, without waiting, blocked, or resume behavior", async () => {
 	const pi = fakePi();
-	for (const event of ["message_start", "before_agent_start"]) {
+	for (const event of ["message_start"]) {
 		assert.equal(pi.handlers.has(event), false, `no ${event} handler`);
 	}
 	const update = pi.tools.get("todo_update")!;
 	assert.deepEqual(update.parameters.properties.status!.enum, ["open", "closed"]);
-	assert.deepEqual([...pi.tools.keys()], ["todo_list", "todo_add", "todo_add_subtodo", "todo_update", "todo_delete"]);
-	assert.doesNotMatch(`${update.description} ${pi.tools.get("todo_list")!.promptGuidelines.join(" ")}`, /waiting|blocked/);
+	assert.deepEqual([...pi.tools.keys()], ["todo_list", "todo_plan", "todo_stop", "todo_add", "todo_add_subtodo", "todo_update", "todo_delete"]);
+	assert.match(pi.tools.get("todo_list")!.promptGuidelines.join(" "), /todo_stop/);
 	assert.match(pi.tools.get("todo_list")!.description, /not Tatr repository issues/);
 	const add = pi.tools.get("todo_add")!.parameters;
 	const subtodo = pi.tools.get("todo_add_subtodo")!.parameters;
@@ -200,7 +208,7 @@ test("/todos shows the checklist but not the recorded message history", async ()
 	assert.match(screen, /> \[ \] #1 Fix parser/);
 	assert.equal((screen.match(/Fix parser/g) ?? []).length, 1);
 	assert.doesNotMatch(screen, /Thanks for the help/);
-	assert.match(await pi.tool("todo_list"), /P2: Thanks for the help/, "history remains in the ledger");
+	assert.match(await pi.tool("todo_list", { includeRequests: true }), /P2: Thanks for the help/, "history remains in the ledger");
 });
 
 test("limits the checklist to ten rows and scrolls with the selected todo", async () => {
@@ -324,7 +332,8 @@ test("deletes a todo with its subtodos for good", async () => {
 
 	const deleted = await pi.tool("todo_delete", {id: 1 });
 	assert.match(deleted, /^Deleted #1, #2, #3\./);
-	assert.match(deleted, /P1: Old request/, "prompt history stays");
+	assert.doesNotMatch(deleted, /P1:/, "mutations omit request history");
+	assert.match(await pi.tool("todo_list", { includeRequests: true }), /P1: Old request/, "prompt history stays available");
 	assert.deepEqual(pi.ledger().tasks.map((task) => task.id), [4]);
 	assert.equal(pi.statuses.get("todos"), "todos 0/1");
 
@@ -446,6 +455,91 @@ test("renders compact todo calls and results, with the full ledger on expansion"
 		"Todo not found");
 });
 
+test("batch plans validate nested schemas, preserve hierarchy, and commit atomically", async () => {
+	const pi = fakePi();
+	await pi.emit("session_start");
+	await pi.tool("todo_add", { title: "Existing" });
+	const tasks = [{ title: "Feature", children: [{ title: "Inspect" }, { title: "Implement", children: [{ title: "Verify" }] }] }];
+	const tool = pi.tools.get("todo_plan")!;
+	const validate = (args: unknown) => validateToolArguments({ name: "todo_plan", description: tool.description, parameters: tool.parameters } as never, { type: "toolCall", id: "plan", name: "todo_plan", arguments: args } as never);
+	assert.deepEqual(validate({ tasks }), { tasks });
+	assert.throws(() => validate({ tasks: [{ title: "Parent", children: [{ title: 5 }] }] }));
+	assert.throws(() => validate({ tasks: [] }));
+	const snapshots = pi.branch.length;
+	const result = await pi.tool("todo_plan", { tasks });
+	assert.equal(pi.branch.length, snapshots + 1);
+	assert.doesNotMatch(result, /Existing/);
+	assert.match(result, /  \[ \] #2 Feature\n    \[ \] #3 Inspect\n    \[ \] #4 Implement\n      \[ \] #5 Verify/);
+	assert.match(await pi.tool("todo_list"), /#1 Existing/);
+	const saved = structuredClone(pi.ledger());
+	await assert.rejects(pi.tool("todo_plan", { tasks: [{ title: "Valid" }, { title: " " }] }), /empty/);
+	assert.deepEqual(pi.ledger(), saved, "no partial plan or consumed IDs");
+	await assert.rejects(pi.tool("todo_plan", { parentId: 999, tasks }), /does not exist/);
+	await pi.tool("todo_update", { id: 1, status: "closed" });
+	await assert.rejects(pi.tool("todo_plan", { parentId: 1, tasks }), /closed/);
+	await pi.tool("todo_plan", { parentId: 4, tasks: [{ title: "Document" }] });
+	assert.equal(pi.ledger().tasks.at(-1)!.parentId, 4);
+	const restored = fakePi(structuredClone(pi.branch));
+	await restored.emit("session_start");
+	assert.equal(await restored.tool("todo_list"), await pi.tool("todo_list"));
+});
+
+test("continuation reviews are hidden, retain hierarchy, and stop silently", async () => {
+	const pi = fakePi();
+	await pi.tool("todo_plan", { tasks: [{ title: "Parent", children: [{ title: "Child" }] }] });
+	const nudge = await pi.emit("agent_before_settle", boundary());
+	const message = (nudge!.entries as { content: string; display: boolean }[]).at(-1)!;
+	assert.equal(message.display, false);
+	assert.match(message.content, /end without another response/);
+	assert.match(message.content, /First decide/);
+	assert.match(message.content, /call todo_stop/);
+	assert.match(message.content, /\[ \] #1 Parent\n  \[ \] #2 Child/);
+	const theme = { fg: (_color: string, text: string) => text, bg: (_color: string, text: string) => text, bold: (text: string) => text };
+	const renderer = pi.renderers.get("todos-continue")!;
+	const render = (expanded: boolean, width: number) => renderer(message, { expanded, outputPad: 1, keyHint: () => "expand" }, theme).render(width).join("\n");
+	assert.equal(render(false, 80), "");
+	assert.equal(render(true, 100), "");
+	assert.doesNotThrow(() => render(true, 20));
+	await assert.rejects(pi.tool("todo_stop", { reason: " " }), /empty/);
+	const stopResult = await pi.tool("todo_stop", { reason: "Need user approval" });
+	assert.doesNotMatch(stopResult, /No todos/);
+	const stop = pi.tools.get("todo_stop")!;
+	assert.deepEqual(stop.renderCall({}, theme).render(80), []);
+	assert.deepEqual(stop.renderResult({ content: [{ text: stopResult }] }, { expanded: true }, theme, { isError: false }).render(80), []);
+	assert.match(stop.renderResult({ content: [{ type: "text", text: "Invalid reason" }] }, { expanded: false }, theme, { isError: true }).render(80).join("\n"), /Invalid reason/);
+	assert.equal(pi.branch.some((entry) => entry.customType === "todos-resume"), false);
+	assert.equal(await pi.emit("agent_before_settle", boundary()), undefined);
+	await pi.emit("before_agent_start", { messageType: "custom" });
+	assert.equal((await pi.emit("agent_before_settle", boundary()))?.continue, true, "wake re-enables reviews");
+});
+
+test("resuming card appears only on actual work, once per review, and survives reload", async () => {
+	const pi = fakePi();
+	await pi.tool("todo_add", { title: "Work" });
+	const cards = () => pi.branch.filter((entry) => entry.customType === "todos-resume");
+	await pi.emit("tool_execution_start", { toolName: "read" });
+	assert.equal(cards().length, 0, "normal work is not continuation");
+	await pi.emit("agent_before_settle", boundary());
+	await pi.emit("tool_execution_start", { toolName: "todo_list" });
+	assert.equal(cards().length, 0);
+	await pi.emit("tool_execution_start", { toolName: "read" });
+	await pi.emit("tool_execution_start", { toolName: "todo_update" });
+	assert.equal(cards().length, 1);
+	const theme = { fg: (_c: string, text: string) => text, bg: (_c: string, text: string) => text, bold: (text: string) => text };
+	const reloaded = fakePi(structuredClone(pi.branch));
+	await reloaded.emit("session_start");
+	const card = reloaded.renderers.get("todos-resume")!({ content: "" }, { expanded: false, outputPad: 1, keyHint: () => "" }, theme);
+	assert.match(card.render(80).join("\n"), /Resuming todo work/);
+	await pi.emit("agent_before_settle", boundary());
+	await pi.emit("before_agent_start");
+	await pi.emit("tool_execution_start", { toolName: "read" });
+	assert.equal(cards().length, 1, "new user requests or subagent wakes discard stale review state");
+	await pi.emit("agent_before_settle", boundary());
+	await pi.tool("todo_stop", { reason: "Wait for subagent" });
+	await pi.emit("tool_execution_start", { toolName: "read" });
+	assert.equal(cards().length, 1, "stop clears pending announcement");
+});
+
 function boundary(fields: Record<string, unknown> = {}) {
 	return { outcome: "completed", continue: false, entries: [], context: { pendingMessages: [] }, ...fields };
 }
@@ -461,7 +555,7 @@ test("continues at settlement while todos are open", async () => {
 	assert.equal(nudge?.continue, true);
 	const entries = nudge?.entries as { customType: string; content: string }[];
 	assert.equal(entries.at(-1)!.customType, "todos-continue");
-	assert.match(entries.at(-1)!.content, /#1 Fix parser\n#2 Update docs/);
+	assert.match(entries.at(-1)!.content, /#1 Fix parser\n\[ \] #2 Update docs/);
 
 	await pi.emit("tool_call", { toolName: "bash" });
 	await pi.tool("todo_update", {id: 1, status: "closed" });
@@ -482,12 +576,15 @@ test("does not nudge after an abort, an error, an existing continuation, or a qu
 	assert.equal(await pi.emit("agent_before_settle", boundary({ context: { pendingMessages: [{}] } })), undefined);
 });
 
-test("stops when the agent makes no tool calls after a nudge, and resets for the next activity", async () => {
+test("stops explicitly and resets for the next activity", async () => {
 	const pi = fakePi();
 	await pi.emit("session_start", { reason: "startup" });
 	await pi.tool("todo_add", {title: "Wait for the job" });
 	assert.equal((await pi.emit("agent_before_settle", boundary()))?.continue, true);
-	assert.equal(await pi.emit("agent_before_settle", boundary()), undefined, "an idle turn ends the loop");
+	await pi.tool("todo_stop", { reason: "Waiting for the job" });
+	await pi.emit("tool_call", { toolName: "todo_list" });
+	assert.equal(await pi.emit("agent_before_settle", boundary()), undefined, "stop survives subsequent inspection");
+	assert.equal(pi.ledger().tasks[0]!.status, "open");
 	await pi.emit("agent_settled");
 
 	// A wake from a finished job starts a new activity with a fresh budget.
